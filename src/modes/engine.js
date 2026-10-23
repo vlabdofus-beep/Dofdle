@@ -6,7 +6,7 @@ import { createAutocomplete } from '../ui/autocomplete.js';
 import { loadDataset } from '../core/cache.js';
 import { todayKey, dayNumber, pickDaily, msUntilNextDaily } from '../core/daily.js';
 import { loadGame, saveGame, recordWin, recordEndlessWin, loadStats, currentStreak } from '../core/storage.js';
-import { nextMode } from '../core/modes.js';
+import { nextMode, modeInfo, harvestedToday, MODE_ORDER } from '../core/modes.js';
 import { ELEMENTS } from '../data/elements.js';
 import { shareResult } from '../ui/share.js';
 import { showStats } from '../ui/stats.js';
@@ -55,16 +55,25 @@ export function winCard({ cfg, endless, date, tries, reveal, onShare, onEndless 
   tick();
   const timer = setInterval(() => { if (!countdown.isConnected) clearInterval(timer); else tick(); }, 1000);
   const next = nextMode(cfg.id);
+  const info = modeInfo(cfg.id);
+  const count = harvestedToday(date).length;
+  const streak = currentStreak(loadStats(cfg.id), date);
   return h('div.panel.win-card',
-    h('div.win-title', '🎉 ', endless ? 'Bien joué !' : 'Défi du jour réussi !'),
+    h('div.win-head',
+      h('span.egg.egg-win', { 'data-mode': cfg.id, 'aria-hidden': 'true' }),
+      h('div',
+        h('div.win-title', endless ? 'Bien joué !' : `Dofus ${info.dofus} récolté`),
+        h('p.win-tries', `Trouvé en ${tries} essai${tries > 1 ? 's' : ''}.`,
+          !endless ? ` Série : ${streak} jour${streak > 1 ? 's' : ''}.` : ''))),
     reveal,
-    h('p.win-tries', `Trouvé en ${tries} essai${tries > 1 ? 's' : ''}`, !endless ? ` · série actuelle : ${currentStreak(loadStats(cfg.id), date)} 🔥` : ''),
     h('div.win-actions',
+      h('a.btn.primary.next-link', { href: `#${next.id}` }, next.done ? `Rejouer en ${next.label}` : `Défi suivant : ${next.label}`),
       !endless ? h('button.btn', { onclick: onShare }, 'Partager') : null,
-      h('a.btn.primary.next-link', { href: `#${next.id}` }, next.done ? `Mode ${next.label} →` : `Jeu suivant : ${next.label} →`),
       h('button.btn', { onclick: onEndless }, endless ? 'Nouvelle partie' : 'Jouer en illimité'),
       !endless ? h('button.btn', { onclick: () => showStats(cfg) }, 'Statistiques') : null),
-    !endless ? h('p.next-daily', next.done ? 'Tous les défis du jour sont réussis ! ' : '', 'Prochain défi dans ', countdown) : null);
+    !endless ? h('p.next-daily',
+      count >= MODE_ORDER.length ? 'Les six Dofus du jour sont récoltés. ' : `${count} Dofus sur ${MODE_ORDER.length} récoltés aujourd'hui. `,
+      'Nouveaux défis dans ', countdown) : null);
 }
 
 /**

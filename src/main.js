@@ -3,6 +3,8 @@ import { h, clear, toast } from './ui/dom.js';
 import { openModal } from './ui/modal.js';
 import { showStats } from './ui/stats.js';
 import { clearCache } from './core/cache.js';
+import { harvestedToday, modeInfo } from './core/modes.js';
+import { todayKey } from './core/daily.js';
 import { runGuessMode } from './modes/engine.js';
 import { monsterMode } from './modes/monster.js';
 import { spellMode } from './modes/spell.js';
@@ -10,7 +12,6 @@ import { itemMode } from './modes/item.js';
 import { mapMode, runMapMode } from './modes/map.js';
 import { criMode } from './modes/cri.js';
 import { chiffreMode, runChiffreMode } from './modes/chiffre.js';
-import { semantixMode, runSemantixMode } from './modes/semantix.js';
 
 // Pour ajouter un mode (ex. Bellaphones) : créer sa config + son dataset et l'ajouter ici.
 const MODES = [
@@ -20,7 +21,6 @@ const MODES = [
   { ...itemMode, run: (root, o) => runGuessMode(root, itemMode, o) },
   { ...criMode, run: (root, o) => runGuessMode(root, criMode, o) },
   { ...chiffreMode, run: (root, o) => runChiffreMode(root, o) },
-  { ...semantixMode, run: (root, o) => runSemantixMode(root, o) },
 ];
 
 const app = document.getElementById('app');
@@ -33,22 +33,48 @@ function currentMode() {
   return MODES.find((m) => m.id === id) || MODES[0];
 }
 
+// Mois du calendrier du Krosmoz (Javian = janvier … Descendre = décembre)
+const KROSMOZ_MONTHS = ['Javian', 'Flovor', 'Martalo', 'Aperirel', 'Maisial', 'Juinssidor', 'Joullier', 'Fraouctor', 'Septange', 'Octolliard', 'Novamaire', 'Descendre'];
+const WEEKDAYS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+
+function renderDate() {
+  const [y, m, d] = todayKey().split('-').map(Number);
+  const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  document.getElementById('krosmoz-date').textContent = `${WEEKDAYS[wd]} ${d} ${KROSMOZ_MONTHS[m - 1]}`;
+}
+
 function renderNav(active) {
+  const done = new Set(harvestedToday());
   clear(nav);
   for (const m of MODES) {
-    nav.append(h('a.mode-tab', { href: `#${m.id}`, class: m.id === active.id ? 'active' : undefined, 'aria-current': m.id === active.id ? 'page' : undefined },
-      h('img', { src: m.icon, alt: '' }), h('span', m.label)));
+    const won = done.has(m.id);
+    const current = m.id === active.id;
+    nav.append(h('a.mode-tab', {
+      href: `#${m.id}`,
+      class: [current ? 'active' : '', won ? 'won' : ''].join(' ').trim() || undefined,
+      'aria-current': current ? 'page' : undefined,
+      title: `${m.label} : Dofus ${modeInfo(m.id).dofus}${won ? ', récolté aujourd\'hui' : ''}`,
+    },
+    h('span.egg', { 'data-mode': m.id }, h('img', { src: m.icon, alt: '' })),
+    h('span.mode-label', m.label)));
   }
+  const n = done.size;
+  document.getElementById('rack-count').textContent = n === MODES.length
+    ? 'Les six Dofus du jour sont récoltés.'
+    : n ? `${n} Dofus sur ${MODES.length} récoltés aujourd'hui` : 'Réussis un défi pour récolter son Dofus';
 }
 
 function route() {
   const mode = currentMode();
   renderNav(mode);
+  renderDate();
+  document.body.dataset.mode = mode.id;
   document.title = `Dofusle — ${mode.label}`;
   mode.run(app, { endless: location.hash.endsWith('/illimite') });
 }
 
 window.addEventListener('hashchange', route);
+window.addEventListener('dofusle:progress', () => renderNav(currentMode()));
 
 document.getElementById('btn-help').addEventListener('click', () => {
   const mode = currentMode();
@@ -60,8 +86,7 @@ document.getElementById('btn-help').addEventListener('click', () => {
       h('li', h('strong', 'Carte : '), 'un bout de map. Clique sur la mini-carte, tape des coordonnées [X, Y] ou une zone : on t\'indique la distance en nombre de maps.'),
       h('li', h('strong', 'Objet : '), 'retrouve un équipement à partir de ses effets ou de son icône floutée.'),
       h('li', h('strong', 'Cri : '), 'écoute le cri d\'un monstre (tiré des fichiers du jeu) et retrouve à qui il appartient.'),
-      h('li', h('strong', 'Juste prix : '), 'une question chiffrée improbable (maps d\'une région, recettes d\'un métier, PV d\'un boss…). Trouve le nombre exact grâce aux indications plus / moins.'),
-      h('li', h('strong', 'Sémantix : '), 'trouve le mot secret : chaque mot proposé reçoit une température selon sa proximité de sens, apprise sur les textes du jeu.')),
+      h('li', h('strong', 'Juste prix : '), 'une question chiffrée improbable (maps d\'une région, recettes d\'un métier, PV d\'un boss…). Trouve le nombre exact grâce aux indications plus / moins.')),
     h('p.muted', 'Les indices ne s\'affichent jamais tout seuls : une fois débloqués, clique dessus pour les révéler.'),
     h('div.legend.static',
       h('span', h('i.sw.ok'), 'Correct'),

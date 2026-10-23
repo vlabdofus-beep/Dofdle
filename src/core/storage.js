@@ -15,7 +15,11 @@ export function loadGame(mode, date) {
   const g = read(`game:${mode}`, null);
   return g && g.date === date ? { hints: [], ...g } : { date, guesses: [], won: false, hints: [] };
 }
-export function saveGame(mode, game) { write(`game:${mode}`, game); }
+export function saveGame(mode, game) {
+  write(`game:${mode}`, game);
+  // Prévient la navigation (rangée de Dofus) qu'un défi a pu être réussi
+  if (game.won && typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('dofusle:progress', { detail: { mode } }));
+}
 
 const emptyStats = () => ({ played: 0, wins: 0, streak: 0, best: 0, lastWin: null, lastPlayed: null, dist: {} });
 

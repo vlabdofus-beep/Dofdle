@@ -14,7 +14,6 @@ Une fois un défi réussi, un lien mène directement au mode suivant non termin�
 | **Carte** | Extrait de map zoomé + mini-carte cliquable du Monde des Douze | Distance en nombre de maps (Manhattan) ; propositions par clic, `X,Y` ou nom de zone ; indices : région, sous-zone, abscisse |
 | **Objet** | Effets de l'équipement ou icône floutée | Type, niveau, panoplie ; indices : effets (4, jours « icône »), panoplie (6) |
 | **Juste prix** | Question chiffrée improbable générée depuis DofusDB (maps d'une région, recettes d'un métier, PV d'un boss, salles d'un donjon…) — 28 modèles répartis sur 8 thèmes | Plus / moins, orange à 10 % près ; indices : fourchette (4), forme du nombre (8). Un thème différent chaque jour, tous les thèmes passent avant qu'un thème revienne |
-| **Sémantix** | Trouver un mot secret par proximité de sens, à la Cémantix, avec un modèle appris sur les ~3 M de mots des textes du jeu (quêtes, dialogues, objets) | Température en °C, rang parmi les 1 000 mots les plus proches ; indices : un mot tiède (15), un mot chaud (30), forme du mot (50) |
 | **Cri** | Écouter le cri d'un monstre, extrait des fichiers audio de Dofus 3 | Famille ; les monstres partageant le même cri sont acceptés ; indices : niveau (5 essais), famille (10 essais) |
 
 La question du mode Juste prix est calculée à la volée (1 à 4 requêtes `$limit=0` vers DofusDB) puis mise en cache pour la journée : aucun snapshot n'est nécessaire.
@@ -149,9 +148,3 @@ python tools/cris-extract/build_cris.py assets/cris   # adapter les chemins en t
 Projet de fan, gratuit, sans publicité. Dofus, ses noms, images et contenus sont la propriété d'Ankama Games.
 Les données proviennent de DofusDB, dont la licence interdit l'usage commercial : ne monétisez pas ce projet.
 
-## Sémantix : régénérer le modèle
-
-Les données (`data/semantix/`) sont produites hors ligne depuis le fichier de traductions du client
-(`Dofus_Data/StreamingAssets/Content/I18n/fr.bin`) avec les scripts de `tools/semantix/` (Python + numpy/scipy) :
-`corpus.py` (extraction et nettoyage des textes) → `train.py` (co-occurrences PPMI + SVD, 200 dimensions)
-→ `export.py` (vocabulaire + similarités de chaque mot secret, en int16). La liste des mots secrets est `pool.txt`.
