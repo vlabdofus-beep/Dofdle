@@ -1,5 +1,6 @@
 // Indices cliquables : verrouillés jusqu'à N essais, puis révélés uniquement
 // si le joueur clique. Les indices révélés sont mémorisés avec la partie.
+// Rendu : une grille de tuiles de taille identique, quel que soit leur état.
 import { h } from './dom.js';
 
 /**
@@ -8,6 +9,7 @@ import { h } from './dom.js';
  */
 export function createHints(ctx, hints, { className = '' } = {}) {
   const el = h(`div.hints${className ? `.${className}` : ''}`);
+  el.style.setProperty('--n', String(hints.length));
   const revealed = () => new Set(ctx.game.hints || []);
 
   function reveal(key) {
@@ -18,23 +20,23 @@ export function createHints(ctx, hints, { className = '' } = {}) {
 
   function update(game) {
     const open = revealed();
+    const n = game.guesses.length;
     el.replaceChildren(...hints.map((hint) => {
-      const left = hint.at - game.guesses.length;
+      const left = hint.at - n;
       const unlocked = left <= 0 || game.won;
-      const isOpen = open.has(hint.key);
-      if (isOpen) {
-        return h('div.hint-wrap.open',
-          h('div.hint-card', h('span.hint-title', hint.title), h('div.hint-body', hint.render())));
+      if (open.has(hint.key)) {
+        return h('div.hint-tile.open', h('span.hint-title', hint.title), h('div.hint-body', hint.render()));
       }
-      return h('div.hint-wrap',
-        h('button.hint', {
-          type: 'button',
-          disabled: !unlocked,
-          onclick: () => reveal(hint.key),
-          'aria-label': unlocked ? `Révéler l'indice : ${hint.title}` : `Indice ${hint.title} disponible dans ${left} essais`,
-        },
+      if (unlocked) {
+        return h('button.hint-tile.ready', { type: 'button', onclick: () => reveal(hint.key), 'aria-label': `Révéler l'indice : ${hint.title}` },
+          h('span.hint-title', hint.title),
+          h('span.hint-state', 'Révéler'));
+      }
+      const pct = Math.min(100, Math.round((n / hint.at) * 100));
+      return h('div.hint-tile.locked', { 'aria-label': `Indice ${hint.title} disponible dans ${left} essai${left > 1 ? 's' : ''}` },
         h('span.hint-title', hint.title),
-        h('span.hint-state', unlocked ? 'Cliquer pour révéler' : `dans ${left} essai${left > 1 ? 's' : ''}`)));
+        h('span.hint-state', `Dans ${left} essai${left > 1 ? 's' : ''}`),
+        h('span.hint-progress', { 'aria-hidden': 'true' }, h('i', { style: { width: `${pct}%` } })));
     }));
   }
   return { el, update };
