@@ -78,7 +78,7 @@ Si la version d'un snapshot (`v`) ne correspond plus au code, il est ignoré et 
 
 ```
 index.html              coquille de la page (en-tête, onglets, disclaimer)
-css/style.css           thème « pierre sombre » de Dofus 3 (ardoise, liserés dorés, vert lime)
+css/style.css           thème « les six Dofus du jour » (encre ardoise, pierre gravée, une couleur de Dofus par mode)
 src/
   main.js               routeur (#monstre, #sort, #carte, #objet), aide, stats
   core/
