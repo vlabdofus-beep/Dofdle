@@ -340,3 +340,66 @@ button:disabled { cursor: not-allowed; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- Indices cliquables ---------- */
+.hints { margin: 0 0 4px; }
+.hint-wrap.open { align-items: stretch; }
+.hint-card {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 150px;
+  padding: 8px 14px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--lime);
+}
+.hint-card .hint-body { background: none; border: 0; padding: 0; }
+.hint:not(:disabled):hover { background: rgba(184, 212, 51, 0.1); }
+.hint:not(:disabled) .hint-state { color: var(--lime); font-weight: 700; }
+.hints.compact { justify-content: flex-start; margin-top: 10px; }
+.hints.compact .hint, .hints.compact .hint-card { min-width: 120px; padding: 6px 12px; }
+.hints.compact .hint-card { align-items: flex-start; }
+.hints.compact .effects { min-width: 220px; }
+
+/* ---------- Grille sans vignette ---------- */
+.cell.name-col.no-img { font-size: 13px; }
+.cell.name-col.no-img .row-name { font-size: 13.5px; font-weight: 800; }
+
+/* ---------- Victoire : jeu suivant ---------- */
+.next-link { text-decoration: none; display: inline-flex; align-items: center; }
+.effects.small li { font-size: 12.5px; padding: 2px 8px; }
+.reveal .effects.small { margin: 6px 0; max-width: 420px; }
+
+/* ---------- Mode carte : mise en page + mini-carte ---------- */
+.map-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.map-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.map-col .input-panel { margin: 0; }
+.minimap-panel { padding: 10px; }
+.minimap-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; font-size: 13px; }
+.minimap-head strong { font: 600 15px var(--font-title); color: var(--gold-2); }
+.minimap { position: relative; width: 100%; display: flex; justify-content: center; }
+.minimap.disabled { opacity: 0.6; pointer-events: none; }
+.minimap-canvas { display: block; cursor: crosshair; border-radius: 6px; background: #0c0a08; }
+.minimap-tip {
+  position: absolute; pointer-events: none; z-index: 5; white-space: nowrap;
+  background: rgba(12, 10, 8, 0.92); border: 1px solid var(--gold); color: var(--text);
+  padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 700;
+}
+.map-row { grid-template-columns: 1fr auto; }
+
+/* ---------- Mode cri ---------- */
+.cry-visual { background: radial-gradient(circle, #33402a, #120f0c); }
+.clue-visual img.cry-emblem { width: 72px; height: 72px; filter: drop-shadow(0 0 12px rgba(184, 212, 51, 0.6)); }
+.cry-player { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; max-width: 360px; }
+.cry-play {
+  display: inline-flex; align-items: center; gap: 10px; align-self: flex-start;
+  padding: 10px 20px; border-radius: 999px; cursor: pointer; font-weight: 800; font-size: 16px;
+  background: linear-gradient(180deg, #d9f05a, var(--lime) 55%, var(--lime-dark)); border: 1px solid var(--lime); color: #1b1a0b;
+}
+.cry-play.playing { box-shadow: 0 0 0 4px rgba(184, 212, 51, 0.25); }
+.cry-icon { width: 18px; text-align: center; }
+.cry-bar { height: 6px; border-radius: 99px; background: var(--panel-2); border: 1px solid var(--line); overflow: hidden; }
+.cry-progress { height: 100%; width: 0; background: var(--lime); transition: width .1s linear; }
+
+@media (max-width: 900px) {
+  .map-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .modes { flex-wrap: wrap; }
+  .hints.compact { justify-content: center; }
+}

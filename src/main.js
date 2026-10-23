@@ -8,6 +8,7 @@ import { monsterMode } from './modes/monster.js';
 import { spellMode } from './modes/spell.js';
 import { itemMode } from './modes/item.js';
 import { mapMode, runMapMode } from './modes/map.js';
+import { criMode } from './modes/cri.js';
 
 // Pour ajouter un mode (ex. Bellaphones) : créer sa config + son dataset et l'ajouter ici.
 const MODES = [
@@ -15,6 +16,7 @@ const MODES = [
   { ...spellMode, run: (root, o) => runGuessMode(root, spellMode, o) },
   { ...mapMode, run: (root, o) => runMapMode(root, o) },
   { ...itemMode, run: (root, o) => runGuessMode(root, itemMode, o) },
+  { ...criMode, run: (root, o) => runGuessMode(root, criMode, o) },
 ];
 
 const app = document.getElementById('app');
@@ -47,10 +49,12 @@ document.getElementById('btn-help').addEventListener('click', () => {
   openModal('Comment jouer',
     h('p', 'Chaque jour à minuit (heure de Paris), un nouveau défi par mode — le même pour tout le monde.'),
     h('ul.help-list',
-      h('li', h('strong', 'Monstre : '), 'propose des monstres. Chaque colonne (famille, niveau, zone, rang, faiblesse, drop, couleur) se colore selon la ressemblance avec le monstre secret.'),
-      h('li', h('strong', 'Sort : '), 'une icône de sort de classe, floutée ou zoomée. Elle se dévoile à chaque essai, avec des indices (PA, portée, élément, classe).'),
-      h('li', h('strong', 'Carte : '), 'un bout de map. Propose des coordonnées [X, Y] ou une zone : on t\'indique la distance en nombre de maps et la direction.'),
-      h('li', h('strong', 'Objet : '), 'retrouve un équipement à partir de ses effets ou de son icône floutée.')),
+      h('li', h('strong', 'Monstre : '), 'propose des monstres. Chaque colonne (famille, niveau, PV, zone, rang, faiblesse, couleur) se colore selon la ressemblance avec le monstre secret.'),
+      h('li', h('strong', 'Sort : '), 'une icône de sort de classe, floutée ou zoomée. Elle se dévoile à chaque essai ; des indices (PA, portée, élément, classe) se débloquent et se révèlent d\'un clic.'),
+      h('li', h('strong', 'Carte : '), 'un bout de map. Clique sur la mini-carte, tape des coordonnées [X, Y] ou une zone : on t\'indique la distance en nombre de maps.'),
+      h('li', h('strong', 'Objet : '), 'retrouve un équipement à partir de ses effets ou de son icône floutée.'),
+      h('li', h('strong', 'Cri : '), 'écoute le cri d\'un monstre (tiré des fichiers du jeu) et retrouve à qui il appartient.')),
+    h('p.muted', 'Les indices ne s\'affichent jamais tout seuls : une fois débloqués, clique dessus pour les révéler.'),
     h('div.legend.static',
       h('span', h('i.sw.ok'), 'Correct'),
       h('span', h('i.sw.partial'), 'Partiel / proche'),

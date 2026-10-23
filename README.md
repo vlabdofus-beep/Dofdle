@@ -3,14 +3,17 @@
 Jeu quotidien « à la Loldle » dans l'univers de **Dofus**. Fan game **non officiel**, non affilié à Ankama Games.
 Données et images : [DofusDB](https://dofusdb.fr) (usage non commercial).
 
-Quatre modes, un défi par jour (minuit, heure de Paris), identique pour tout le monde, puis un mode illimité :
+Cinq modes, un défi par jour (minuit, heure de Paris), identique pour tout le monde, puis un mode illimité.
+Les indices ne s'affichent jamais tout seuls : une fois débloqués, le joueur clique pour les révéler.
+Une fois un défi réussi, un lien mène directement au mode suivant non terminé.
 
-| Mode | Principe | Feedback |
+| Mode | Principe | Feedback / indices |
 |---|---|---|
-| **Monstre** | Deviner le monstre du jour | Famille, niveau, zone, rang (boss / mini-boss / archimonstre / normal), faiblesse élémentaire, drop notable, couleur dominante ; indices : zone (5 essais), silhouette (11 essais) |
-| **Sort** | Icône de sort de classe floutée ou zoomée | Classe, élément, coût PA, portée ; indices à 3/5/7 essais |
-| **Carte** | Extrait de map zoomé | Distance en nombre de maps (Manhattan) + direction ; propositions en `X,Y` ou par nom de zone |
-| **Objet** | Effets de l'équipement ou icône floutée | Type, niveau, élément dominant, panoplie |
+| **Monstre** | Deviner le monstre du jour (hors monstres de quête et invocations) | Famille (vert/rouge), niveau, PV, zone, rang, faiblesse élémentaire, couleur dominante ; indices : zone (5 essais), silhouette (11 essais) |
+| **Sort** | Icône de sort de classe floutée ou zoomée (sans vignettes dans les propositions) | Classe, élément, coût PA, portée ; indices : PA & portée (3), élément (5), classe (7) |
+| **Carte** | Extrait de map zoomé + mini-carte cliquable du Monde des Douze | Distance en nombre de maps (Manhattan) ; propositions par clic, `X,Y` ou nom de zone ; indices : région, sous-zone, abscisse |
+| **Objet** | Effets de l'équipement ou icône floutée | Type, niveau, panoplie ; indices : effets (4, jours « icône »), panoplie (6) |
+| **Cri** | Écouter le cri d'un monstre, extrait des fichiers audio de Dofus 3 | Famille, niveau, zone, rang ; les monstres partageant le même cri sont acceptés ; indices : famille, zone, silhouette |
 
 Sans compte : parties, séries et statistiques sont dans le `localStorage` du navigateur.
 
@@ -57,13 +60,14 @@ node scripts/build-data.mjs monsters items   # seulement certains
 | `data/monsters.json` | ~1 500 monstres du bestiaire (hors quête), races, zones, drops, couleurs | ~330 Ko |
 | `data/spells.json` | ~860 sorts des 19 classes (via `/spell-variants`) | ~300 Ko |
 | `data/items.json` | ~3 000 équipements, panoplies, gabarits d'effets | ~500 Ko |
-| `data/maps.json` | ~430 sous-zones du Monde des Douze et leurs ids de maps | ~150 Ko |
+| `data/maps.json` | ~430 sous-zones du Monde des Douze et ~4 700 maps (coordonnées) | ~150 Ko |
+| `data/cris.json` | 777 cris ↔ squelettes de monstres (fichier fourni, voir plus bas) | ~25 Ko |
 
 La couleur des monstres est calculée depuis leur image DofusDB (`src/data/colors.js`) : par le script de snapshot
 (décodeur PNG maison, `scripts/png.mjs`), sinon dans le navigateur pour la cible et chaque proposition, avec cache local.
 
-Les coordonnées des maps sont demandées à la volée (`/map-positions`) pour la map du jour et les zones proposées.
-Seules les maps `worldMap = 1` avec `hasPriorityOnWorldmap = true` comptent (l'API contient ~1 800 doublons placés en `[0,0]`).
+Les coordonnées des maps (worldMap 1, `hasPriorityOnWorldmap = true`) servent à la fois au tirage, à la mini-carte
+et aux distances : aucune requête supplémentaire pendant la partie. L'API contient aussi ~1 800 doublons placés en `[0,0]`, exclus par ce filtre.
 
 Si la version d'un snapshot (`v`) ne correspond plus au code, il est ignoré et l'app repasse par l'API : pensez à régénérer.
 
@@ -121,6 +125,18 @@ python tools/unity-extract/extract.py ./sortie "<Dofus>/Dofus_Data/StreamingAsse
 ```
 
 L'extracteur gère UnityFS + LZ4 et les textures BC7 / DXT / RGBA. Images de monstres, sorts, objets et maps : DofusDB.
+
+## Cris des monstres
+
+`assets/cris/` contient 777 cris (MP3 mono 64 kb/s, lisible partout y compris sur iPhone) extraits des banques FMOD du client
+(`Content/Audio/Banks/Desktop/<squelette>.bank`). Une banque par squelette (`look` DofusDB `{squelette|…}`) ;
+pour chacune, on garde de préférence un échantillon `Voix_*_Attaque`, sinon `Mort`, `Hit`, puis `AnimAttaque`.
+Les noms de fichiers sont hachés pour ne pas révéler le monstre. Pour régénérer :
+
+```bash
+git clone https://github.com/HearthSim/python-fsb5   # décodage FSB5 / Vorbis (libogg + libvorbis requis)
+python tools/cris-extract/build_cris.py assets/cris   # adapter les chemins en tête des scripts
+```
 
 ## Licence et mentions
 

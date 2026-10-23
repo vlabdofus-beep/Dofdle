@@ -1,11 +1,12 @@
-// Moteur commun des modes "à la Loldle" (Monstre, Sort, Objet) :
+// Moteur commun des modes "à la Loldle" (Monstre, Sort, Objet, Cri) :
 // chargement des données, tirage du jour / illimité, saisie, grille de
 // feedback, victoire, partage et statistiques. Chaque mode fournit sa config.
-import { h, clear, img, toast, formatDuration } from '../ui/dom.js';
+import { h, clear, img, formatDuration } from '../ui/dom.js';
 import { createAutocomplete } from '../ui/autocomplete.js';
 import { loadDataset } from '../core/cache.js';
 import { todayKey, dayNumber, pickDaily, msUntilNextDaily } from '../core/daily.js';
 import { loadGame, saveGame, recordWin, recordEndlessWin, loadStats, currentStreak } from '../core/storage.js';
+import { nextMode } from '../core/modes.js';
 import { ELEMENTS } from '../data/elements.js';
 import { shareResult } from '../ui/share.js';
 import { showStats } from '../ui/stats.js';
@@ -36,6 +37,36 @@ export function renderCell(cell, delay = 0) {
     cell.arrow ? h(`span.arrow.${cell.arrow}`, { 'aria-label': cell.arrow === 'up' ? 'plus haut' : 'plus bas' }, cell.arrow === 'up' ? '▲' : '▼') : null);
 }
 
+/** En-tête commun (titre + bascule Défi du jour / Illimité). */
+export function modeHead(cfg, date, endless, rerun) {
+  return h('div.mode-head',
+    h('div.mode-title', img(cfg.icon, '', 'mode-icon'), h('div',
+      h('h2', cfg.label),
+      h('p.mode-intro', cfg.intro))),
+    h('div.mode-switch', { role: 'tablist' },
+      h('button', { role: 'tab', class: !endless ? 'active' : undefined, 'aria-selected': String(!endless), onclick: () => rerun({ endless: false }) }, `Défi du jour #${dayNumber(date)}`),
+      h('button', { role: 'tab', class: endless ? 'active' : undefined, 'aria-selected': String(endless), onclick: () => rerun({ endless: true }) }, 'Illimité')));
+}
+
+/** Carte de victoire commune (partage, illimité, jeu suivant, compte à rebours). */
+export function winCard({ cfg, endless, date, tries, reveal, onShare, onEndless }) {
+  const countdown = h('span.countdown');
+  const tick = () => { countdown.textContent = formatDuration(msUntilNextDaily()); };
+  tick();
+  const timer = setInterval(() => { if (!countdown.isConnected) clearInterval(timer); else tick(); }, 1000);
+  const next = nextMode(cfg.id);
+  return h('div.panel.win-card',
+    h('div.win-title', '🎉 ', endless ? 'Bien joué !' : 'Défi du jour réussi !'),
+    reveal,
+    h('p.win-tries', `Trouvé en ${tries} essai${tries > 1 ? 's' : ''}`, !endless ? ` · série actuelle : ${currentStreak(loadStats(cfg.id), date)} 🔥` : ''),
+    h('div.win-actions',
+      !endless ? h('button.btn', { onclick: onShare }, 'Partager') : null,
+      h('a.btn.primary.next-link', { href: `#${next.id}` }, next.done ? `Mode ${next.label} →` : `Jeu suivant : ${next.label} →`),
+      h('button.btn', { onclick: onEndless }, endless ? 'Nouvelle partie' : 'Jouer en illimité'),
+      !endless ? h('button.btn', { onclick: () => showStats(cfg) }, 'Statistiques') : null),
+    !endless ? h('p.next-daily', next.done ? 'Tous les défis du jour sont réussis ! ' : '', 'Prochain défi dans ', countdown) : null);
+}
+
 /**
  * @param {HTMLElement} root
  * @param {object} cfg configuration du mode
@@ -47,13 +78,14 @@ export async function runGuessMode(root, cfg, opts = {}) {
   root.append(loader);
   const fill = loader.querySelector('.loader-fill');
   const label = loader.querySelector('.loader-label');
+  const onProgress = (ratio, step) => {
+    fill.style.width = `${Math.round(ratio * 100)}%`;
+    label.textContent = `Chargement depuis DofusDB : ${step}… ${Math.round(ratio * 100)}%`;
+  };
 
   let data;
   try {
-    data = await loadDataset(cfg.dataset, (ratio, step) => {
-      fill.style.width = `${Math.round(ratio * 100)}%`;
-      label.textContent = `Chargement depuis DofusDB : ${step}… ${Math.round(ratio * 100)}%`;
-    });
+    data = cfg.load ? await cfg.load(onProgress) : await loadDataset(cfg.dataset, onProgress);
   } catch (e) {
     clear(root).append(h('div.panel.error',
       h('h3', 'Impossible de charger les données'),
@@ -70,10 +102,12 @@ export async function runGuessMode(root, cfg, opts = {}) {
   const target = endless
     ? pool[Math.floor(Math.random() * pool.length)]
     : pickDaily(pool, cfg.salt, date);
+  const isWin = (entry) => (cfg.isWin ? cfg.isWin(entry, target, data) : entry.id === target.id);
 
-  const game = endless ? { date, guesses: [], won: false } : loadGame(cfg.id, date);
+  const game = endless ? { date, guesses: [], won: false, hints: [] } : loadGame(cfg.id, date);
   // Données mises à jour : on ignore les propositions devenues invalides
   game.guesses = game.guesses.filter((id) => byId.has(id));
+  const save = () => { if (!endless) saveGame(cfg.id, game); };
 
   // Données calculées à la demande (ex. couleur des monstres) pour la cible et les essais déjà joués
   if (cfg.ensure) {
@@ -82,17 +116,9 @@ export async function runGuessMode(root, cfg, opts = {}) {
   }
 
   clear(root);
-  const ctx = { cfg, data, target, game, endless, byId };
-
-  // --- En-tête du mode
-  const head = h('div.mode-head',
-    h('div.mode-title', img(cfg.icon, '', 'mode-icon'), h('div',
-      h('h2', cfg.label),
-      h('p.mode-intro', cfg.intro))),
-    h('div.mode-switch', { role: 'tablist' },
-      h('button', { role: 'tab', class: !endless ? 'active' : undefined, 'aria-selected': String(!endless), onclick: () => runGuessMode(root, cfg, { endless: false }) }, `Défi du jour #${dayNumber(date)}`),
-      h('button', { role: 'tab', class: endless ? 'active' : undefined, 'aria-selected': String(endless), onclick: () => runGuessMode(root, cfg, { endless: true }) }, 'Illimité')));
-  root.append(head);
+  const rerun = (o) => runGuessMode(root, cfg, o);
+  const ctx = { cfg, data, target, game, endless, byId, save };
+  root.append(modeHead(cfg, date, endless, rerun));
 
   // --- Indice / visuel propre au mode
   const clue = cfg.clue ? cfg.clue(ctx) : null;
@@ -123,9 +149,10 @@ export async function runGuessMode(root, cfg, opts = {}) {
   function rowFor(id, animate) {
     const e = byId.get(id);
     const cells = cfg.compare(e.ref, target.ref, data);
-    const won = id === target.id;
+    const won = isWin(e);
     return h(`div.grid-row${won ? '.win' : ''}${animate ? '.new' : ''}`, { role: 'row' },
-      h(`div.cell.name-col${won ? '.ok' : ''}`, e.img ? img(e.img, '', 'row-img') : null, h('span.row-name', e.n)),
+      h(`div.cell.name-col${won ? '.ok' : ''}${cfg.rowImages === false ? '.no-img' : ''}`,
+        cfg.rowImages !== false && e.img ? img(e.img, '', 'row-img') : null, h('span.row-name', e.n)),
       cells.map((c, i) => renderCell(c, animate ? (i + 1) * 140 : 0)));
   }
 
@@ -147,40 +174,32 @@ export async function runGuessMode(root, cfg, opts = {}) {
       try { await cfg.ensure([byId.get(id)]); } finally { busy = false; ac.disable(false); }
     }
     game.guesses.push(id);
-    if (id === target.id) {
+    if (isWin(byId.get(id))) {
       game.won = true;
       if (endless) recordEndlessWin(cfg.id); else recordWin(cfg.id, date, game.guesses.length);
     }
-    if (!endless) saveGame(cfg.id, game);
+    save();
     refresh(true);
     if (game.won) setTimeout(() => result.scrollIntoView({ behavior: 'smooth', block: 'center' }), 900);
   }
 
-  let timer;
   function renderResult() {
     clear(result);
-    clearInterval(timer);
     if (!game.won) return;
-    const tries = game.guesses.length;
-    const stats = loadStats(cfg.id);
-    const countdown = h('span.countdown');
-    const tick = () => { countdown.textContent = formatDuration(msUntilNextDaily()); };
-    tick(); timer = setInterval(tick, 1000);
-    result.append(h('div.panel.win-card',
-      h('div.win-title', '🎉 ', endless ? 'Bien joué !' : 'Défi du jour réussi !'),
-      cfg.reveal(target, data),
-      h('p.win-tries', `Trouvé en ${tries} essai${tries > 1 ? 's' : ''}`, !endless ? ` · série actuelle : ${currentStreak(stats, date)} 🔥` : ''),
-      h('div.win-actions',
-        !endless ? h('button.btn.primary', { onclick: () => shareResult(buildShare(), 'Résultat copié !') }, 'Partager') : null,
-        h('button.btn', { onclick: () => runGuessMode(root, cfg, { endless: true }) }, endless ? 'Nouvelle partie' : 'Jouer en illimité'),
-        !endless ? h('button.btn', { onclick: () => showStats(cfg) }, 'Statistiques') : null),
-      !endless ? h('p.next-daily', 'Prochain défi dans ', countdown) : null));
+    result.append(winCard({
+      cfg, endless, date,
+      tries: game.guesses.length,
+      reveal: cfg.reveal(target, data, game.guesses.map((id) => byId.get(id))),
+      onShare: () => shareResult(buildShare(), 'Résultat copié !'),
+      onEndless: () => rerun({ endless: true }),
+    }));
   }
 
   function buildShare() {
     const lines = game.guesses.map((id) => {
-      const cells = cfg.compare(byId.get(id).ref, target.ref, data);
-      return (id === target.id ? '🟩' : '🟥') + cells.map((c) => STATUS_EMOJI[c.status]).join('');
+      const e = byId.get(id);
+      const cells = cfg.compare(e.ref, target.ref, data);
+      return (isWin(e) ? '🟩' : '🟥') + cells.map((c) => STATUS_EMOJI[c.status]).join('');
     });
     const shown = lines.length > 8 ? [...lines.slice(0, 7), `… +${lines.length - 8}`, lines[lines.length - 1]] : lines;
     return [

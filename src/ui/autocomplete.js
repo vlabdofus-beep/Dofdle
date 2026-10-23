@@ -50,7 +50,7 @@ export function createAutocomplete({ items, placeholder, onSelect, exclude = () 
         role: 'option', 'aria-selected': i === active ? 'true' : 'false', class: i === active ? 'active' : undefined,
         onmousedown: (e) => { e.preventDefault(); choose(it); },
       },
-      it.img ? img(it.img, '', 'ac-img') : h('span.ac-img.placeholder'),
+      it.img ? img(it.img, '', 'ac-img') : null,
       h('span.ac-text', h('span.ac-name', it.n), it.sub ? h('span.ac-sub', it.sub) : null));
       list.append(li);
     });

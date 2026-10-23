@@ -3,12 +3,7 @@ import { h, img } from '../ui/dom.js';
 import { hash, rng } from '../core/daily.js';
 import { spellsDataset, compareSpells, spellImg, breedHead } from '../data/spells.js';
 import { ELEMENTS } from '../data/elements.js';
-
-const HINTS = [
-  { at: 3, label: 'Coût & portée' },
-  { at: 5, label: 'Élément' },
-  { at: 7, label: 'Classe' },
-];
+import { createHints } from '../ui/hints.js';
 
 function elementChips(s) {
   if (s.el.length) return s.el.map((e) => h('span.chip', img(ELEMENTS[e].icon, ''), ELEMENTS[e].label));
@@ -25,6 +20,7 @@ export const spellMode = {
   intro: 'Retrouve le sort de classe caché derrière cette icône. Elle se dévoile un peu plus à chaque essai.',
   placeholder: 'Nom d\'un sort (ex. Flèche Magique, Pression…)',
   nameLabel: 'Sort',
+  rowImages: false,
   partialHelp: 'Partiel (élément en commun, valeur à ±1)',
   columns: [
     { key: 'breed', label: 'Classe' },
@@ -34,7 +30,8 @@ export const spellMode = {
   ],
 
   prepare(data) {
-    const entries = data.spells.map((s) => ({ id: s.id, n: s.n, img: spellImg(s), sub: data.breeds[s.b], ref: s }));
+    // Pas de vignette : l'icône des propositions permettrait de comparer avec l'icône mystère
+    const entries = data.spells.map((s) => ({ id: s.id, n: s.n, sub: data.breeds[s.b], ref: s }));
     // Désambiguïse les rares homonymes entre classes
     const count = {};
     for (const e of entries) count[e.n] = (count[e.n] || 0) + 1;
@@ -53,13 +50,17 @@ export const spellMode = {
     const origin = `${Math.round(20 + r() * 60)}% ${Math.round(20 + r() * 60)}%`;
     const picture = img(spellImg(s), 'Icône du sort mystère');
     picture.style.transformOrigin = origin;
-    const chips = h('div.chips');
+    const hints = createHints(ctx, [
+      { key: 'cout', at: 3, title: 'Coût & portée', render: () => h('div.chips', h('span.chip', img('assets/game/ui/pa.png', ''), `${s.pa} PA`), h('span.chip', img('assets/game/ui/po.png', ''), `PO ${s.po[0]}–${s.po[1]}${s.pb ? '' : ' (non modifiable)'}`)) },
+      { key: 'element', at: 5, title: 'Élément', render: () => h('div.chips', elementChips(s)) },
+      { key: 'classe', at: 7, title: 'Classe', render: () => h('div.chips', h('span.chip', img(breedHead(s.b), ''), data.breeds[s.b])) },
+    ], { className: 'compact' });
     const el = h('div.panel.clue',
       h('div.clue-visual', picture),
       h('div.clue-meta',
         h('h3', variant === 'flou' ? 'Icône floutée' : 'Icône zoomée'),
-        h('p.muted', 'Indices débloqués au fil des essais :'),
-        chips));
+        h('p.muted', 'Elle se dévoile à chaque essai. Des indices se débloquent en chemin : clique pour les révéler.'),
+        hints.el));
 
     function update(g) {
       const n = g.guesses.length;
@@ -72,13 +73,7 @@ export const spellMode = {
         picture.style.transform = `scale(${scale})`;
         picture.style.filter = done || n >= 4 ? '' : 'grayscale(1)';
       }
-      chips.replaceChildren(...HINTS.map((hint, i) => {
-        const left = hint.at - n;
-        if (left > 0 && !done) return h('span.chip.locked', `${hint.label} — dans ${left} essai${left > 1 ? 's' : ''}`);
-        if (i === 0) return h('span.chip', img('assets/game/ui/pa.png', ''), `${s.pa} PA · `, img('assets/game/ui/po.png', ''), `PO ${s.po[0]}–${s.po[1]}${s.pb ? '' : ' (non modifiable)'}`);
-        if (i === 1) return elementChips(s);
-        return h('span.chip', img(breedHead(s.b), ''), data.breeds[s.b]);
-      }).flat());
+      hints.update(g);
     }
     return { el, update };
   },

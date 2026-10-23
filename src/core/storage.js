@@ -10,10 +10,10 @@ function write(key, value) {
   try { localStorage.setItem(NS + key, JSON.stringify(value)); } catch { /* stockage indisponible */ }
 }
 
-/** Partie du jour d'un mode : { date, guesses: [], won: bool } */
+/** Partie du jour d'un mode : { date, guesses: [], won: bool, hints: [] } */
 export function loadGame(mode, date) {
   const g = read(`game:${mode}`, null);
-  return g && g.date === date ? g : { date, guesses: [], won: false };
+  return g && g.date === date ? { hints: [], ...g } : { date, guesses: [], won: false, hints: [] };
 }
 export function saveGame(mode, game) { write(`game:${mode}`, game); }
 

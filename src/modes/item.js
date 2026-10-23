@@ -1,6 +1,7 @@
 // Mode Objet : deviner un équipement à partir de ses effets ou de son icône floutée
 import { h, img } from '../ui/dom.js';
 import { hash, rng } from '../core/daily.js';
+import { createHints } from '../ui/hints.js';
 import { itemsDataset, compareItems, itemImg, itemEffectLines } from '../data/items.js';
 
 export const itemMode = {
@@ -13,16 +14,17 @@ export const itemMode = {
   intro: 'Trouve l\'équipement du jour. Selon les jours, tu pars de ses effets ou de son icône floutée.',
   placeholder: 'Nom d\'un équipement (ex. Coiffe du Bouftou…)',
   nameLabel: 'Objet',
-  partialHelp: 'Partiel (arme du même genre, niveau à ±10, élément en commun)',
+  rowImages: false,
+  partialHelp: 'Partiel (arme du même genre, niveau à ±10)',
   columns: [
     { key: 'type', label: 'Type' },
     { key: 'level', label: 'Niveau', help: 'Orange : à 10 niveaux près' },
-    { key: 'element', label: 'Élément', help: 'Caractéristique(s) élémentaire(s) dominante(s) : Force, Intelligence, Chance, Agilité' },
     { key: 'set', label: 'Panoplie' },
   ],
 
   prepare(data) {
-    const entries = data.items.map((it) => ({ id: it.id, n: it.n, img: itemImg(it), sub: `${data.types[it.t] || ''} · niv. ${it.l}`, ref: it }));
+    // Pas de vignette : l'icône des propositions permettrait de comparer avec l'icône floutée
+    const entries = data.items.map((it) => ({ id: it.id, n: it.n, sub: `${data.types[it.t] || ''} · niv. ${it.l}`, ref: it }));
     const count = {};
     for (const e of entries) count[e.n] = (count[e.n] || 0) + 1;
     for (const e of entries) if (count[e.n] > 1) e.n = `${e.n} (niv. ${e.ref.l})`;
@@ -31,7 +33,7 @@ export const itemMode = {
     return { entries, pool };
   },
 
-  compare: compareItems,
+  compare: (g, t, data) => compareItems(g, t, data).filter((c) => c.key !== 'element'),
 
   clue(ctx) {
     const { target, data, game, endless } = ctx;
@@ -41,11 +43,20 @@ export const itemMode = {
     const lines = itemEffectLines(it, data);
     const picture = img(itemImg(it), 'Icône de l\'objet mystère');
     const list = h('ul.effects');
+
+    const hintList = [
+      { key: 'panoplie', at: 6, title: 'Panoplie', render: () => h('p', it.s ? data.sets[it.s] || 'Panoplie inconnue' : 'Cet objet ne fait partie d\'aucune panoplie') },
+    ];
+    if (variant === 'icone') {
+      hintList.unshift({ key: 'effets', at: 4, title: 'Effets', render: () => h('ul.effects', lines.map((l) => h('li', l))) });
+    }
+    const hints = createHints(ctx, hintList, { className: 'compact' });
+
     const el = variant === 'stats'
       ? h('div.panel.clue', h('div.clue-visual', h('span', { style: { font: '700 64px var(--font-title)', color: 'var(--gold)' } }, '?')),
-        h('div.clue-meta', h('h3', 'Effets de l\'objet'), list))
+        h('div.clue-meta', h('h3', 'Effets de l\'objet'), h('p.muted', 'Un effet de plus à chaque essai.'), list, hints.el))
       : h('div.panel.clue', h('div.clue-visual', picture),
-        h('div.clue-meta', h('h3', 'Icône floutée'), h('p.muted', 'Elle se précise à chaque essai. Les effets arrivent après 4 essais.'), list));
+        h('div.clue-meta', h('h3', 'Icône floutée'), h('p.muted', 'Elle se précise à chaque essai. Clique sur les indices débloqués pour les révéler.'), hints.el));
 
     function update(g) {
       const n = g.guesses.length;
@@ -53,15 +64,11 @@ export const itemMode = {
       if (variant === 'stats') {
         const shown = done ? lines.length : Math.min(lines.length, 3 + n);
         list.replaceChildren(...lines.map((l, i) => (i < shown ? h('li', l) : h('li.hidden-fx', '• • •'))));
-        const visual = el.querySelector('.clue-visual');
-        if (done) visual.replaceChildren(img(itemImg(it), it.n));
+        if (done) el.querySelector('.clue-visual').replaceChildren(img(itemImg(it), it.n));
       } else {
         picture.style.filter = done ? '' : `blur(${Math.max(0, 14 - n * 1.8)}px) grayscale(${n >= 3 ? 0 : 1})`;
-        const shown = done ? lines.length : Math.max(0, n - 3);
-        const rows = lines.slice(0, shown).map((l) => h('li', l));
-        if (!done && shown < lines.length) rows.push(h('li.hidden-fx', shown ? '• • •' : `Effets révélés dans ${4 - n} essai${4 - n > 1 ? 's' : ''}`));
-        list.replaceChildren(...rows);
       }
+      hints.update(g);
     }
     return { el, update };
   },
@@ -74,6 +81,7 @@ export const itemMode = {
         h('h3', it.n),
         h('p', `${data.types[it.t] || ''} · niveau ${it.l}`),
         it.s ? h('p.muted', `Panoplie : ${data.sets[it.s] || '?'}`) : null,
+        h('ul.effects.small', itemEffectLines(it, data).map((l) => h('li', l))),
         h('a.ext', { href: `https://dofusdb.fr/fr/database/object/${it.id}`, target: '_blank', rel: 'noopener' }, 'Voir sur DofusDB ↗')));
   },
 };
