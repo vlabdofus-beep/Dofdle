@@ -19,8 +19,8 @@
   --ko: #973b35;
   --ko-2: #b14c44;
   --radius: 14px;
-  --font-title: 'Almendra', 'Palatino Linotype', Georgia, serif;
-  --font: 'Alegreya Sans', 'Segoe UI', system-ui, sans-serif;
+  --font-title: 'Philosopher', 'Trebuchet MS', system-ui, sans-serif;
+  --font: 'Inter', 'Segoe UI', system-ui, sans-serif;
 
   /* Les six Dofus primordiaux (teintes relevées sur leurs icônes officielles) */
   --pourpre: #d9613a;
@@ -50,7 +50,7 @@ body {
   min-height: 100vh;
   background: var(--bg);
   color: var(--text);
-  font: 17px/1.5 var(--font);
+  font: 16px/1.55 var(--font);
   overflow-x: hidden;
 }
 .bg {
