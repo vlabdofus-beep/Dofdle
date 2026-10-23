@@ -11,16 +11,20 @@ export const WORLD_MAP = 1;
 
 export const mapsDataset = {
   key: 'maps',
-  version: 2,
+  version: 3,
   async build(api, onProgress = () => {}) {
     const step = stepper(onProgress, [['Zones', 1], ['Sous-zones', 2], ['Maps', 6]]);
     const areas = await api.getAll('areas', { '$select': ['id', 'name', 'superAreaId'] }, { onProgress: step.Zones });
     const subareas = await api.getAll('subareas', { '$select': ['id', 'name', 'areaId', 'displayOnWorldMap'] }, { onProgress: step['Sous-zones'] });
-    // ~4 700 maps : l'API contient aussi ~1 800 doublons/instances placés en [0,0], exclus par hasPriorityOnWorldmap
+    // Toutes les maps de la carte du monde, sauf ~1 800 doublons/instances non prioritaires
+    // placés en [0,0]. Beaucoup de vraies maps (Cania, Pandala…) n'ont pas le drapeau
+    // "prioritaire" : on garde une map par coordonnée, la prioritaire si elle existe.
     const positions = await api.getAll('map-positions', {
       worldMap: WORLD_MAP,
-      hasPriorityOnWorldmap: true,
-      '$select': ['id', 'posX', 'posY', 'subAreaId', 'outdoor'],
+      '$or[0][hasPriorityOnWorldmap]': true,
+      '$or[1][posX][$ne]': 0,
+      '$or[2][posY][$ne]': 0,
+      '$select': ['id', 'posX', 'posY', 'subAreaId', 'outdoor', 'hasPriorityOnWorldmap'],
     }, { onProgress: step.Maps });
 
     const areaMap = Object.fromEntries(areas.map((a) => [a.id, { n: tr(a.name), sa: a.superAreaId }]));
@@ -29,8 +33,15 @@ export const mapsDataset = {
       .map((s) => ({ id: s.id, n: tr(s.name), a: s.areaId, w: s.displayOnWorldMap ? 1 : 0 }));
     const subIds = new Set(subs.map((s) => s.id));
     // [mapId, x, y, sousZone, extérieur]
-    const maps = positions
-      .filter((p) => subIds.has(p.subAreaId))
+    const byCoord = new Map();
+    for (const p of positions) {
+      if (!subIds.has(p.subAreaId)) continue;
+      const k = `${p.posX},${p.posY}`;
+      const cur = byCoord.get(k);
+      if (!cur || (p.hasPriorityOnWorldmap && !cur.hasPriorityOnWorldmap)) byCoord.set(k, p);
+    }
+    const maps = [...byCoord.values()]
+      .sort((a, b) => a.id - b.id)
       .map((p) => [p.id, p.posX, p.posY, p.subAreaId, p.outdoor ? 1 : 0]);
     return { v: this.version, builtAt: new Date().toISOString(), areas: areaMap, subareas: subs, maps };
   },

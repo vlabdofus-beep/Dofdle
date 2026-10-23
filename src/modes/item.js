@@ -66,7 +66,7 @@ export const itemMode = {
         list.replaceChildren(...lines.map((l, i) => (i < shown ? h('li', l) : h('li.hidden-fx', '• • •'))));
         if (done) el.querySelector('.clue-visual').replaceChildren(img(itemImg(it), it.n));
       } else {
-        picture.style.filter = done ? '' : `blur(${Math.max(0, 14 - n * 1.8)}px) grayscale(${n >= 3 ? 0 : 1})`;
+        picture.style.filter = done ? '' : `blur(${Math.max(0, 10 - n * 1.6)}px) grayscale(${n >= 2 ? 0 : 1})`;
       }
       hints.update(g);
     }

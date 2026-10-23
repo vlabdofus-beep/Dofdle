@@ -47,7 +47,8 @@ export const spellMode = {
     const seed = endless ? Math.random() * 1e9 : hash(`sort-visuel|${game.date}`);
     const r = rng(seed);
     const variant = r() < 0.5 ? 'flou' : 'zoom';
-    const origin = `${Math.round(20 + r() * 60)}% ${Math.round(20 + r() * 60)}%`;
+    // Zoom centré sur le motif du sort (léger décalage pour varier), jamais dans un coin
+    const origin = `${Math.round(42 + r() * 16)}% ${Math.round(42 + r() * 16)}%`;
     const picture = img(spellImg(s), 'Icône du sort mystère');
     picture.style.transformOrigin = origin;
     const hints = createHints(ctx, [
@@ -66,12 +67,12 @@ export const spellMode = {
       const n = g.guesses.length;
       const done = g.won;
       if (variant === 'flou') {
-        const blur = done ? 0 : Math.max(0, 12 - n * 1.6);
-        picture.style.filter = `blur(${blur}px) ${done || n >= 4 ? '' : 'grayscale(1)'}`;
+        const blur = done ? 0 : Math.max(0, 9 - n * 1.5);
+        picture.style.filter = `blur(${blur}px) ${done || n >= 3 ? '' : 'grayscale(1)'}`;
       } else {
-        const scale = done ? 1 : Math.max(1, 4.2 - n * 0.45);
+        const scale = done ? 1 : Math.max(1, 3 - n * 0.35);
         picture.style.transform = `scale(${scale})`;
-        picture.style.filter = done || n >= 4 ? '' : 'grayscale(1)';
+        picture.style.filter = done || n >= 3 ? '' : 'grayscale(1)';
       }
       hints.update(g);
     }

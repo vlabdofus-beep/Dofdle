@@ -8,6 +8,7 @@ export const MODE_ORDER = [
   { id: 'carte', label: 'Carte' },
   { id: 'objet', label: 'Objet' },
   { id: 'cri', label: 'Cri' },
+  { id: 'chiffre', label: 'Chiffre' },
 ];
 
 /** Prochain mode dont le défi du jour n'est pas encore réussi (sinon le suivant). */
