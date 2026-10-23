@@ -62,7 +62,8 @@ export const monsterMode = {
     const sub = data.subareas[target.ref.z];
     return createHints(ctx, [
       { key: 'zone', at: 5, title: 'Zone principale', render: () => h('p', `${sub?.n || '?'} (${data.areas[sub?.a] || '?'})`) },
-      { key: 'silhouette', at: 11, title: 'Silhouette', render: () => img(monsterImg(target.ref), 'Silhouette du monstre', 'silhouette') },
+      { key: 'famille', at: 10, title: 'Famille', render: () => h('p', data.races[target.ref.r]?.n || '?') },
+      { key: 'silhouette', at: 30, title: 'Silhouette', render: () => img(monsterImg(target.ref), 'Silhouette du monstre', 'silhouette') },
     ]);
   },
 
