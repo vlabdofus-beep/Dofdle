@@ -13,7 +13,7 @@ Une fois un défi réussi, un lien mène directement au mode suivant non termin�
 | **Sort** | Icône de sort de classe floutée ou zoomée (sans vignettes dans les propositions) | Classe, élément, coût PA, portée ; indices : PA & portée (3), élément (5), classe (7) |
 | **Carte** | Extrait de map zoomé + mini-carte cliquable du Monde des Douze | Distance en nombre de maps (Manhattan) ; propositions par clic, `X,Y` ou nom de zone ; indices : région, sous-zone, abscisse |
 | **Objet** | Effets de l'équipement ou icône floutée | Type, niveau, panoplie ; indices : effets (4, jours « icône »), panoplie (6) |
-| **Cri** | Écouter le cri d'un monstre, extrait des fichiers audio de Dofus 3 | Famille, niveau, zone, rang ; les monstres partageant le même cri sont acceptés ; indices : famille, zone, silhouette |
+| **Cri** | Écouter le cri d'un monstre, extrait des fichiers audio de Dofus 3 | Famille, niveau, zone, rang ; les monstres partageant le même cri sont acceptés ; indices : niveau (5 essais), famille (10 essais) |
 
 Sans compte : parties, séries et statistiques sont dans le `localStorage` du navigateur.
 

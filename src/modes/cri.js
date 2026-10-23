@@ -1,11 +1,11 @@
 // Mode Cri : écouter le cri d'un monstre (extrait des fichiers audio de Dofus 3)
 // et retrouver à qui il appartient. Les monstres qui partagent le même squelette
 // (variantes, archimonstres…) partagent le même son : ils sont tous acceptés.
-import { h, img } from '../ui/dom.js';
+import { h } from '../ui/dom.js';
 import { normalize } from '../core/text.js';
 import { loadDataset } from '../core/cache.js';
 import { createHints } from '../ui/hints.js';
-import { monstersDataset, compareMonsters, monsterImg, monsterEntries } from '../data/monsters.js';
+import { monstersDataset, compareMonsters, monsterEntries } from '../data/monsters.js';
 import { monsterReveal } from './monster.js';
 
 const COLUMNS = ['race', 'level', 'zone', 'kind'];
@@ -82,11 +82,10 @@ export const criMode = {
 
   clue(ctx) {
     const { target, data } = ctx;
-    const sub = data.subareas[target.ref.z];
+    const [lmin, lmax] = target.ref.l;
     const hints = createHints(ctx, [
-      { key: 'famille', at: 3, title: 'Famille', render: () => h('p', data.races[target.ref.r]?.n || '?') },
-      { key: 'zone', at: 6, title: 'Zone principale', render: () => h('p', `${sub?.n || '?'} (${data.areas[sub?.a] || '?'})`) },
-      { key: 'silhouette', at: 9, title: 'Silhouette', render: () => img(monsterImg(target.ref), 'Silhouette du monstre', 'silhouette') },
+      { key: 'niveau', at: 5, title: 'Niveau', render: () => h('p', lmin === lmax ? `Niveau ${lmin}` : `Niveau ${lmin} à ${lmax}`) },
+      { key: 'famille', at: 10, title: 'Famille', render: () => h('p', data.races[target.ref.r]?.n || '?') },
     ], { className: 'compact' });
     const el = h('div.panel.clue.cry-clue',
       h('div.clue-visual.cry-visual', h('img.cry-emblem', { src: 'assets/game/ui/mode-cri.png', alt: '' })),
