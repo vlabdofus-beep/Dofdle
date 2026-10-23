@@ -1,0 +1,12 @@
+# Fichiers du dépôt à ne pas publier sur le site
+.git
+.gitignore
+.assetsignore
+.wrangler
+node_modules
+scripts
+tools
+README.md
+package.json
+wrangler.jsonc
+vercel.json

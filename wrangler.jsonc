@@ -1,0 +1,10 @@
+// Cloudflare Workers : site 100 % statique (Workers Static Assets), pas de code serveur.
+// Déployé automatiquement par Workers Builds à chaque push sur main (`npx wrangler deploy`).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dofdle",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./"
+  }
+}

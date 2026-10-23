@@ -28,10 +28,11 @@ Puis ouvrir http://localhost:5173. (Un serveur HTTP est nécessaire : les module
 
 C'est un site 100 % statique : aucune commande de build.
 
-**Cloudflare Pages (recommandé)** : Workers & Pages → Create → Pages → *Connect to Git* → ce dépôt.
-Framework preset : *None*, build command : vide, build output directory : `/`.
-Chaque push sur `main` redéploie le site ; le fichier `_headers` règle le cache.
-On peut ensuite brancher un sous-domaine (ex. `dofusle.mondomaine.fr`) dans *Custom domains*.
+**Cloudflare Workers (recommandé)** : le dépôt contient `wrangler.jsonc` (Worker statique nommé `dofdle`).
+Dans Workers & Pages → Create → *Import a repository* → ce dépôt, build command vide, deploy command
+`npx wrangler deploy`. Chaque push sur `main` redéploie le site. `.assetsignore` exclut les fichiers
+non publics (scripts, outils, README) et `_headers` règle le cache. Un domaine perso s'ajoute dans
+*Settings → Domains & Routes*.
 
 Vercel fonctionne aussi (preset *Other*, sans build) ; `vercel.json` règle le cache.
 
