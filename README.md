@@ -13,10 +13,10 @@ Une fois un défi réussi, un lien mène directement au mode suivant non termin�
 | **Sort** | Icône de sort de classe floutée ou zoomée (sans vignettes dans les propositions) | Classe, élément, coût PA, portée ; indices : PA & portée (3), élément (5), classe (7) |
 | **Carte** | Extrait de map zoomé + mini-carte cliquable du Monde des Douze | Distance en nombre de maps (Manhattan) ; propositions par clic, `X,Y` ou nom de zone ; indices : région, sous-zone, abscisse |
 | **Objet** | Effets de l'équipement ou icône floutée | Type, niveau, panoplie ; indices : effets (4, jours « icône »), panoplie (6) |
-| **Chiffre** | Question chiffrée improbable générée depuis DofusDB (maps d'une région, recettes d'un métier, PV d'un boss, salles d'un donjon…) — 28 modèles répartis sur 8 thèmes | Plus / moins, orange à 10 % près ; indices : fourchette (4), forme du nombre (8). Un thème différent chaque jour, tous les thèmes passent avant qu'un thème revienne |
+| **Juste prix** | Question chiffrée improbable générée depuis DofusDB (maps d'une région, recettes d'un métier, PV d'un boss, salles d'un donjon…) — 28 modèles répartis sur 8 thèmes | Plus / moins, orange à 10 % près ; indices : fourchette (4), forme du nombre (8). Un thème différent chaque jour, tous les thèmes passent avant qu'un thème revienne |
 | **Cri** | Écouter le cri d'un monstre, extrait des fichiers audio de Dofus 3 | Famille ; les monstres partageant le même cri sont acceptés ; indices : niveau (5 essais), famille (10 essais) |
 
-La question du mode Chiffre est calculée à la volée (1 à 4 requêtes `$limit=0` vers DofusDB) puis mise en cache pour la journée : aucun snapshot n'est nécessaire.
+La question du mode Juste prix est calculée à la volée (1 à 4 requêtes `$limit=0` vers DofusDB) puis mise en cache pour la journée : aucun snapshot n'est nécessaire.
 
 Sans compte : parties, séries et statistiques sont dans le `localStorage` du navigateur.
 
@@ -89,12 +89,12 @@ src/
     text.js             normalisation des noms français (accents, apostrophes, œ), gabarits d'effets
   data/                 un fichier par jeu de données : build() + logique de comparaison, sans DOM
     monsters.js  spells.js  items.js  maps.js  elements.js
-    chiffres.js         modèles de questions du mode Chiffre + rotation des thèmes
+    chiffres.js         modèles de questions du mode Juste prix + rotation des thèmes
   modes/
     engine.js           moteur commun des modes à grille (saisie, feedback, victoire, partage)
     monster.js  spell.js  item.js   configs de mode
     map.js              mode Carte (saisie de coordonnées, distance, zoom)
-    chiffre.js          mode Chiffre (saisie numérique, plus/moins)
+    chiffre.js          mode Juste prix (saisie numérique, plus/moins)
   ui/                   dom, autocomplétion, modale, partage, stats
 scripts/build-data.mjs  génération des snapshots (Node ≥ 18, réutilise src/data/*)
 assets/game/            icônes extraites du client Dofus 3 (voir plus bas)

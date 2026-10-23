@@ -25,7 +25,9 @@ const app = document.getElementById('app');
 const nav = document.getElementById('modes');
 
 function currentMode() {
-  const id = location.hash.replace('#', '').split('/')[0];
+  const ALIASES = { chiffre: 'juste-prix' }; // anciens liens
+  const raw = location.hash.replace('#', '').split('/')[0];
+  const id = ALIASES[raw] || raw;
   return MODES.find((m) => m.id === id) || MODES[0];
 }
 
@@ -56,7 +58,7 @@ document.getElementById('btn-help').addEventListener('click', () => {
       h('li', h('strong', 'Carte : '), 'un bout de map. Clique sur la mini-carte, tape des coordonnées [X, Y] ou une zone : on t\'indique la distance en nombre de maps.'),
       h('li', h('strong', 'Objet : '), 'retrouve un équipement à partir de ses effets ou de son icône floutée.'),
       h('li', h('strong', 'Cri : '), 'écoute le cri d\'un monstre (tiré des fichiers du jeu) et retrouve à qui il appartient.'),
-      h('li', h('strong', 'Chiffre : '), 'une question chiffrée improbable (maps d\'une région, recettes d\'un métier, PV d\'un boss…). Trouve le nombre exact grâce aux indications plus / moins.')),
+      h('li', h('strong', 'Juste prix : '), 'une question chiffrée improbable (maps d\'une région, recettes d\'un métier, PV d\'un boss…). Trouve le nombre exact grâce aux indications plus / moins.')),
     h('p.muted', 'Les indices ne s\'affichent jamais tout seuls : une fois débloqués, clique dessus pour les révéler.'),
     h('div.legend.static',
       h('span', h('i.sw.ok'), 'Correct'),

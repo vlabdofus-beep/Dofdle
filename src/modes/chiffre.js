@@ -1,4 +1,4 @@
-// Mode Chiffre : une question chiffrée improbable sur Dofus, réponse exacte à trouver.
+// Mode Juste prix : une question chiffrée improbable sur Dofus, réponse exacte à trouver.
 // Feedback : plus / moins, orange si on est à 10 % près.
 import { h, clear, toast } from '../ui/dom.js';
 import { createHints } from '../ui/hints.js';
@@ -13,12 +13,12 @@ const QUESTION_KEY = 'dofusle:v1:chiffre-question';
 const QUESTION_VERSION = 1; // à incrémenter si les modèles changent la réponse d'un jour
 
 export const chiffreMode = {
-  id: 'chiffre',
-  label: 'Chiffre',
+  id: 'juste-prix',
+  label: 'Juste prix',
   emoji: '🔢',
   icon: 'assets/game/ui/mode-chiffre.png',
   intro: 'Une question chiffrée improbable sur le jeu. Trouve le nombre exact : on t\'indique si c\'est plus ou moins.',
-  help: 'Mode Chiffre : chaque jour un thème différent (géographie, bestiaire, objets, artisanat, quêtes, succès, donjons…). Orange : tu es à 10 % près.',
+  help: 'Mode Juste prix : chaque jour un thème différent (géographie, bestiaire, objets, artisanat, quêtes, succès, donjons…). Orange : tu es à 10 % près.',
 };
 
 /** Question du jour : calculée une fois via l'API puis mise en cache localement. */
@@ -66,8 +66,8 @@ export async function runChiffreMode(root, opts = {}) {
 
   const { answer } = question;
   const theme = THEMES[question.theme] || { label: 'Divers', emoji: '🔢' };
-  const game = endless ? { date, guesses: [], won: false, hints: [] } : loadGame('chiffre', date);
-  const save = () => { if (!endless) saveGame('chiffre', game); };
+  const game = endless ? { date, guesses: [], won: false, hints: [] } : loadGame(chiffreMode.id, date);
+  const save = () => { if (!endless) saveGame(chiffreMode.id, game); };
   const rerun = (o) => runChiffreMode(root, o);
   const [lo, hi] = bracket(answer, endless ? Math.random() * 1e9 : hash(`chiffre-fourchette|${date}`));
   const digits = String(answer).length;
@@ -116,7 +116,7 @@ export async function runChiffreMode(root, opts = {}) {
     game.guesses.push({ v });
     if (v === answer) {
       game.won = true;
-      if (endless) recordEndlessWin('chiffre'); else recordWin('chiffre', date, game.guesses.length);
+      if (endless) recordEndlessWin(chiffreMode.id); else recordWin(chiffreMode.id, date, game.guesses.length);
     }
     save();
     refresh();
@@ -154,9 +154,9 @@ export async function runChiffreMode(root, opts = {}) {
       return `${STATUS_EMOJI[st]}${st === 'ok' ? '' : answer > g.v ? '⬆️' : '⬇️'}`;
     });
     const line = rows.length > 12 ? [...rows.slice(0, 11), '…', rows[rows.length - 1]] : rows;
-    return [`Dofusle #${dayNumber(date)} — Chiffre ${chiffreMode.emoji} (${theme.label})`,
-      `Trouvé en ${game.guesses.length} essai${game.guesses.length > 1 ? 's' : ''} · série ${currentStreak(loadStats('chiffre'), date)} 🔥`,
-      line.join(' '), location.href.split('#')[0] + '#chiffre'].join('\n');
+    return [`Dofusle #${dayNumber(date)} — Juste prix ${chiffreMode.emoji} (${theme.label})`,
+      `Trouvé en ${game.guesses.length} essai${game.guesses.length > 1 ? 's' : ''} · série ${currentStreak(loadStats(chiffreMode.id), date)} 🔥`,
+      line.join(' '), location.href.split('#')[0] + `#${chiffreMode.id}`].join('\n');
   }
 
   refresh();
