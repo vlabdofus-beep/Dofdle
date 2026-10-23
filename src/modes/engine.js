@@ -1,11 +1,11 @@
 // Moteur commun des modes "à la Loldle" (Monstre, Sort, Objet, Cri) :
-// chargement des données, tirage du jour / illimité, saisie, grille de
+// chargement des données, tirage du jour, saisie, grille de
 // feedback, victoire, partage et statistiques. Chaque mode fournit sa config.
 import { h, clear, img, formatDuration } from '../ui/dom.js';
 import { createAutocomplete } from '../ui/autocomplete.js';
 import { loadDataset } from '../core/cache.js';
 import { todayKey, dayNumber, pickDaily, msUntilNextDaily } from '../core/daily.js';
-import { loadGame, saveGame, recordWin, recordEndlessWin, loadStats, currentStreak } from '../core/storage.js';
+import { loadGame, saveGame, recordWin, loadStats, currentStreak } from '../core/storage.js';
 import { nextMode, modeInfo, harvestedToday, MODE_ORDER } from '../core/modes.js';
 import { ELEMENTS } from '../data/elements.js';
 import { shareResult } from '../ui/share.js';
@@ -37,19 +37,17 @@ export function renderCell(cell, delay = 0) {
     cell.arrow ? h(`span.arrow.${cell.arrow}`, { 'aria-label': cell.arrow === 'up' ? 'plus haut' : 'plus bas' }, cell.arrow === 'up' ? '▲' : '▼') : null);
 }
 
-/** En-tête commun (titre + bascule Défi du jour / Illimité). */
-export function modeHead(cfg, date, endless, rerun) {
+/** En-tête commun (titre du mode + numéro du défi du jour). */
+export function modeHead(cfg, date) {
   return h('div.mode-head',
     h('div.mode-title', img(cfg.icon, '', 'mode-icon'), h('div',
       h('h2', cfg.label),
       h('p.mode-intro', cfg.intro))),
-    h('div.mode-switch', { role: 'tablist' },
-      h('button', { role: 'tab', class: !endless ? 'active' : undefined, 'aria-selected': String(!endless), onclick: () => rerun({ endless: false }) }, `Défi du jour #${dayNumber(date)}`),
-      h('button', { role: 'tab', class: endless ? 'active' : undefined, 'aria-selected': String(endless), onclick: () => rerun({ endless: true }) }, 'Illimité')));
+    h('span.day-badge', `Défi du jour n° ${dayNumber(date)}`));
 }
 
-/** Carte de victoire commune (partage, illimité, jeu suivant, compte à rebours). */
-export function winCard({ cfg, endless, date, tries, reveal, onShare, onEndless }) {
+/** Carte de victoire commune (partage, jeu suivant, compte à rebours). */
+export function winCard({ cfg, date, tries, reveal, onShare }) {
   const countdown = h('span.countdown');
   const tick = () => { countdown.textContent = formatDuration(msUntilNextDaily()); };
   tick();
@@ -62,24 +60,23 @@ export function winCard({ cfg, endless, date, tries, reveal, onShare, onEndless 
     h('div.win-head',
       h('span.egg.egg-win', { 'data-mode': cfg.id, 'aria-hidden': 'true' }),
       h('div',
-        h('div.win-title', endless ? 'Bien joué !' : `Dofus ${info.dofus} récolté`),
+        h('div.win-title', `Dofus ${info.dofus} récolté`),
         h('p.win-tries', `Trouvé en ${tries} essai${tries > 1 ? 's' : ''}.`,
-          !endless ? ` Série : ${streak} jour${streak > 1 ? 's' : ''}.` : ''))),
+          ` Série : ${streak} jour${streak > 1 ? 's' : ''}.`))),
     reveal,
     h('div.win-actions',
       h('a.btn.primary.next-link', { href: `#${next.id}` }, next.done ? `Rejouer en ${next.label}` : `Défi suivant : ${next.label}`),
-      !endless ? h('button.btn', { onclick: onShare }, 'Partager') : null,
-      h('button.btn', { onclick: onEndless }, endless ? 'Nouvelle partie' : 'Jouer en illimité'),
-      !endless ? h('button.btn', { onclick: () => showStats(cfg) }, 'Statistiques') : null),
-    !endless ? h('p.next-daily',
+      h('button.btn', { onclick: onShare }, 'Partager'),
+      h('button.btn', { onclick: () => showStats(cfg) }, 'Statistiques')),
+    h('p.next-daily',
       count >= MODE_ORDER.length ? 'Les six Dofus du jour sont récoltés. ' : `${count} Dofus sur ${MODE_ORDER.length} récoltés aujourd'hui. `,
-      'Nouveaux défis dans ', countdown) : null);
+      'Nouveaux défis dans ', countdown));
 }
 
 /**
  * @param {HTMLElement} root
  * @param {object} cfg configuration du mode
- * @param {{endless?: boolean}} opts
+ * @param {object} opts
  */
 export async function runGuessMode(root, cfg, opts = {}) {
   clear(root);
@@ -107,16 +104,13 @@ export async function runGuessMode(root, cfg, opts = {}) {
   const { entries, pool } = cfg.prepare(data);
   const byId = new Map(entries.map((e) => [e.id, e]));
   const date = todayKey();
-  const endless = !!opts.endless;
-  const target = endless
-    ? pool[Math.floor(Math.random() * pool.length)]
-    : pickDaily(pool, cfg.salt, date);
+  const target = pickDaily(pool, cfg.salt, date);
   const isWin = (entry) => (cfg.isWin ? cfg.isWin(entry, target, data) : entry.id === target.id);
 
-  const game = endless ? { date, guesses: [], won: false, hints: [] } : loadGame(cfg.id, date);
+  const game = loadGame(cfg.id, date);
   // Données mises à jour : on ignore les propositions devenues invalides
   game.guesses = game.guesses.filter((id) => byId.has(id));
-  const save = () => { if (!endless) saveGame(cfg.id, game); };
+  const save = () => saveGame(cfg.id, game);
 
   // Données calculées à la demande (ex. couleur des monstres) pour la cible et les essais déjà joués
   if (cfg.ensure) {
@@ -125,9 +119,8 @@ export async function runGuessMode(root, cfg, opts = {}) {
   }
 
   clear(root);
-  const rerun = (o) => runGuessMode(root, cfg, o);
-  const ctx = { cfg, data, target, game, endless, byId, save };
-  root.append(modeHead(cfg, date, endless, rerun));
+  const ctx = { cfg, data, target, game, byId, save };
+  root.append(modeHead(cfg, date));
 
   // --- Indice / visuel propre au mode
   const clue = cfg.clue ? cfg.clue(ctx) : null;
@@ -185,7 +178,7 @@ export async function runGuessMode(root, cfg, opts = {}) {
     game.guesses.push(id);
     if (isWin(byId.get(id))) {
       game.won = true;
-      if (endless) recordEndlessWin(cfg.id); else recordWin(cfg.id, date, game.guesses.length);
+      recordWin(cfg.id, date, game.guesses.length);
     }
     save();
     refresh(true);
@@ -196,11 +189,10 @@ export async function runGuessMode(root, cfg, opts = {}) {
     clear(result);
     if (!game.won) return;
     result.append(winCard({
-      cfg, endless, date,
+      cfg, date,
       tries: game.guesses.length,
       reveal: cfg.reveal(target, data, game.guesses.map((id) => byId.get(id))),
       onShare: () => shareResult(buildShare(), 'Résultat copié !'),
-      onEndless: () => rerun({ endless: true }),
     }));
   }
 

@@ -3,7 +3,7 @@
 Jeu quotidien « à la Loldle » dans l'univers de **Dofus**. Fan game **non officiel**, non affilié à Ankama Games.
 Données et images : [DofusDB](https://dofusdb.fr) (usage non commercial).
 
-Cinq modes, un défi par jour (minuit, heure de Paris), identique pour tout le monde, puis un mode illimité.
+Cinq modes, un défi par jour (minuit, heure de Paris), identique pour tout le monde.
 Les indices ne s'affichent jamais tout seuls : une fois débloqués, le joueur clique pour les révéler.
 Une fois un défi réussi, un lien mène directement au mode suivant non terminé.
 
@@ -116,7 +116,7 @@ global comme avec un simple `index = seed % longueur`.
 2. Créer `src/modes/bellaphone.js` : la config (`id`, `label`, `columns`, `prepare`, `compare`, `clue` optionnel, `reveal`).
 3. L'ajouter au tableau `MODES` dans `src/main.js` et au script `scripts/build-data.mjs`.
 
-Le moteur (`engine.js`) gère le reste : autocomplétion, grille, série, partage, mode illimité.
+Le moteur (`engine.js`) gère le reste : autocomplétion, grille, série, partage.
 
 ## Assets du jeu
 

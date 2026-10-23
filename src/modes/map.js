@@ -7,7 +7,7 @@ import { createHints } from '../ui/hints.js';
 import { createMinimap } from '../ui/minimap.js';
 import { loadDataset } from '../core/cache.js';
 import { todayKey, dayNumber, hash, rng } from '../core/daily.js';
-import { loadGame, saveGame, recordWin, recordEndlessWin, loadStats, currentStreak } from '../core/storage.js';
+import { loadGame, saveGame, recordWin, loadStats, currentStreak } from '../core/storage.js';
 import { mapsDataset, indexMaps, pickMap, mapDistance, parseCoords } from '../data/maps.js';
 import { shareResult } from '../ui/share.js';
 import { STATUS_EMOJI, modeHead, winCard } from './engine.js';
@@ -27,7 +27,6 @@ export async function runMapMode(root, opts = {}) {
   clear(root);
   const loader = h('div.loader', h('div.loader-label', 'Chargement de la carte du monde…'), h('div.loader-bar', h('div.loader-fill')));
   root.append(loader);
-  const endless = !!opts.endless;
   const date = todayKey();
 
   let data;
@@ -43,17 +42,16 @@ export async function runMapMode(root, opts = {}) {
   }
 
   const index = indexMaps(data);
-  const target = pickMap(data, index, endless ? `carte-${Math.random()}` : 'carte', date);
+  const target = pickMap(data, index, 'carte', date);
   const subById = new Map(data.subareas.map((s) => [s.id, s]));
   const areaOf = (subId) => { const s = subById.get(subId); return s ? { id: s.a, n: data.areas[s.a]?.n } : null; };
-  const game = endless ? { date, guesses: [], won: false, hints: [] } : loadGame('carte', date);
-  const save = () => { if (!endless) saveGame('carte', game); };
-  const r = rng(endless ? Math.random() * 1e9 : hash(`carte-visuel|${date}`));
+  const game = loadGame('carte', date);
+  const save = () => saveGame('carte', game);
+  const r = rng(hash(`carte-visuel|${date}`));
   const origin = `${Math.round(25 + r() * 50)}% ${Math.round(25 + r() * 50)}%`;
 
   clear(root);
-  const rerun = (o) => runMapMode(root, o);
-  root.append(modeHead(mapMode, date, endless, rerun));
+  root.append(modeHead(mapMode, date));
 
   // --- Extrait de la map mystère
   const picture = img(target.img['1'], 'Extrait de la map mystère');
@@ -123,7 +121,7 @@ export async function runMapMode(root, opts = {}) {
     game.guesses.push(g);
     if (!g.zone && g.dist === 0) {
       game.won = true;
-      if (endless) recordEndlessWin('carte'); else recordWin('carte', date, game.guesses.length);
+      recordWin('carte', date, game.guesses.length);
     }
     save();
     refresh();
@@ -151,11 +149,10 @@ export async function runMapMode(root, opts = {}) {
     clear(result);
     if (game.won) {
       result.append(winCard({
-        cfg: mapMode, endless, date, tries: n,
+        cfg: mapMode, date, tries: n,
         reveal: h('div.reveal', img(target.img['0.5'], 'Map', 'reveal-map'),
           h('div', h('h3', `[${target.posX}, ${target.posY}]`), h('p', target.sub.n), h('p.muted', data.areas[target.sub.a]?.n || ''))),
         onShare: () => shareResult(buildShare(), 'Résultat copié !'),
-        onEndless: () => rerun({ endless: true }),
       }));
     }
   }

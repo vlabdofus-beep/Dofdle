@@ -50,13 +50,6 @@ export function recordWin(mode, date, tries) {
   return s;
 }
 
-/** Compteur global de parties illimitées gagnées (pour le plaisir). */
-export function recordEndlessWin(mode) {
-  const n = read(`endless:${mode}`, 0) + 1;
-  write(`endless:${mode}`, n);
-  return n;
-}
-export const endlessWins = (mode) => read(`endless:${mode}`, 0);
 
 export function getPref(key, fallback) { return read(`pref:${key}`, fallback); }
 export function setPref(key, value) { write(`pref:${key}`, value); }

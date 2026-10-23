@@ -42,9 +42,9 @@ export const spellMode = {
   compare: compareSpells,
 
   clue(ctx) {
-    const { target, data, game, endless } = ctx;
+    const { target, data, game } = ctx;
     const s = target.ref;
-    const seed = endless ? Math.random() * 1e9 : hash(`sort-visuel|${game.date}`);
+    const seed = hash(`sort-visuel|${game.date}`);
     const r = rng(seed);
     const variant = r() < 0.5 ? 'flou' : 'zoom';
     // Zoom centré sur le motif du sort (léger décalage pour varier), jamais dans un coin

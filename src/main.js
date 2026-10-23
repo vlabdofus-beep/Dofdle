@@ -70,7 +70,7 @@ function route() {
   renderDate();
   document.body.dataset.mode = mode.id;
   document.title = `Dofusle — ${mode.label}`;
-  mode.run(app, { endless: location.hash.endsWith('/illimite') });
+  mode.run(app, {});
 }
 
 window.addEventListener('hashchange', route);
@@ -93,7 +93,7 @@ document.getElementById('btn-help').addEventListener('click', () => {
       h('span', h('i.sw.partial'), 'Partiel / proche'),
       h('span', h('i.sw.ko'), 'Faux'),
       h('span', '▲▼ la bonne valeur est plus haute / plus basse')),
-    h('p', 'Une fois le défi du jour réussi, partage ton résultat et enchaîne en mode ', h('strong', 'Illimité'), '.'),
+    h('p', 'Une fois le défi du jour réussi, partage ton résultat et passe au défi suivant.'),
     mode.help ? h('p.muted', mode.help) : null);
 });
 

@@ -410,23 +410,16 @@ export function themeForDay(day, hashFn) {
 }
 
 /**
- * Construit la question d'un jour (ou une question aléatoire en mode illimité).
+ * Construit la question d'un jour.
  * Les modèles d'un thème tournent de cycle en cycle : la même formulation ne
  * revient pas avant (nb de thèmes × nb de modèles du thème) jours.
  */
-export async function buildQuestion(api, { day, seed, hashFn, random = false }) {
+export async function buildQuestion(api, { day, seed, hashFn }) {
   const r = prng(seed);
-  let theme, templates;
-  if (random) {
-    theme = THEME_IDS[Math.floor(Math.random() * THEME_IDS.length)];
-    templates = [...byTheme[theme]].sort(() => Math.random() - 0.5);
-  } else {
-    const t = themeForDay(day, hashFn);
-    theme = t.theme;
-    const list = byTheme[theme];
-    const start = (t.cycle + (hashFn(`chiffre-tpl|${theme}`) % list.length)) % list.length;
-    templates = list.map((_, i) => list[(start + i) % list.length]);
-  }
+  const { theme, cycle } = themeForDay(day, hashFn);
+  const list = byTheme[theme];
+  const start = (cycle + (hashFn(`chiffre-tpl|${theme}`) % list.length)) % list.length;
+  const templates = list.map((_, i) => list[(start + i) % list.length]);
   for (const tpl of templates) {
     for (let attempt = 0; attempt < 6; attempt++) {
       let res = null;

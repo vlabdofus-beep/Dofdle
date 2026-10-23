@@ -4,7 +4,7 @@ import { h, clear, toast } from '../ui/dom.js';
 import { createHints } from '../ui/hints.js';
 import { createApi } from '../core/api.js';
 import { todayKey, dayNumber, hash, rng } from '../core/daily.js';
-import { loadGame, saveGame, recordWin, recordEndlessWin, loadStats, currentStreak } from '../core/storage.js';
+import { loadGame, saveGame, recordWin, loadStats, currentStreak } from '../core/storage.js';
 import { buildQuestion, THEMES, formatNumber } from '../data/chiffres.js';
 import { shareResult } from '../ui/share.js';
 import { STATUS_EMOJI, modeHead, winCard } from './engine.js';
@@ -48,16 +48,13 @@ function bracket(answer, seed) {
 
 export async function runChiffreMode(root, opts = {}) {
   clear(root);
-  const endless = !!opts.endless;
   const date = todayKey();
   const loader = h('div.loader', h('div.loader-label', 'Préparation de la question…'), h('div.loader-bar', h('div.loader-fill', { style: { width: '60%' } })));
   root.append(loader);
 
   let question;
   try {
-    question = endless
-      ? await buildQuestion(createApi({ concurrency: 4 }), { seed: Math.floor(Math.random() * 2 ** 31), hashFn: hash, random: true })
-      : await dailyQuestion(date);
+    question = await dailyQuestion(date);
   } catch (e) {
     clear(root).append(h('div.panel.error', h('h3', 'Impossible de préparer la question'), h('p.muted', String(e.message || e)),
       h('button.btn', { onclick: () => runChiffreMode(root, opts) }, 'Réessayer')));
@@ -66,14 +63,13 @@ export async function runChiffreMode(root, opts = {}) {
 
   const { answer } = question;
   const theme = THEMES[question.theme] || { label: 'Divers', emoji: '🔢' };
-  const game = endless ? { date, guesses: [], won: false, hints: [] } : loadGame(chiffreMode.id, date);
-  const save = () => { if (!endless) saveGame(chiffreMode.id, game); };
-  const rerun = (o) => runChiffreMode(root, o);
-  const [lo, hi] = bracket(answer, endless ? Math.random() * 1e9 : hash(`chiffre-fourchette|${date}`));
+  const game = loadGame(chiffreMode.id, date);
+  const save = () => saveGame(chiffreMode.id, game);
+  const [lo, hi] = bracket(answer, hash(`chiffre-fourchette|${date}`));
   const digits = String(answer).length;
 
   clear(root);
-  root.append(modeHead(chiffreMode, date, endless, rerun));
+  root.append(modeHead(chiffreMode, date));
 
   const hints = createHints({ game, save }, [
     { key: 'fourchette', at: 4, title: 'Fourchette', render: () => h('p', `Entre ${formatNumber(lo)} et ${formatNumber(hi)}`) },
@@ -116,7 +112,7 @@ export async function runChiffreMode(root, opts = {}) {
     game.guesses.push({ v });
     if (v === answer) {
       game.won = true;
-      if (endless) recordEndlessWin(chiffreMode.id); else recordWin(chiffreMode.id, date, game.guesses.length);
+      recordWin(chiffreMode.id, date, game.guesses.length);
     }
     save();
     refresh();
@@ -137,13 +133,12 @@ export async function runChiffreMode(root, opts = {}) {
     clear(result);
     if (game.won) {
       result.append(winCard({
-        cfg: chiffreMode, endless, date, tries: n,
+        cfg: chiffreMode, date, tries: n,
         reveal: h('div.reveal.number-reveal',
           h('div.number-answer', formatNumber(answer)),
           h('div', h('p', question.text), question.note ? h('p.small.muted', question.note) : null,
             h('p.small.muted', 'Source : données du jeu via DofusDB.'))),
         onShare: () => shareResult(buildShare(), 'Résultat copié !'),
-        onEndless: () => rerun({ endless: true }),
       }));
     } else if (!game.guesses.length) input.focus();
   }

@@ -1,6 +1,6 @@
 import { h } from './dom.js';
 import { openModal } from './modal.js';
-import { loadStats, currentStreak, endlessWins } from '../core/storage.js';
+import { loadStats, currentStreak } from '../core/storage.js';
 import { todayKey } from '../core/daily.js';
 
 export function showStats(cfg) {
@@ -12,8 +12,7 @@ export function showStats(cfg) {
     h('div.stat-row',
       box(s.wins, 'défis réussis'),
       box(currentStreak(s, todayKey()), 'série actuelle'),
-      box(s.best, 'meilleure série'),
-      box(endlessWins(cfg.id), 'en illimité')),
+      box(s.best, 'meilleure série')),
     h('h3', 'Nombre d\'essais'),
     h('div.dist', buckets.map((b) => {
       const n = s.dist[b] || 0;

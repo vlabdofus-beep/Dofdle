@@ -36,9 +36,9 @@ export const itemMode = {
   compare: (g, t, data) => compareItems(g, t, data).filter((c) => c.key !== 'element'),
 
   clue(ctx) {
-    const { target, data, game, endless } = ctx;
+    const { target, data, game } = ctx;
     const it = target.ref;
-    const r = rng(endless ? Math.random() * 1e9 : hash(`objet-visuel|${game.date}`));
+    const r = rng(hash(`objet-visuel|${game.date}`));
     const variant = r() < 0.55 ? 'stats' : 'icone';
     const lines = itemEffectLines(it, data);
     const picture = img(itemImg(it), 'Icône de l\'objet mystère');
