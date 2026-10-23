@@ -8,7 +8,7 @@ import { createHints } from '../ui/hints.js';
 import { monstersDataset, compareMonsters, monsterEntries } from '../data/monsters.js';
 import { monsterReveal } from './monster.js';
 
-const COLUMNS = ['race', 'level', 'zone', 'kind'];
+const COLUMNS = ['race'];
 
 async function loadCris() {
   const res = await fetch('data/cris.json', { cache: 'no-cache' });
@@ -45,12 +45,9 @@ export const criMode = {
   intro: 'Écoute le cri du monstre mystère et retrouve à qui il appartient. Les variantes qui partagent le même cri sont acceptées.',
   placeholder: 'Nom d\'un monstre…',
   nameLabel: 'Monstre',
-  partialHelp: 'Partiel (niveaux qui se chevauchent, même région)',
+  noPartial: true, // la famille est juste ou fausse
   columns: [
     { key: 'race', label: 'Famille' },
-    { key: 'level', label: 'Niveau' },
-    { key: 'zone', label: 'Zone' },
-    { key: 'kind', label: 'Rang' },
   ],
 
   async load(onProgress) {

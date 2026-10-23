@@ -217,7 +217,7 @@ export async function runGuessMode(root, cfg, opts = {}) {
 function legend(cfg) {
   return h('div.legend',
     h('span', h('i.sw.ok'), 'Correct'),
-    h('span', h('i.sw.partial'), cfg.partialHelp || 'Proche / partiel'),
+    cfg.noPartial ? null : h('span', h('i.sw.partial'), cfg.partialHelp || 'Proche / partiel'),
     h('span', h('i.sw.ko'), 'Faux'),
-    h('span', '▲▼ ', 'plus haut / plus bas'));
+    cfg.noPartial ? null : h('span', '▲▼ ', 'plus haut / plus bas'));
 }
