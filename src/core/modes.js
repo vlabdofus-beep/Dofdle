@@ -9,6 +9,7 @@ export const MODE_ORDER = [
   { id: 'objet', label: 'Objet' },
   { id: 'cri', label: 'Cri' },
   { id: 'juste-prix', label: 'Juste prix' },
+  { id: 'semantix', label: 'Sémantix' },
 ];
 
 /** Prochain mode dont le défi du jour n'est pas encore réussi (sinon le suivant). */

@@ -10,6 +10,7 @@ import { itemMode } from './modes/item.js';
 import { mapMode, runMapMode } from './modes/map.js';
 import { criMode } from './modes/cri.js';
 import { chiffreMode, runChiffreMode } from './modes/chiffre.js';
+import { semantixMode, runSemantixMode } from './modes/semantix.js';
 
 // Pour ajouter un mode (ex. Bellaphones) : créer sa config + son dataset et l'ajouter ici.
 const MODES = [
@@ -19,6 +20,7 @@ const MODES = [
   { ...itemMode, run: (root, o) => runGuessMode(root, itemMode, o) },
   { ...criMode, run: (root, o) => runGuessMode(root, criMode, o) },
   { ...chiffreMode, run: (root, o) => runChiffreMode(root, o) },
+  { ...semantixMode, run: (root, o) => runSemantixMode(root, o) },
 ];
 
 const app = document.getElementById('app');
@@ -58,7 +60,8 @@ document.getElementById('btn-help').addEventListener('click', () => {
       h('li', h('strong', 'Carte : '), 'un bout de map. Clique sur la mini-carte, tape des coordonnées [X, Y] ou une zone : on t\'indique la distance en nombre de maps.'),
       h('li', h('strong', 'Objet : '), 'retrouve un équipement à partir de ses effets ou de son icône floutée.'),
       h('li', h('strong', 'Cri : '), 'écoute le cri d\'un monstre (tiré des fichiers du jeu) et retrouve à qui il appartient.'),
-      h('li', h('strong', 'Juste prix : '), 'une question chiffrée improbable (maps d\'une région, recettes d\'un métier, PV d\'un boss…). Trouve le nombre exact grâce aux indications plus / moins.')),
+      h('li', h('strong', 'Juste prix : '), 'une question chiffrée improbable (maps d\'une région, recettes d\'un métier, PV d\'un boss…). Trouve le nombre exact grâce aux indications plus / moins.'),
+      h('li', h('strong', 'Sémantix : '), 'trouve le mot secret : chaque mot proposé reçoit une température selon sa proximité de sens, apprise sur les textes du jeu.')),
     h('p.muted', 'Les indices ne s\'affichent jamais tout seuls : une fois débloqués, clique dessus pour les révéler.'),
     h('div.legend.static',
       h('span', h('i.sw.ok'), 'Correct'),
