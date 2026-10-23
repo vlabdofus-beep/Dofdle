@@ -5,13 +5,16 @@ import { todayKey } from './daily.js';
 // Chaque mode est associé à l'un des six Dofus primordiaux : réussir le défi du jour
 // d'un mode, c'est "récolter" son Dofus.
 export const MODE_ORDER = [
-  { id: 'monstre', label: 'Monstre', dofus: 'Pourpre' },
-  { id: 'sort', label: 'Sort', dofus: 'Turquoise' },
-  { id: 'carte', label: 'Carte', dofus: 'Émeraude' },
-  { id: 'objet', label: 'Objet', dofus: 'Ocre' },
-  { id: 'cri', label: 'Cri', dofus: 'Ivoire' },
-  { id: 'juste-prix', label: 'Juste prix', dofus: 'Cawotte' },
+  { id: 'monstre', label: 'Monstre', dofus: 'Pourpre', icon: 23001 },
+  { id: 'sort', label: 'Sort', dofus: 'Turquoise', icon: 23003 },
+  { id: 'carte', label: 'Carte', dofus: 'Émeraude', icon: 23002 },
+  { id: 'objet', label: 'Objet', dofus: 'Ocre', icon: 23012 },
+  { id: 'cri', label: 'Cri', dofus: 'Ivoire', icon: 23011 },
+  { id: 'juste-prix', label: 'Juste prix', dofus: 'Ébène', icon: 23007 },
 ];
+
+/** Icône officielle du Dofus d'un mode (servie par DofusDB, comme les autres images du jeu). */
+export const dofusImg = (id) => `https://api.dofusdb.fr/img/items/${modeInfo(id).icon}.png`;
 
 export const modeInfo = (id) => MODE_ORDER.find((m) => m.id === id) || MODE_ORDER[0];
 

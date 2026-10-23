@@ -6,7 +6,7 @@ import { createAutocomplete } from '../ui/autocomplete.js';
 import { loadDataset } from '../core/cache.js';
 import { todayKey, dayNumber, pickDaily, msUntilNextDaily } from '../core/daily.js';
 import { loadGame, saveGame, recordWin, loadStats, currentStreak } from '../core/storage.js';
-import { nextMode, modeInfo, harvestedToday, MODE_ORDER } from '../core/modes.js';
+import { nextMode, modeInfo, harvestedToday, MODE_ORDER, dofusImg } from '../core/modes.js';
 import { ELEMENTS } from '../data/elements.js';
 import { shareResult } from '../ui/share.js';
 import { showStats } from '../ui/stats.js';
@@ -58,7 +58,7 @@ export function winCard({ cfg, date, tries, reveal, onShare }) {
   const streak = currentStreak(loadStats(cfg.id), date);
   return h('div.panel.win-card',
     h('div.win-head',
-      h('span.egg.egg-win', { 'data-mode': cfg.id, 'aria-hidden': 'true' }),
+      h('img.dofus-win', { src: dofusImg(cfg.id), alt: `Dofus ${info.dofus}`, width: 96, height: 96, 'data-mode': cfg.id }),
       h('div',
         h('div.win-title', `Dofus ${info.dofus} récolté`),
         h('p.win-tries', `Trouvé en ${tries} essai${tries > 1 ? 's' : ''}.`,

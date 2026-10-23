@@ -3,7 +3,7 @@ import { h, clear, toast } from './ui/dom.js';
 import { openModal } from './ui/modal.js';
 import { showStats } from './ui/stats.js';
 import { clearCache } from './core/cache.js';
-import { harvestedToday, modeInfo } from './core/modes.js';
+import { harvestedToday, modeInfo, dofusImg } from './core/modes.js';
 import { todayKey } from './core/daily.js';
 import { runGuessMode } from './modes/engine.js';
 import { monsterMode } from './modes/monster.js';
@@ -55,7 +55,9 @@ function renderNav(active) {
       'aria-current': current ? 'page' : undefined,
       title: `${m.label} : Dofus ${modeInfo(m.id).dofus}${won ? ', récolté aujourd\'hui' : ''}`,
     },
-    h('span.egg', { 'data-mode': m.id }, h('img', { src: m.icon, alt: '' })),
+    h('span.dofus-slot', { 'data-mode': m.id },
+      h('img.dofus', { src: dofusImg(m.id), alt: '', width: 64, height: 64 }),
+      h('img.mode-badge', { src: m.icon, alt: '' })),
     h('span.mode-label', m.label)));
   }
   const n = done.size;
