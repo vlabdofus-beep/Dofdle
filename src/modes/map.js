@@ -94,7 +94,7 @@ export async function runMapMode(root, opts = {}) {
         h('div.map-frame', picture, zoomLabel),
         hints.el),
       h('div.map-col',
-        h('div.panel.minimap-panel', h('div.minimap-head', h('strong', 'Mini-carte'), h('span.muted', 'Clique sur une case pour proposer ses coordonnées')), minimap.el),
+        h('div.panel.minimap-panel', h('div.minimap-head', h('strong', 'Mini-carte'), h('span.muted', 'Molette ou pincement pour zoomer, glisser pour te déplacer, clic pour proposer')), minimap.el),
         h('div.panel.input-panel', ac.el, counter))),
     result, list,
     h('div.legend', h('span', h('i.sw.ok'), 'Bonne map'), h('span', h('i.sw.partial'), `À ${NEAR} maps ou moins / bonne zone`), h('span', h('i.sw.ko'), 'Loin')));

@@ -6,13 +6,14 @@ import { ELEMENT_ORDER } from './elements.js';
 import { COLORS, compareColors } from './colors.js';
 
 export const ARCHI_SUPER_RACE = 20;
-// Super-familles exclues : créatures de quête et invocations
-export const EXCLUDED_SUPER_RACES = new Set([27, 28]);
+// Super-familles exclues : créatures de quête, invocations, créatures des Expéditions
+export const EXCLUDED_SUPER_RACES = new Set([27, 28, 45]);
+const NORMAL_GRADES = 5;
 const RES_KEYS = { neutre: 'reductionNeutral', terre: 'reductionEarth', feu: 'reductionFire', eau: 'reductionWater', air: 'reductionAir' };
 
 export const monstersDataset = {
   key: 'monsters',
-  version: 6,
+  version: 7,
   async build(api, onProgress = () => {}) {
     const step = stepper(onProgress, [['Monstres', 6], ['Familles', 1], ['Zones', 2]]);
 
@@ -21,7 +22,7 @@ export const monstersDataset = {
       'isQuestMonster[$ne]': true,
       'subareas[$gt]': 0, // au moins une sous-zone
       '$select': ['id', 'name', 'gfxId', 'look', 'race', 'isBoss', 'isMiniBoss', 'favoriteSubareaId', 'subareas',
-        'grades.level', 'grades.lifePoints', ...Object.values(RES_KEYS).map((k) => `grades.${k}`)],
+        'grades.grade', 'grades.level', 'grades.lifePoints', ...Object.values(RES_KEYS).map((k) => `grades.${k}`)],
     }, { onProgress: step.Monstres });
 
     const [races, superRaces] = await Promise.all([
@@ -50,9 +51,11 @@ export const monstersDataset = {
       const name = tr(m.name);
       const race = data.races[m.race];
       if (!name || !m.grades?.length || EXCLUDED_SUPER_RACES.has(race?.sr)) continue;
-      const levels = m.grades.map((g) => g.level);
-      const hp = m.grades.map((g) => g.lifePoints || 0);
-      const top = m.grades[m.grades.length - 1];
+      // Grades 6+ = paliers d'expédition (ex. 75 / 130 / 200) : on garde les 5 grades normaux
+      const grades = [...m.grades].sort((a, b) => (a.grade ?? 0) - (b.grade ?? 0)).slice(0, NORMAL_GRADES);
+      const levels = grades.map((g) => g.level);
+      const hp = grades.map((g) => g.lifePoints || 0);
+      const top = grades[grades.length - 1];
       const res = ELEMENT_ORDER.map((el) => top[RES_KEYS[el]] ?? 0);
       const subs = (m.subareas || []).filter((s) => subareaMap[s]);
       if (!subs.length) continue;
