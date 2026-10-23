@@ -1,0 +1,12 @@
+{
+  "name": "dofusle",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Fan game quotidien non officiel dans l'univers de Dofus (données DofusDB).",
+  "type": "module",
+  "scripts": {
+    "dev": "npx --yes serve -l 5173 .",
+    "data": "node scripts/build-data.mjs"
+  },
+  "engines": { "node": ">=18" }
+}

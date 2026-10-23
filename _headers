@@ -1,0 +1,9 @@
+# Cloudflare Pages : cache des données et assets
+/data/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=604800
+/assets/*
+  Cache-Control: public, max-age=2592000, immutable
+/src/*
+  Cache-Control: public, max-age=300, must-revalidate
+/css/*
+  Cache-Control: public, max-age=300, must-revalidate

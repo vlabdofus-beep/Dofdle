@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Dofusle — le jeu quotidien de l'univers Dofus</title>
+  <meta name="description" content="Fan game quotidien et non officiel dans l'univers de Dofus : devine le monstre, le sort, la carte et l'objet du jour.">
+  <meta name="theme-color" content="#14110d">
+  <meta property="og:title" content="Dofusle">
+  <meta property="og:description" content="Devine le monstre, le sort, la carte et l'objet Dofus du jour.">
+  <link rel="icon" type="image/png" href="assets/game/ui/logo-dofus.png">
+  <link rel="preconnect" href="https://api.dofusdb.fr" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+  <header class="top">
+    <a class="brand" href="#monstre" aria-label="Dofusle — accueil">
+      <img src="assets/game/ui/logo-dofus.png" alt="" width="40" height="40">
+      <span class="brand-name">Dofus<em>le</em></span>
+    </a>
+    <div class="top-actions">
+      <button class="icon-btn" id="btn-help" aria-label="Comment jouer" title="Comment jouer">?</button>
+      <button class="icon-btn" id="btn-stats" aria-label="Statistiques" title="Statistiques"><img src="assets/game/ui/trophy.png" alt=""></button>
+    </div>
+  </header>
+
+  <nav class="modes" id="modes" aria-label="Modes de jeu"></nav>
+
+  <main id="app" class="app" tabindex="-1"></main>
+
+  <footer class="foot">
+    <p><strong>Fan game non officiel.</strong> Dofusle n'est ni affilié, ni approuvé, ni sponsorisé par Ankama Games.
+      Dofus et tous les noms, images et contenus associés sont la propriété d'Ankama Games.</p>
+    <p>Données et images : <a href="https://dofusdb.fr" target="_blank" rel="noopener">DofusDB</a> (usage non commercial) ·
+      Aucun compte, aucune publicité, aucune donnée collectée — ta progression reste dans ton navigateur.</p>
+    <p class="foot-links"><button class="link" id="btn-cache">Rafraîchir les données</button></p>
+  </footer>
+
+  <noscript><p class="noscript">Dofusle a besoin de JavaScript pour fonctionner.</p></noscript>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
