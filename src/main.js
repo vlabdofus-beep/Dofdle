@@ -7,7 +7,11 @@ import { harvestedToday, modeInfo, dofusImg } from './core/modes.js';
 import { todayKey, dayNumber, msUntilNextDaily } from './core/daily.js';
 import { loadGame } from './core/storage.js';
 import { shareResult } from './ui/share.js';
-import { renderHome, statsSummary } from './ui/home.js';
+import { renderHome } from './ui/home.js';
+import { showCollection } from './ui/collection.js';
+import { maybeShowIntro, showIntro } from './ui/intro.js';
+import { krosmozDate } from './core/krosmoz.js';
+import { backfillHistory } from './core/storage.js';
 import { streakText } from './modes/engine.js';
 import { runGuessMode } from './modes/engine.js';
 import { monsterMode } from './modes/monster.js';
@@ -38,14 +42,8 @@ function currentMode() {
   return MODES.find((m) => m.id === id) || null;
 }
 
-// Mois du calendrier du Krosmoz (Javian = janvier … Descendre = décembre)
-const KROSMOZ_MONTHS = ['Javian', 'Flovor', 'Martalo', 'Aperirel', 'Maisial', 'Juinssidor', 'Joullier', 'Fraouctor', 'Septange', 'Octolliard', 'Novamaire', 'Descendre'];
-const WEEKDAYS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
-
 function renderDate() {
-  const [y, m, d] = todayKey().split('-').map(Number);
-  const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
-  document.getElementById('krosmoz-date').textContent = `${WEEKDAYS[wd]} ${d} ${KROSMOZ_MONTHS[m - 1]}`;
+  document.getElementById('krosmoz-date').textContent = krosmozDate(todayKey());
 }
 
 function renderNav(active, justWon = null) {
@@ -81,12 +79,32 @@ function renderNav(active, justWon = null) {
 /** Récapitulatif des six défis du jour, à coller sur Discord ou ailleurs. */
 function shareDay() {
   const date = todayKey();
-  const lines = MODES.map((m) => {
-    const tries = loadGame(m.id, date).guesses.length;
-    return `${m.emoji} ${m.label} : ${tries} essai${tries > 1 ? 's' : ''}`;
+  const games = MODES.map((m) => ({ m, g: loadGame(m.id, date) }));
+  const won = games.filter((x) => x.g.won);
+  const lines = games.map(({ m, g }) => {
+    const n = g.guesses.length;
+    return `${m.emoji} ${m.label} : ${g.won ? `${n} essai${n > 1 ? 's' : ''}` : 'pas encore'}`;
   });
-  const total = MODES.reduce((a, m) => a + loadGame(m.id, date).guesses.length, 0);
-  shareResult([`Dofusle #${dayNumber(date)} : les six Dofus récoltés en ${total} essais`, ...lines, location.href.split('#')[0]].join('\n'), 'Récapitulatif copié !');
+  const total = won.reduce((a, x) => a + x.g.guesses.length, 0);
+  const head = won.length === MODES.length
+    ? `Dofusle #${dayNumber(date)} : les six Dofus récoltés en ${total} essais`
+    : `Dofusle #${dayNumber(date)} : ${won.length} Dofus sur ${MODES.length} récoltés`;
+  shareResult([head, ...lines, location.href.split('#')[0]].join('\n'), 'Récapitulatif copié !');
+}
+
+// Installation sur l'écran d'accueil (Chrome, Edge, Android) : bouton proposé sur l'accueil
+let installPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  installPrompt = e;
+  if (!currentMode()) route();
+});
+async function install() {
+  if (!installPrompt) return;
+  installPrompt.prompt();
+  await installPrompt.userChoice.catch(() => {});
+  installPrompt = null;
+  if (!currentMode()) route();
 }
 
 function route() {
@@ -97,11 +115,13 @@ function route() {
   window.scrollTo(0, 0);
   if (!mode) {
     document.title = 'Dofusle, le défi quotidien de l\'univers Dofus';
-    renderHome(app, MODES, { onShareDay: shareDay });
+    renderHome(app, MODES, { onShareDay: shareDay, onInstall: installPrompt ? install : null });
+    maybeShowIntro();
     return;
   }
   document.title = `Dofusle — ${mode.label}`;
   mode.run(app, {});
+  maybeShowIntro();
 }
 
 window.addEventListener('hashchange', route);
@@ -125,6 +145,7 @@ document.getElementById('btn-help').addEventListener('click', () => {
   const mode = currentMode();
   openModal('Comment jouer',
     h('p', 'Chaque jour à minuit (heure de Paris), un nouveau défi par mode — le même pour tout le monde.'),
+    h('p', h('button.link', { type: 'button', onclick: showIntro }, 'Revoir l\'exemple de lecture des réponses')),
     h('ul.help-list',
       h('li', h('strong', 'Monstre : '), 'propose des monstres. Chaque colonne (famille, niveau, PV, zone, rang, faiblesse, couleur) se colore selon la ressemblance avec le monstre secret.'),
       h('li', h('strong', 'Sort : '), 'une icône de sort de classe, floutée ou zoomée. Elle se dévoile à chaque essai ; des indices (PA, portée, élément, classe) se débloquent et se révèlent d\'un clic.'),
@@ -142,17 +163,15 @@ document.getElementById('btn-help').addEventListener('click', () => {
     mode?.help ? h('p.muted', mode.help) : null);
 });
 
-document.getElementById('btn-stats').addEventListener('click', () => {
-  const mode = currentMode();
-  if (mode) showStats(mode);
-  else openModal('Statistiques', statsSummary(MODES), h('p.muted.small', 'Les statistiques sont stockées uniquement dans ce navigateur.'));
-});
+// Trophée : la collection complète (série 6/6, calendrier, statistiques par mode)
+document.getElementById('btn-stats').addEventListener('click', () => showCollection(MODES));
 document.getElementById('btn-cache').addEventListener('click', async () => {
   await clearCache();
   toast('Cache vidé — rechargement des données…');
   setTimeout(() => location.reload(), 600);
 });
 
+backfillHistory(MODES.map((m) => m.id));
 route();
 
 // Onglet resté ouvert après minuit : on passe automatiquement aux défis du nouveau jour

@@ -668,3 +668,56 @@ body[data-mode="accueil"] .dofus-rack { display: none; }
   .home-card-text { font-size: 14px; }
   .home-sub { font-size: 15.5px; }
 }
+
+/* ---------- Collection : Dofus du jour, calendrier ---------- */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.modal { width: min(640px, 100%); }
+.coll-today { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; margin-bottom: 16px; }
+.coll-dofus { display: flex; flex-direction: column; align-items: center; gap: 2px; text-decoration: none; color: var(--muted); font-size: 12.5px; text-align: center; }
+.coll-dofus .dofus-slot, .coll-dofus .dofus { width: 56px; height: 56px; }
+.coll-dofus.won { color: var(--text); }
+.coll-dofus.won .dofus { filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5)); opacity: 1; }
+.coll-dofus.won .dofus-slot::before { opacity: 1; }
+.coll-name { font-weight: 700; }
+.coll-tries { font-size: 12px; color: var(--muted); }
+.stat-row.four { grid-template-columns: repeat(4, 1fr); margin-bottom: 16px; }
+
+.calendar { background: var(--panel-deep); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.cal-head strong { font: 700 18px var(--font-title); color: var(--gold-2); }
+.cal-nav { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); color: var(--text); font-size: 20px; cursor: pointer; }
+.cal-nav:disabled { opacity: .3; cursor: default; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.cal-wd { text-align: center; font-size: 12px; color: var(--muted); padding-bottom: 2px; }
+.cal-day {
+  position: relative; height: 42px; border-radius: 8px; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--gold) calc(var(--fill, 0) * 55%), var(--panel));
+  border: 1px solid var(--line); font-variant-numeric: tabular-nums;
+}
+.cal-day.empty { background: none; border: 0; }
+.cal-day.off { opacity: .35; }
+.cal-day.today { border-color: var(--gold-2); box-shadow: 0 0 0 1px var(--gold-2); }
+.cal-day.full { background: radial-gradient(circle at 50% 40%, #f6d78f, #c99a3e 75%); border-color: #f6d78f; color: #2a1c06; box-shadow: 0 0 12px rgba(246, 215, 143, 0.45); }
+.cal-num { font-size: 13px; font-weight: 700; }
+.cal-count { position: absolute; right: 4px; bottom: 2px; font-size: 10px; font-weight: 800; opacity: .85; }
+.cal-legend { display: flex; gap: 14px; justify-content: center; margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+.cal-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cal-sw { width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--line); }
+.cal-sw.l1 { background: color-mix(in srgb, var(--gold) 30%, var(--panel)); }
+.cal-sw.full { background: #e8c070; }
+
+/* ---------- Accueil : actions et série 6/6 ---------- */
+.home-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 6px; }
+.home-actions .home-cta { margin-top: 0; }
+.home-fullstreak { display: inline-flex; align-items: center; gap: 6px; color: var(--gold-2); }
+.home-fullstreak .streak-flame { filter: drop-shadow(0 0 5px rgba(240, 163, 58, 0.7)); animation: flicker 1.6s ease-in-out infinite; }
+
+/* ---------- Bienvenue : exemple de lecture ---------- */
+.intro-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 8px 0 12px; }
+.intro-cell { min-height: 72px; }
+
+@media (max-width: 560px) {
+  .coll-today { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 10px; }
+  .stat-row.four { grid-template-columns: repeat(2, 1fr); }
+  .cal-num { font-size: 12px; }
+}

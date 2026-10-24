@@ -1,7 +1,7 @@
 // Écran d'accueil : choix du mode, avec l'état du défi du jour de chacun.
 import { h, clear, formatDuration } from './dom.js';
 import { todayKey, dayNumber, msUntilNextDaily } from '../core/daily.js';
-import { loadGame, loadStats, currentStreak } from '../core/storage.js';
+import { loadGame, loadStats, currentStreak, fullDayStreaks } from '../core/storage.js';
 import { modeInfo, dofusImg } from '../core/modes.js';
 
 const TAGLINES = {
@@ -32,7 +32,7 @@ export function statsSummary(modes) {
     })));
 }
 
-export function renderHome(root, modes, { onShareDay } = {}) {
+export function renderHome(root, modes, { onShareDay, onInstall } = {}) {
   clear(root);
   const date = todayKey();
   const states = modes.map((m) => ({ m, st: status(m.id, date) }));
@@ -50,9 +50,13 @@ export function renderHome(root, modes, { onShareDay } = {}) {
       h('p.home-sub', 'Six défis, six Dofus à récolter. Les mêmes pour tout le monde, renouvelés chaque nuit à minuit.'),
       h('div.home-progress',
         h('span', done === modes.length ? 'Les six Dofus du jour sont récoltés !' : `${done} Dofus sur ${modes.length} récoltés`),
+        (() => { const s = fullDayStreaks(date, modes.length).current; return s ? h('span.home-fullstreak', h('span.streak-flame', { 'aria-hidden': 'true' }), `${s} journée${s > 1 ? 's' : ''} complète${s > 1 ? 's' : ''} d'affilée`) : null; })(),
         h('span.muted', 'Nouveaux défis dans ', countdown)),
-      next ? h('a.btn.primary.home-cta', { href: `#${next.m.id}`, 'data-mode': next.m.id }, done ? `Continuer : ${next.m.label}` : `Commencer par ${next.m.label}`)
-        : h('button.btn.primary.home-cta', { type: 'button', onclick: onShareDay }, 'Partager ma journée')),
+      h('div.home-actions',
+        next ? h('a.btn.primary.home-cta', { href: `#${next.m.id}`, 'data-mode': next.m.id }, done ? `Continuer : ${next.m.label}` : `Commencer par ${next.m.label}`)
+          : h('button.btn.primary.home-cta', { type: 'button', onclick: onShareDay }, 'Partager ma journée'),
+        next && done ? h('button.btn', { type: 'button', onclick: onShareDay }, 'Partager ma journée') : null,
+        onInstall ? h('button.btn', { type: 'button', onclick: onInstall }, 'Installer l\'application') : null)),
     h('div.home-grid', states.map(({ m, st }, i) => {
       const streak = currentStreak(loadStats(m.id), date);
       return h(`a.home-card.${st.key}`, { href: `#${m.id}`, 'data-mode': m.id, style: `--i:${i}` },

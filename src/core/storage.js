@@ -34,8 +34,49 @@ export function currentStreak(stats, today) {
   return stats.lastWin === today || stats.lastWin === addDays(today, -1) ? stats.streak : 0;
 }
 
+/** Historique des défis réussis : { 'AAAA-MM-JJ': { monstre: 4, sort: 2, … } } (nombre d'essais). */
+export function loadHistory() { return read('history', {}); }
+function addHistory(mode, date, tries) {
+  const hist = loadHistory();
+  hist[date] = { ...(hist[date] || {}), [mode]: tries };
+  write('history', hist);
+}
+
+/**
+ * Complète l'historique avec les parties gagnées encore en mémoire (le jour même ou la veille),
+ * pour les joueurs qui ont joué avant l'apparition de l'historique.
+ */
+export function backfillHistory(modeIds) {
+  const hist = loadHistory();
+  let changed = false;
+  for (const id of modeIds) {
+    const g = read(`game:${id}`, null);
+    if (g?.won && g.date && !hist[g.date]?.[id]) {
+      hist[g.date] = { ...(hist[g.date] || {}), [id]: g.guesses.length };
+      changed = true;
+    }
+  }
+  if (changed) write('history', hist);
+}
+
+/** Série de journées complètes (tous les Dofus du jour récoltés), et la meilleure. */
+export function fullDayStreaks(today, total) {
+  const hist = loadHistory();
+  const full = (d) => Object.keys(hist[d] || {}).length >= total;
+  let current = 0;
+  for (let d = full(today) ? today : addDays(today, -1); full(d); d = addDays(d, -1)) current++;
+  let best = 0, run = 0, prev = null;
+  for (const d of Object.keys(hist).filter(full).sort()) {
+    run = prev && addDays(prev, 1) === d ? run + 1 : 1;
+    best = Math.max(best, run);
+    prev = d;
+  }
+  return { current, best: Math.max(best, current) };
+}
+
 /** Enregistre la victoire d'un daily (une seule fois par jour). */
 export function recordWin(mode, date, tries) {
+  addHistory(mode, date, tries);
   const s = loadStats(mode);
   if (s.lastPlayed === date) return s; // déjà compté
   s.played++;
