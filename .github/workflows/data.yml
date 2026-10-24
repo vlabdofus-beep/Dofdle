@@ -1,0 +1,55 @@
+# Régénère les fichiers de données (data/*.json) depuis l'API DofusDB et les pousse.
+# Le site charge alors un seul fichier par mode au lieu de dizaines de requêtes à DofusDB.
+# Cloudflare redéploie automatiquement après chaque push.
+name: Données DofusDB
+
+on:
+  schedule:
+    - cron: '17 4 * * 1'   # chaque lundi à 4 h 17 UTC (mises à jour de Dofus le mardi : données fraîches la semaine suivante)
+  workflow_dispatch: {}      # bouton « Run workflow » dans l'onglet Actions de GitHub
+  push:
+    branches: [main]
+    paths:                   # quand la façon de construire les données change
+      - 'scripts/**'
+      - 'src/data/**'
+      - 'src/core/api.js'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data
+  cancel-in-progress: true
+
+jobs:
+  build-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Générer les données
+        run: npm run data
+
+      - name: Vérifier les fichiers
+        run: |
+          for f in monsters spells items maps; do
+            test -s "data/$f.json" || { echo "data/$f.json manquant ou vide"; exit 1; }
+            node -e "const d=require('./data/$f.json'); const n=(d.monsters||d.spells||d.items||d.maps||[]).length; if(n<50){console.error('$f : seulement '+n+' entrées');process.exit(1)} console.log('$f : '+n+' entrées')"
+          done
+
+      - name: Pousser si quelque chose a changé
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/*.json
+          if git diff --cached --quiet; then
+            echo "Aucun changement dans les données."
+          else
+            git commit -m "Données DofusDB mises à jour ($(date -u +%Y-%m-%d))"
+            git push
+          fi
