@@ -28,7 +28,13 @@ async function dailyQuestion(date, key = QUESTION_KEY) {
     if (cached && cached.date === date && cached.v === QUESTION_VERSION) return cached.q;
   } catch { /* stockage indisponible */ }
   const api = createApi({ concurrency: 4 });
-  const q = await buildQuestion(api, { day: dayNumber(date), seed: hash(`chiffre|${date}`), hashFn: hash });
+  // DofusDB lent ou indisponible : on abandonne au bout de 12 s plutôt que de charger indéfiniment
+  let timer;
+  const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('DofusDB ne répond pas pour le moment. Réessaie dans quelques instants.')), 12000); });
+  let q;
+  try {
+    q = await Promise.race([buildQuestion(api, { day: dayNumber(date), seed: hash(`chiffre|${date}`), hashFn: hash }), timeout]);
+  } finally { clearTimeout(timer); }
   try { localStorage.setItem(key, JSON.stringify({ date, v: QUESTION_VERSION, q })); } catch { /* idem */ }
   return q;
 }

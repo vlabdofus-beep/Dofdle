@@ -72,7 +72,7 @@ function renderNav(active, justWon = null) {
     count.replaceChildren('Les six Dofus du jour sont récoltés ! ',
       h('button.link.share-day', { type: 'button', onclick: shareDay }, 'Partager ma journée'));
   } else {
-    count.textContent = n ? `${n} Dofus sur ${MODES.length} récoltés aujourd'hui` : 'Réussis un défi pour récolter son Dofus';
+    count.textContent = n ? `${n} Dofus sur ${MODES.length} récoltés aujourd'hui` : '';
   }
 }
 

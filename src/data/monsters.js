@@ -58,7 +58,7 @@ export const monstersDataset = {
       const top = grades[grades.length - 1];
       const res = ELEMENT_ORDER.map((el) => top[RES_KEYS[el]] ?? 0);
       const subs = (m.subareas || []).filter((s) => subareaMap[s]);
-      if (!subs.length) continue;
+      if (!subs.length || !isPlayableMonster({ n: name, l: [Math.min(...levels), Math.max(...levels)] })) continue;
       const main = subareaMap[m.favoriteSubareaId] ? m.favoriteSubareaId : subs[0];
       const bones = Number((m.look || '').match(/^\{(\d+)/)?.[1]) || 0;
       data.monsters.push({
@@ -81,6 +81,10 @@ export const monstersDataset = {
 };
 
 // ---------- Logique de jeu (indépendante de l'UI) ----------
+
+// Monstres exclus du jeu : monstres de test et niveaux aberrants (raids à niveau variable, au-delà de 300)
+export const MAX_MONSTER_LEVEL = 300;
+export const isPlayableMonster = (m) => !/^test/i.test(m.n) && m.l[1] <= MAX_MONSTER_LEVEL;
 
 export const KIND_LABEL = { boss: 'Boss', miniboss: 'Mini-boss', archi: 'Archimonstre', normal: 'Normal' };
 
@@ -160,6 +164,7 @@ export function monsterEntries(data, normalize) {
   const seen = new Set();
   const entries = [];
   for (const m of data.monsters) {
+    if (!isPlayableMonster(m)) continue;
     const key = normalize(m.n);
     if (seen.has(key)) continue;
     seen.add(key);

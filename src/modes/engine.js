@@ -171,9 +171,18 @@ export async function runGuessMode(root, cfg, opts = {}) {
   const rows = h('div.grid-rows');
   grid.append(headRow, rows);
   const gridWrap = h('div.grid-wrap', grid);
+  // Indice de défilement horizontal (mobile) : dégradé + flèche tant qu'il reste des colonnes à droite
+  const gridShell = h('div.grid-shell', gridWrap);
+  const updateScrollHint = () => {
+    const can = gridWrap.scrollWidth > gridWrap.clientWidth + 4;
+    gridShell.classList.toggle('can-scroll', can);
+    gridShell.classList.toggle('at-end', !can || gridWrap.scrollLeft + gridWrap.clientWidth >= gridWrap.scrollWidth - 4);
+  };
+  gridWrap.addEventListener('scroll', updateScrollHint, { passive: true });
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(updateScrollHint).observe(gridWrap);
   const result = h('div.result');
   const yesterday = pick(addDays(date, -1));
-  root.append(result, gridWrap, legend(cfg),
+  root.append(result, gridShell, legend(cfg),
     yesterday ? yesterdayLine(cfg.yesterdayLabel || 'La réponse d\'hier était', yesterday.n) : null);
 
   function rowFor(id, animate) {
@@ -190,6 +199,7 @@ export async function runGuessMode(root, cfg, opts = {}) {
     clear(rows);
     [...game.guesses].reverse().forEach((id, i) => rows.append(rowFor(id, animateFirst && i === 0)));
     gridWrap.classList.toggle('empty', !game.guesses.length);
+    requestAnimationFrame(updateScrollHint);
     counter.textContent = game.guesses.length ? `${game.guesses.length} essai${game.guesses.length > 1 ? 's' : ''}` : 'Tape un nom pour commencer';
     clue?.update(game);
     ac.disable(game.won);
@@ -244,9 +254,10 @@ export async function runGuessMode(root, cfg, opts = {}) {
 }
 
 function legend(cfg) {
+  // Libellés courts ; le détail de « proche » reste au survol et dans l'aide de chaque colonne
   return h('div.legend',
     h('span', h('i.sw.ok', '✓'), 'Correct'),
-    cfg.noPartial ? null : h('span', h('i.sw.partial', '≈'), cfg.partialHelp || 'Proche / partiel'),
+    cfg.noPartial ? null : h('span', { title: cfg.partialHelp || '' }, h('i.sw.partial', '≈'), 'Proche'),
     h('span', h('i.sw.ko', '✕'), 'Faux'),
-    cfg.noPartial ? null : h('span', h('i.legend-arrow'), 'plus haut / plus bas, doublée si très loin'));
+    cfg.noPartial ? null : h('span', h('i.legend-arrow'), 'Plus haut / plus bas'));
 }

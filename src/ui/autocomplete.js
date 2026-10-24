@@ -30,7 +30,6 @@ export function createAutocomplete({ items, placeholder, onSelect, exclude = () 
     const ex = exclude();
     const scored = [];
     for (const row of index) {
-      if (ex.has(row.it.id)) continue;
       let score = -1;
       if (row.key === nq) score = 0;
       else if (row.key.startsWith(nq)) score = 1;
@@ -39,19 +38,24 @@ export function createAutocomplete({ items, placeholder, onSelect, exclude = () 
       if (score >= 0) scored.push([score, row.key.length, row.it]);
     }
     scored.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    used = ex;
     return scored.slice(0, max).map((s) => s[2]);
   }
+  let used = new Set();
+  const isUsed = (it) => used.has(it.id);
 
   function render() {
     clear(list);
     input.setAttribute('aria-expanded', results.length ? 'true' : 'false');
     results.forEach((it, i) => {
+      const done = isUsed(it);
       const li = h('li.ac-item', {
-        role: 'option', 'aria-selected': i === active ? 'true' : 'false', class: i === active ? 'active' : undefined,
-        onmousedown: (e) => { e.preventDefault(); choose(it); },
+        role: 'option', 'aria-selected': i === active ? 'true' : 'false', 'aria-disabled': done ? 'true' : undefined,
+        class: [i === active ? 'active' : '', done ? 'used' : ''].join(' ').trim() || undefined,
+        onmousedown: (e) => { e.preventDefault(); if (!done) choose(it); },
       },
       it.img ? img(it.img, '', 'ac-img') : null,
-      h('span.ac-text', h('span.ac-name', it.n), it.sub ? h('span.ac-sub', it.sub) : null));
+      h('span.ac-text', h('span.ac-name', it.n), h('span.ac-sub', done ? 'Déjà proposé' : it.sub || '')));
       list.append(li);
     });
     list.classList.toggle('open', results.length > 0);
@@ -65,12 +69,21 @@ export function createAutocomplete({ items, placeholder, onSelect, exclude = () 
   }
 
   function submit() {
-    if (results.length) return choose(results[Math.max(active, 0)]);
+    if (results.length) {
+      const it = results[Math.max(active, 0)];
+      if (!isUsed(it)) choose(it);
+      return;
+    }
     const text = input.value.trim();
     if (text && onFreeText && onFreeText(text) !== false) { input.value = ''; }
   }
 
-  input.addEventListener('input', () => { results = search(input.value); active = results.length ? 0 : -1; render(); });
+  input.addEventListener('input', () => {
+    results = search(input.value);
+    active = results.findIndex((it) => !isUsed(it));
+    if (active < 0) active = results.length ? 0 : -1;
+    render();
+  });
   input.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown' && results.length) { e.preventDefault(); active = (active + 1) % results.length; render(); }
     else if (e.key === 'ArrowUp' && results.length) { e.preventDefault(); active = (active - 1 + results.length) % results.length; render(); }
