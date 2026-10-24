@@ -95,7 +95,7 @@ export async function runMapMode(root, opts = {}) {
         h('div.panel.minimap-panel', h('div.minimap-head', h('strong', 'Mini-carte'), h('span.muted', 'Molette ou pincement pour zoomer, glisser pour te déplacer, clic pour proposer')), minimap.el),
         h('div.panel.input-panel', ac.el, counter))),
     result, list,
-    h('div.legend', h('span', h('i.sw.ok'), 'Bonne map'), h('span', h('i.sw.partial'), `À ${NEAR} maps ou moins / bonne zone`), h('span', h('i.sw.ko'), 'Loin')));
+    h('div.legend', h('span', h('i.sw.ok', '✓'), 'Bonne map'), h('span', h('i.sw.partial', '≈'), `À ${NEAR} maps ou moins / bonne zone`), h('span', h('i.sw.ko', '✕'), 'Loin')));
 
   function status(g) {
     if (g.dist === 0 && !g.zone) return 'ok';

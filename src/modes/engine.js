@@ -30,11 +30,18 @@ export function cellContent(cell) {
     cell.sub ? h('span.cell-sub', cell.sub) : null);
 }
 
+// Symbole de statut : l'information ne passe pas que par la couleur (daltonisme)
+const STATUS_MARK = { ok: '✓', partial: '≈', ko: '✕' };
+
 export function renderCell(cell, delay = 0) {
   const label = { ok: 'correct', partial: 'partiellement correct', ko: 'incorrect' }[cell.status];
-  return h(`div.cell.${cell.status}`, { style: { animationDelay: `${delay}ms` }, title: label, 'aria-label': `${label}` },
-    cellContent(cell),
-    cell.arrow ? h(`span.arrow.${cell.arrow}`, { 'aria-label': cell.arrow === 'up' ? 'plus haut' : 'plus bas' }, cell.arrow === 'up' ? '▲' : '▼') : null);
+  const dir = cell.arrow === 'up' ? 'plus haut' : 'plus bas';
+  const arrowLabel = cell.arrow ? `${cell.far ? 'beaucoup ' : ''}${dir}` : '';
+  return h(`div.cell.${cell.status}`, { style: { animationDelay: `${delay}ms` }, title: label + (arrowLabel ? `, ${arrowLabel}` : ''), 'aria-label': label + (arrowLabel ? `, ${arrowLabel}` : '') },
+    h('span.cell-mark', { 'aria-hidden': 'true' }, STATUS_MARK[cell.status]),
+    h('span.cell-main',
+      cellContent(cell),
+      cell.arrow ? h(`span.cell-arrow.${cell.arrow}${cell.far ? '.far' : ''}`, { 'aria-hidden': 'true' }) : null));
 }
 
 /** Texte de la série en cours d'un mode. */
@@ -227,8 +234,8 @@ export async function runGuessMode(root, cfg, opts = {}) {
 
 function legend(cfg) {
   return h('div.legend',
-    h('span', h('i.sw.ok'), 'Correct'),
-    cfg.noPartial ? null : h('span', h('i.sw.partial'), cfg.partialHelp || 'Proche / partiel'),
-    h('span', h('i.sw.ko'), 'Faux'),
-    cfg.noPartial ? null : h('span', '▲▼ ', 'plus haut / plus bas'));
+    h('span', h('i.sw.ok', '✓'), 'Correct'),
+    cfg.noPartial ? null : h('span', h('i.sw.partial', '≈'), cfg.partialHelp || 'Proche / partiel'),
+    h('span', h('i.sw.ko', '✕'), 'Faux'),
+    cfg.noPartial ? null : h('span', h('i.legend-arrow'), 'plus haut / plus bas, doublée si très loin'));
 }

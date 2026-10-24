@@ -105,7 +105,7 @@ export async function runChiffreMode(root, opts = {}) {
         hints.el)),
     h('div.panel.input-panel', form, counter),
     result, list,
-    h('div.legend', h('span', h('i.sw.ok'), 'Exact'), h('span', h('i.sw.partial'), 'À 10 % près'), h('span', h('i.sw.ko'), 'Plus loin'), h('span', '▲▼ la réponse est plus haute / plus basse')));
+    h('div.legend', h('span', h('i.sw.ok', '✓'), 'Exact'), h('span', h('i.sw.partial', '≈'), 'À 10 % près'), h('span', h('i.sw.ko', '✕'), 'Plus loin'), h('span', '▲▼ la réponse est plus haute / plus basse')));
 
   function push(v) {
     if (game.won) return;

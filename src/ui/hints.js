@@ -11,8 +11,10 @@ export function createHints(ctx, hints, { className = '' } = {}) {
   const el = h(`div.hints${className ? `.${className}` : ''}`);
   el.style.setProperty('--n', String(hints.length));
   const revealed = () => new Set(ctx.game.hints || []);
+  let justOpened = null; // anime uniquement l'indice qu'on vient de révéler
 
   function reveal(key) {
+    justOpened = key;
     ctx.game.hints = [...revealed(), key];
     ctx.save?.();
     update(ctx.game);
@@ -25,7 +27,9 @@ export function createHints(ctx, hints, { className = '' } = {}) {
       const left = hint.at - n;
       const unlocked = left <= 0 || game.won;
       if (open.has(hint.key)) {
-        return h('div.hint-tile.open', h('span.hint-title', hint.title), h('div.hint-body', hint.render()));
+        const anim = hint.key === justOpened;
+        if (anim) justOpened = null;
+        return h(`div.hint-tile.open${anim ? '.revealing' : ''}`, h('span.hint-title', hint.title), h('div.hint-body', hint.render()));
       }
       if (unlocked) {
         return h('button.hint-tile.ready', { type: 'button', onclick: () => reveal(hint.key), 'aria-label': `Révéler l'indice : ${hint.title}` },

@@ -103,8 +103,11 @@ function rangeCell(key, g, t, value) {
   let status = 'ko';
   if (g[0] === t[0] && g[1] === t[1]) status = 'ok';
   else if (g[0] <= t[1] && t[0] <= g[1]) status = 'partial';
-  const arrow = status === 'ok' ? undefined : (t[0] + t[1]) / 2 > (g[0] + g[1]) / 2 ? 'up' : 'down';
-  return { key, status, arrow, value };
+  const gm = (g[0] + g[1]) / 2, tm = (t[0] + t[1]) / 2;
+  const arrow = status === 'ok' ? undefined : tm > gm ? 'up' : 'down';
+  // Écart important : la cible vaut plus du double (ou moins de la moitié) de la proposition
+  const far = status === 'ko' && Math.max(gm, tm) > 2 * Math.max(1, Math.min(gm, tm));
+  return { key, status, arrow, far, value };
 }
 
 /**

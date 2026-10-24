@@ -66,7 +66,7 @@ export function compareItems(guess, target, data) {
   const sameFamily = WEAPON_TYPES.has(guess.t) && WEAPON_TYPES.has(target.t);
   return [
     { key: 'type', status: guess.t === target.t ? 'ok' : sameFamily ? 'partial' : 'ko', value: data.types[guess.t] || '?' },
-    { key: 'level', status: lvl, arrow: guess.l === target.l ? undefined : target.l > guess.l ? 'up' : 'down', value: `${guess.l}` },
+    { key: 'level', status: lvl, arrow: guess.l === target.l ? undefined : target.l > guess.l ? 'up' : 'down', far: Math.abs(target.l - guess.l) >= 50, value: `${guess.l}` },
     { key: 'element', status: sameSet(guess.el, target.el) ? 'ok' : guess.el.some((e) => target.el.includes(e)) ? 'partial' : 'ko', value: guess.el },
     { key: 'set', status: guess.s === target.s ? 'ok' : 'ko', value: guess.s ? data.sets[guess.s] || 'Panoplie' : 'Aucune' },
   ];

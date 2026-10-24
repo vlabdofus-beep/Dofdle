@@ -106,10 +106,10 @@ document.getElementById('btn-help').addEventListener('click', () => {
       h('li', h('strong', 'Juste prix : '), 'une question chiffrée improbable (maps d\'une région, recettes d\'un métier, PV d\'un boss…). Trouve le nombre exact grâce aux indications plus / moins.')),
     h('p.muted', 'Les indices ne s\'affichent jamais tout seuls : une fois débloqués, clique dessus pour les révéler.'),
     h('div.legend.static',
-      h('span', h('i.sw.ok'), 'Correct'),
-      h('span', h('i.sw.partial'), 'Partiel / proche'),
-      h('span', h('i.sw.ko'), 'Faux'),
-      h('span', '▲▼ la bonne valeur est plus haute / plus basse')),
+      h('span', h('i.sw.ok', '✓'), 'Correct'),
+      h('span', h('i.sw.partial', '≈'), 'Partiel / proche'),
+      h('span', h('i.sw.ko', '✕'), 'Faux'),
+      h('span', h('i.legend-arrow'), 'la bonne valeur est plus haute (flèche doublée : beaucoup plus haute)')),
     h('p', 'Une fois le défi du jour réussi, partage ton résultat et passe au défi suivant.'),
     mode.help ? h('p.muted', mode.help) : null);
 });
