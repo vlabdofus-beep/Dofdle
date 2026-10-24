@@ -12,6 +12,11 @@ export const EXCLUDED_SUPER_RACES = new Set([27, 28, 45]);
 // défis passés) : créatures d'alignement (Bonta et Brâkmar) et monstres hors bestiaire
 // (aucun succès de chasse : monstres de quête, d'événement, de didacticiel…).
 export const ALIGNMENT_SUPER_RACE = 13;
+// Gardés malgré tout : Rats Brâkmariens et Bontariens, Volkornes sauvages, créatures d'Incarnam
+const KEPT_RACES = new Set([240, 241, 183]);
+const KEPT_SUPER_RACES = new Set([18]);
+/** Famille gardée en jeu même si elle répond aux critères de retrait. */
+export const isKeptRace = (raceId, race) => KEPT_RACES.has(Number(raceId)) || KEPT_SUPER_RACES.has(race?.sr);
 export const SPECIAL_EXCLUDED_FROM = '2026-10-25';
 const NORMAL_GRADES = 5;
 const RES_KEYS = { neutre: 'reductionNeutral', terre: 'reductionEarth', feu: 'reductionFire', eau: 'reductionWater', air: 'reductionAir' };
@@ -79,7 +84,7 @@ export const monstersDataset = {
         z: main,
         zs: subs,
         res,
-        ...(isSpecialMonster(race, m.achievements) ? { x: 1 } : {}),
+        ...(isSpecialMonster(race, m.achievements, m.race) ? { x: 1 } : {}),
       });
     }
     data.monsters.sort((a, b) => a.id - b.id);
@@ -94,7 +99,8 @@ export const MAX_MONSTER_LEVEL = 300;
 export const isPlayableMonster = (m) => !/^test/i.test(m.n) && m.l[1] <= MAX_MONSTER_LEVEL;
 
 /** Créature d'alignement, ou monstre (hors archimonstre) qui ne compte dans aucun succès de chasse. */
-function isSpecialMonster(race, achievements) {
+function isSpecialMonster(race, achievements, raceId) {
+  if (isKeptRace(raceId, race)) return false;
   if (race?.sr === ALIGNMENT_SUPER_RACE) return true;
   return race?.sr !== ARCHI_SUPER_RACE && !(achievements || []).length;
 }
@@ -183,7 +189,8 @@ export function monsterEntries(data, normalize) {
     seen.add(key);
     const race = data.races[m.r]?.n || '';
     // hidden : retiré des suggestions et des tirages (voir SPECIAL_EXCLUDED_FROM)
-    const hidden = !!m.x || data.races[m.r]?.sr === ALIGNMENT_SUPER_RACE;
+    const raceInfo = data.races[m.r];
+    const hidden = (!!m.x || raceInfo?.sr === ALIGNMENT_SUPER_RACE) && !isKeptRace(m.r, raceInfo);
     entries.push({ id: m.id, n: m.n, img: monsterImg(m), sub: `${race} · niv. ${fmtRange(m.l)}`, ref: m, hidden });
   }
   return entries;
