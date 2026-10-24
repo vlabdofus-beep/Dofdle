@@ -5,6 +5,7 @@ Données et images : [DofusDB](https://dofusdb.fr) (usage non commercial).
 
 Cinq modes, un défi par jour (minuit, heure de Paris), identique pour tout le monde.
 Les indices ne s'affichent jamais tout seuls : une fois débloqués, le joueur clique pour les révéler.
+L'écran d'accueil présente les six modes (un Dofus primordial chacun) avec l'état du défi du jour et la série en cours.
 Une fois un défi réussi, un lien mène directement au mode suivant non terminé.
 
 | Mode | Principe | Feedback / indices |

@@ -7,6 +7,7 @@ import { harvestedToday, modeInfo, dofusImg } from './core/modes.js';
 import { todayKey, dayNumber } from './core/daily.js';
 import { loadGame } from './core/storage.js';
 import { shareResult } from './ui/share.js';
+import { renderHome, statsSummary } from './ui/home.js';
 import { streakText } from './modes/engine.js';
 import { runGuessMode } from './modes/engine.js';
 import { monsterMode } from './modes/monster.js';
@@ -29,11 +30,12 @@ const MODES = [
 const app = document.getElementById('app');
 const nav = document.getElementById('modes');
 
+/** Mode affiché, ou null pour l'écran d'accueil (pas de hash ou hash inconnu). */
 function currentMode() {
   const ALIASES = { chiffre: 'juste-prix' }; // anciens liens
   const raw = location.hash.replace('#', '').split('/')[0];
   const id = ALIASES[raw] || raw;
-  return MODES.find((m) => m.id === id) || MODES[0];
+  return MODES.find((m) => m.id === id) || null;
 }
 
 // Mois du calendrier du Krosmoz (Javian = janvier … Descendre = décembre)
@@ -51,7 +53,7 @@ function renderNav(active, justWon = null) {
   clear(nav);
   MODES.forEach((m, i) => {
     const won = done.has(m.id);
-    const current = m.id === active.id;
+    const current = m.id === active?.id;
     nav.append(h('a.mode-tab', {
       href: `#${m.id}`,
       class: [current ? 'active' : '', won ? 'won' : '', m.id === justWon ? 'just-won' : ''].join(' ').trim() || undefined,
@@ -91,7 +93,13 @@ function route() {
   const mode = currentMode();
   renderNav(mode);
   renderDate();
-  document.body.dataset.mode = mode.id;
+  document.body.dataset.mode = mode ? mode.id : 'accueil';
+  window.scrollTo(0, 0);
+  if (!mode) {
+    document.title = 'Dofusle, le défi quotidien de l\'univers Dofus';
+    renderHome(app, MODES, { onShareDay: shareDay });
+    return;
+  }
   document.title = `Dofusle — ${mode.label}`;
   mode.run(app, {});
 }
@@ -103,6 +111,7 @@ window.addEventListener('dofusle:progress', (ev) => {
   // Animation de récolte uniquement la première fois que le Dofus du jour est obtenu
   const fresh = won && !nav.querySelector(`.mode-tab.won .dofus-slot[data-mode="${won}"]`);
   renderNav(mode, fresh ? won : null);
+  if (!mode) return;
   // Met à jour la série affichée dans l'en-tête du mode
   const badge = document.querySelector(`.streak-badge[data-mode="${mode.id}"]`);
   if (badge) {
@@ -130,10 +139,14 @@ document.getElementById('btn-help').addEventListener('click', () => {
       h('span', h('i.sw.ko', '✕'), 'Faux'),
       h('span', h('i.legend-arrow'), 'la bonne valeur est plus haute (flèche doublée : beaucoup plus haute)')),
     h('p', 'Une fois le défi du jour réussi, partage ton résultat et passe au défi suivant.'),
-    mode.help ? h('p.muted', mode.help) : null);
+    mode?.help ? h('p.muted', mode.help) : null);
 });
 
-document.getElementById('btn-stats').addEventListener('click', () => showStats(currentMode()));
+document.getElementById('btn-stats').addEventListener('click', () => {
+  const mode = currentMode();
+  if (mode) showStats(mode);
+  else openModal('Statistiques', statsSummary(MODES), h('p.muted.small', 'Les statistiques sont stockées uniquement dans ce navigateur.'));
+});
 document.getElementById('btn-cache').addEventListener('click', async () => {
   await clearCache();
   toast('Cache vidé — rechargement des données…');
