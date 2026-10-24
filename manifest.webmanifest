@@ -1,0 +1,16 @@
+{
+  "name": "Dofusle, le défi quotidien de l'univers Dofus",
+  "short_name": "Dofusle",
+  "description": "Six défis par jour dans l'univers de Dofus : monstre, sort, carte, objet, cri et juste prix.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#172129",
+  "theme_color": "#172129",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

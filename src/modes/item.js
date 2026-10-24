@@ -14,12 +14,13 @@ export const itemMode = {
   intro: 'Trouve l\'équipement du jour. Selon les jours, tu pars de ses effets ou de son icône floutée.',
   placeholder: 'Nom d\'un équipement (ex. Coiffe du Bouftou…)',
   nameLabel: 'Objet',
+  yesterdayLabel: 'L\'objet d\'hier était',
   rowImages: false,
   partialHelp: 'Partiel (arme du même genre, niveau à ±10)',
   columns: [
-    { key: 'type', label: 'Type' },
+    { key: 'type', label: 'Type', help: 'Type d\'équipement. Orange : arme du même genre' },
     { key: 'level', label: 'Niveau', help: 'Orange : à 10 niveaux près' },
-    { key: 'set', label: 'Panoplie' },
+    { key: 'set', label: 'Panoplie', help: 'Vert : même panoplie (ou aucun des deux n\'en a)' },
   ],
 
   prepare(data) {

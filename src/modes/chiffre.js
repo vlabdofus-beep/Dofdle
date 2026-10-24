@@ -3,11 +3,11 @@
 import { h, clear, toast } from '../ui/dom.js';
 import { createHints } from '../ui/hints.js';
 import { createApi } from '../core/api.js';
-import { todayKey, dayNumber, hash, rng } from '../core/daily.js';
+import { todayKey, dayNumber, hash, rng, addDays } from '../core/daily.js';
 import { loadGame, saveGame, recordWin, loadStats, currentStreak } from '../core/storage.js';
 import { buildQuestion, THEMES, formatNumber } from '../data/chiffres.js';
 import { shareResult } from '../ui/share.js';
-import { STATUS_EMOJI, modeHead, winCard } from './engine.js';
+import { STATUS_EMOJI, modeHead, winCard, yesterdayLine } from './engine.js';
 
 const QUESTION_KEY = 'dofusle:v1:chiffre-question';
 const QUESTION_VERSION = 2; // à incrémenter si les modèles changent la réponse d'un jour
@@ -22,14 +22,14 @@ export const chiffreMode = {
 };
 
 /** Question du jour : calculée une fois via l'API puis mise en cache localement. */
-async function dailyQuestion(date) {
+async function dailyQuestion(date, key = QUESTION_KEY) {
   try {
-    const cached = JSON.parse(localStorage.getItem(QUESTION_KEY) || 'null');
+    const cached = JSON.parse(localStorage.getItem(key) || 'null');
     if (cached && cached.date === date && cached.v === QUESTION_VERSION) return cached.q;
   } catch { /* stockage indisponible */ }
   const api = createApi({ concurrency: 4 });
   const q = await buildQuestion(api, { day: dayNumber(date), seed: hash(`chiffre|${date}`), hashFn: hash });
-  try { localStorage.setItem(QUESTION_KEY, JSON.stringify({ date, v: QUESTION_VERSION, q })); } catch { /* idem */ }
+  try { localStorage.setItem(key, JSON.stringify({ date, v: QUESTION_VERSION, q })); } catch { /* idem */ }
   return q;
 }
 
@@ -95,6 +95,11 @@ export async function runChiffreMode(root, opts = {}) {
   const counter = h('div.counter');
   const result = h('div.result');
   const list = h('div.map-rows.number-rows');
+  // Question d'hier : calculée en arrière-plan (1 à 4 requêtes), sans bloquer la partie
+  const yesterdayBox = h('div');
+  dailyQuestion(addDays(date, -1), `${QUESTION_KEY}:hier`)
+    .then((y) => yesterdayBox.replaceChildren(yesterdayLine(`Hier : ${y.text} Réponse :`, formatNumber(y.answer))))
+    .catch(() => {});
 
   root.append(
     h('div.panel.clue.number-clue',
@@ -105,7 +110,8 @@ export async function runChiffreMode(root, opts = {}) {
         hints.el)),
     h('div.panel.input-panel', form, counter),
     result, list,
-    h('div.legend', h('span', h('i.sw.ok', '✓'), 'Exact'), h('span', h('i.sw.partial', '≈'), 'À 10 % près'), h('span', h('i.sw.ko', '✕'), 'Plus loin'), h('span', '▲▼ la réponse est plus haute / plus basse')));
+    h('div.legend', h('span', h('i.sw.ok', '✓'), 'Exact'), h('span', h('i.sw.partial', '≈'), 'À 10 % près'), h('span', h('i.sw.ko', '✕'), 'Plus loin'), h('span', '▲▼ la réponse est plus haute / plus basse')),
+    yesterdayBox);
 
   function push(v) {
     if (game.won) return;

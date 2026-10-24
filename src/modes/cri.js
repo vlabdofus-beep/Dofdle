@@ -45,9 +45,10 @@ export const criMode = {
   intro: 'Écoute le cri du monstre mystère et retrouve à qui il appartient. Les variantes qui partagent le même cri sont acceptées.',
   placeholder: 'Nom d\'un monstre…',
   nameLabel: 'Monstre',
+  yesterdayLabel: 'Le cri d\'hier était celui de',
   noPartial: true, // la famille est juste ou fausse
   columns: [
-    { key: 'race', label: 'Famille' },
+    { key: 'race', label: 'Famille', help: 'Famille du monstre : vert si c\'est la même' },
   ],
 
   async load(onProgress) {

@@ -6,11 +6,11 @@ import { createAutocomplete } from '../ui/autocomplete.js';
 import { createHints } from '../ui/hints.js';
 import { createMinimap } from '../ui/minimap.js';
 import { loadDataset } from '../core/cache.js';
-import { todayKey, dayNumber, hash, rng } from '../core/daily.js';
+import { todayKey, dayNumber, hash, rng, addDays } from '../core/daily.js';
 import { loadGame, saveGame, recordWin, loadStats, currentStreak } from '../core/storage.js';
 import { mapsDataset, indexMaps, pickMap, mapDistance, parseCoords } from '../data/maps.js';
 import { shareResult } from '../ui/share.js';
-import { STATUS_EMOJI, modeHead, winCard } from './engine.js';
+import { STATUS_EMOJI, modeHead, winCard, yesterdayLine } from './engine.js';
 
 const NEAR = 5; // maps : en dessous, la proposition est "proche" (orange)
 
@@ -95,7 +95,8 @@ export async function runMapMode(root, opts = {}) {
         h('div.panel.minimap-panel', h('div.minimap-head', h('strong', 'Mini-carte'), h('span.muted', 'Molette ou pincement pour zoomer, glisser pour te déplacer, clic pour proposer')), minimap.el),
         h('div.panel.input-panel', ac.el, counter))),
     result, list,
-    h('div.legend', h('span', h('i.sw.ok', '✓'), 'Bonne map'), h('span', h('i.sw.partial', '≈'), `À ${NEAR} maps ou moins / bonne zone`), h('span', h('i.sw.ko', '✕'), 'Loin')));
+    h('div.legend', h('span', h('i.sw.ok', '✓'), 'Bonne map'), h('span', h('i.sw.partial', '≈'), `À ${NEAR} maps ou moins / bonne zone`), h('span', h('i.sw.ko', '✕'), 'Loin')),
+    (() => { const y = pickMap(data, index, 'carte', addDays(date, -1)); return yesterdayLine('La map d\'hier se trouvait en', `[${y.posX}, ${y.posY}], ${y.sub.n}`); })());
 
   function status(g) {
     if (g.dist === 0 && !g.zone) return 'ok';

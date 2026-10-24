@@ -1,10 +1,10 @@
 // Moteur commun des modes "à la Loldle" (Monstre, Sort, Objet, Cri) :
 // chargement des données, tirage du jour, saisie, grille de
 // feedback, victoire, partage et statistiques. Chaque mode fournit sa config.
-import { h, clear, img, formatDuration } from '../ui/dom.js';
+import { h, clear, img, formatDuration, toast } from '../ui/dom.js';
 import { createAutocomplete } from '../ui/autocomplete.js';
 import { loadDataset } from '../core/cache.js';
-import { todayKey, dayNumber, pickDaily, msUntilNextDaily } from '../core/daily.js';
+import { todayKey, dayNumber, pickDaily, msUntilNextDaily, addDays } from '../core/daily.js';
 import { loadGame, saveGame, recordWin, loadStats, currentStreak } from '../core/storage.js';
 import { nextMode, modeInfo, harvestedToday, MODE_ORDER, dofusImg } from '../core/modes.js';
 import { ELEMENTS } from '../data/elements.js';
@@ -42,6 +42,11 @@ export function renderCell(cell, delay = 0) {
     h('span.cell-main',
       cellContent(cell),
       cell.arrow ? h(`span.cell-arrow.${cell.arrow}${cell.far ? '.far' : ''}`, { 'aria-hidden': 'true' }) : null));
+}
+
+/** Ligne « réponse d'hier », commune à tous les modes. */
+export function yesterdayLine(label, value) {
+  return h('p.yesterday', `${label} `, h('strong', value), '.');
 }
 
 /** Texte de la série en cours d'un mode. */
@@ -157,13 +162,18 @@ export async function runGuessMode(root, cfg, opts = {}) {
   const grid = h('div.grid', { role: 'table', 'aria-label': 'Propositions' });
   const headRow = h('div.grid-row.grid-head', { role: 'row' },
     h('div.cell.head.name-col', cfg.nameLabel || 'Nom'),
-    cfg.columns.map((c) => h('div.cell.head', { role: 'columnheader', title: c.help || '' }, c.label)));
+    // En-têtes cliquables : l'aide s'affiche aussi au toucher (pas de survol sur mobile)
+    cfg.columns.map((c) => (c.help
+      ? h('button.cell.head.has-help', { type: 'button', role: 'columnheader', title: c.help, 'aria-label': `${c.label} : ${c.help}`, onclick: () => toast(`${c.label} : ${c.help}`, 4200) }, c.label)
+      : h('div.cell.head', { role: 'columnheader' }, c.label))));
   grid.style.setProperty('--cols', cfg.columns.length);
   const rows = h('div.grid-rows');
   grid.append(headRow, rows);
   const gridWrap = h('div.grid-wrap', grid);
   const result = h('div.result');
-  root.append(result, gridWrap, legend(cfg));
+  const yesterday = pickDaily(pool, cfg.salt, addDays(date, -1));
+  root.append(result, gridWrap, legend(cfg),
+    yesterday ? yesterdayLine(cfg.yesterdayLabel || 'La réponse d\'hier était', yesterday.n) : null);
 
   function rowFor(id, animate) {
     const e = byId.get(id);

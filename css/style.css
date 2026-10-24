@@ -589,3 +589,24 @@ button:disabled { cursor: not-allowed; }
   50% { transform: translateY(-10px) rotate(12deg); }
 }
 .loader-bar { height: 6px; max-width: 260px; margin-left: auto; margin-right: auto; }
+
+/* ---------- Réponse d'hier ---------- */
+.yesterday { margin: 18px auto 0; max-width: 70ch; text-align: center; color: var(--muted); font-size: 14px; }
+.yesterday strong { color: var(--text); }
+
+/* ---------- En-têtes de colonnes avec aide (clic / toucher) ---------- */
+button.cell.head { font-family: var(--font-title); cursor: pointer; }
+.cell.head.has-help { text-decoration: underline dotted color-mix(in srgb, var(--gold-2) 55%, transparent); text-underline-offset: 4px; }
+.cell.head.has-help:hover { color: var(--text); }
+#toast { max-width: min(90vw, 520px); text-align: center; border-radius: 14px; line-height: 1.35; }
+
+/* ---------- Les six Dofus récoltés ---------- */
+.dofus-rack.complete .modes::after {
+  background: radial-gradient(ellipse at center, rgba(240, 210, 142, 0.55), rgba(217, 173, 87, 0) 72%);
+  animation: rack-glow 2.6s ease-in-out infinite;
+}
+.dofus-rack.complete .rack-count { color: var(--gold-2); font-style: normal; font-weight: 700; }
+.dofus-rack.complete .mode-tab .dofus-slot::before { opacity: 1; animation: halo-pulse 2.6s ease-in-out infinite; animation-delay: calc(var(--i, 0) * 0.18s); }
+@keyframes rack-glow { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
+@keyframes halo-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.35); } }
+.share-day { font: 700 15px var(--font); color: var(--gold-2); margin-left: 6px; }

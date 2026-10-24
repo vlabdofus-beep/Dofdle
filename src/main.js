@@ -4,7 +4,9 @@ import { openModal } from './ui/modal.js';
 import { showStats } from './ui/stats.js';
 import { clearCache } from './core/cache.js';
 import { harvestedToday, modeInfo, dofusImg } from './core/modes.js';
-import { todayKey } from './core/daily.js';
+import { todayKey, dayNumber } from './core/daily.js';
+import { loadGame } from './core/storage.js';
+import { shareResult } from './ui/share.js';
 import { streakText } from './modes/engine.js';
 import { runGuessMode } from './modes/engine.js';
 import { monsterMode } from './modes/monster.js';
@@ -63,9 +65,26 @@ function renderNav(active, justWon = null) {
     nav.lastChild.style.setProperty('--i', String(i));
   });
   const n = done.size;
-  document.getElementById('rack-count').textContent = n === MODES.length
-    ? 'Les six Dofus du jour sont récoltés.'
-    : n ? `${n} Dofus sur ${MODES.length} récoltés aujourd'hui` : 'Réussis un défi pour récolter son Dofus';
+  const complete = n === MODES.length;
+  const count = document.getElementById('rack-count');
+  nav.parentElement.classList.toggle('complete', complete);
+  if (complete) {
+    count.replaceChildren('Les six Dofus du jour sont récoltés ! ',
+      h('button.link.share-day', { type: 'button', onclick: shareDay }, 'Partager ma journée'));
+  } else {
+    count.textContent = n ? `${n} Dofus sur ${MODES.length} récoltés aujourd'hui` : 'Réussis un défi pour récolter son Dofus';
+  }
+}
+
+/** Récapitulatif des six défis du jour, à coller sur Discord ou ailleurs. */
+function shareDay() {
+  const date = todayKey();
+  const lines = MODES.map((m) => {
+    const tries = loadGame(m.id, date).guesses.length;
+    return `${m.emoji} ${m.label} : ${tries} essai${tries > 1 ? 's' : ''}`;
+  });
+  const total = MODES.reduce((a, m) => a + loadGame(m.id, date).guesses.length, 0);
+  shareResult([`Dofusle #${dayNumber(date)} : les six Dofus récoltés en ${total} essais`, ...lines, location.href.split('#')[0]].join('\n'), 'Récapitulatif copié !');
 }
 
 function route() {

@@ -36,9 +36,10 @@ export const monsterMode = {
   intro: 'Devine le monstre du jour. Chaque proposition révèle ce qu\'elle a en commun avec lui.',
   placeholder: 'Nom d\'un monstre (ex. Bouftou, Tofu…)',
   nameLabel: 'Monstre',
+  yesterdayLabel: 'Le monstre d\'hier était',
   partialHelp: 'Partiel (plages qui se chevauchent, même région, couleur en commun…)',
   columns: [
-    { key: 'race', label: 'Famille' },
+    { key: 'race', label: 'Famille', help: 'Famille du monstre : vert si c\'est la même, sinon rouge' },
     { key: 'level', label: 'Niveau', help: 'Orange : les plages de niveau se chevauchent' },
     { key: 'hp', label: 'PV', help: 'Points de vie (grade min – grade max). Orange : les plages se chevauchent' },
     { key: 'zone', label: 'Zone', help: 'Orange : le monstre vit aussi dans cette zone, ou même région' },

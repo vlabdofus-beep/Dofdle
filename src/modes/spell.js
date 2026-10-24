@@ -20,10 +20,11 @@ export const spellMode = {
   intro: 'Retrouve le sort de classe caché derrière cette icône. Elle se dévoile un peu plus à chaque essai.',
   placeholder: 'Nom d\'un sort (ex. Flèche Magique, Pression…)',
   nameLabel: 'Sort',
+  yesterdayLabel: 'Le sort d\'hier était',
   rowImages: false,
   partialHelp: 'Partiel (élément en commun, valeur à ±1)',
   columns: [
-    { key: 'breed', label: 'Classe' },
+    { key: 'breed', label: 'Classe', help: 'Classe à laquelle appartient le sort' },
     { key: 'element', label: 'Élément', help: 'Élément(s) des dommages / vols de vie' },
     { key: 'pa', label: 'Coût PA', help: 'Au rang maximal du sort' },
     { key: 'po', label: 'Portée', help: 'Portée maximale (au rang max)' },
