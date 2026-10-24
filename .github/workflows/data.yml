@@ -6,6 +6,7 @@ name: Données DofusDB
 on:
   schedule:
     - cron: '17 4 * * 1'   # chaque lundi à 4 h 17 UTC (mises à jour de Dofus le mardi : données fraîches la semaine suivante)
+    - cron: '37 3 * * *'   # chaque jour : questions du Juste prix des 16 prochains jours
   workflow_dispatch: {}      # bouton « Run workflow » dans l'onglet Actions de GitHub
   push:
     branches: [main]
@@ -33,10 +34,16 @@ jobs:
           node-version: 20
 
       - name: Générer les données
-        run: npm run data
+        run: |
+          if [ "${{ github.event.schedule }}" = "37 3 * * *" ]; then
+            node scripts/build-data.mjs juste-prix
+          else
+            npm run data
+          fi
 
       - name: Vérifier les fichiers
         run: |
+          node -e "const d=require('./data/juste-prix.json'); const n=Object.keys(d.questions||{}).length; if(n<5){console.error('juste-prix : seulement '+n+' questions');process.exit(1)} console.log('juste-prix : '+n+' questions')"
           for f in monsters spells items maps; do
             test -s "data/$f.json" || { echo "data/$f.json manquant ou vide"; exit 1; }
             node -e "const d=require('./data/$f.json'); const n=(d.monsters||d.spells||d.items||d.maps||[]).length; if(n<50){console.error('$f : seulement '+n+' entrées');process.exit(1)} console.log('$f : '+n+' entrées')"

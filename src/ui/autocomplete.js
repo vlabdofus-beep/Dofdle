@@ -1,5 +1,5 @@
 // Champ de saisie avec autocomplétion (insensible aux accents / majuscules)
-import { h, img, clear } from './dom.js';
+import { h, img, clear, isTouch } from './dom.js';
 import { normalize } from '../core/text.js';
 
 /**
@@ -65,7 +65,8 @@ export function createAutocomplete({ items, placeholder, onSelect, exclude = () 
     input.value = '';
     results = []; active = -1; render();
     onSelect(it);
-    input.focus();
+    // Mobile : on ferme le clavier pour laisser voir la nouvelle ligne
+    if (isTouch()) input.blur(); else input.focus();
   }
 
   function submit() {
@@ -75,7 +76,7 @@ export function createAutocomplete({ items, placeholder, onSelect, exclude = () 
       return;
     }
     const text = input.value.trim();
-    if (text && onFreeText && onFreeText(text) !== false) { input.value = ''; }
+    if (text && onFreeText && onFreeText(text) !== false) { input.value = ''; if (isTouch()) input.blur(); }
   }
 
   input.addEventListener('input', () => {

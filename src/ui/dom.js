@@ -47,3 +47,6 @@ export function formatDuration(ms) {
   const pad = (n) => String(n).padStart(2, '0');
   return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
 }
+
+/** Écran tactile sans souris : on évite d'ouvrir le clavier virtuel sans action du joueur. */
+export const isTouch = () => typeof matchMedia === 'function' && matchMedia('(hover: none) and (pointer: coarse)').matches;

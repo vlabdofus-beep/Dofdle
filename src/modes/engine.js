@@ -1,7 +1,7 @@
 // Moteur commun des modes "à la Loldle" (Monstre, Sort, Objet, Cri) :
 // chargement des données, tirage du jour, saisie, grille de
 // feedback, victoire, partage et statistiques. Chaque mode fournit sa config.
-import { h, clear, img, formatDuration, toast } from '../ui/dom.js';
+import { h, clear, img, formatDuration, toast, isTouch } from '../ui/dom.js';
 import { createAutocomplete } from '../ui/autocomplete.js';
 import { loadDataset } from '../core/cache.js';
 import { todayKey, dayNumber, pickDaily, msUntilNextDaily, addDays } from '../core/daily.js';
@@ -175,6 +175,8 @@ export async function runGuessMode(root, cfg, opts = {}) {
     clear(rows);
     [...game.guesses].reverse().forEach((id, i) => rows.append(rowFor(id, animateFirst && i === 0)));
     gridWrap.classList.toggle('empty', !game.guesses.length);
+    // Grille et légende n'apparaissent qu'à la première proposition
+    root.classList.toggle('no-guess', !game.guesses.length);
     requestAnimationFrame(updateScrollHint);
     counter.textContent = game.guesses.length ? `${game.guesses.length} essai${game.guesses.length > 1 ? 's' : ''}` : 'Tape un nom pour commencer';
     clue?.update(game);
@@ -196,6 +198,8 @@ export async function runGuessMode(root, cfg, opts = {}) {
     }
     save();
     refresh(true);
+    // Mobile : la nouvelle ligne reste visible une fois le clavier fermé
+    if (!game.won && isTouch()) setTimeout(() => rows.firstElementChild?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 250);
     // La ligne gagnante se dévoile et s'illumine, puis on descend jusqu'à la section de victoire
     if (game.won) setTimeout(() => celebrate(cfg, result), 1900);
   }
@@ -227,7 +231,7 @@ export async function runGuessMode(root, cfg, opts = {}) {
   }
 
   refresh();
-  if (!game.won) ac.focus();
+  if (!game.won && !isTouch()) ac.focus();
 }
 
 function legend(cfg) {

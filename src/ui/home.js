@@ -44,7 +44,8 @@ export function renderHome(root, modes, { onShareDay } = {}) {
   // --- Centre de la vitrine : le résumé du jour
   const hub = h('div.ring-hub',
     h('h1.home-title', `Défis du jour n° ${dayNumber(date)}`),
-    h('p.ring-progress', h('strong', `${done}`), ` / ${modes.length} Dofus récoltés`),
+    h('p.ring-progress', { 'aria-label': `${done} Dofus récoltés sur ${modes.length}` },
+      h('span.ring-count', h('strong', `${done}`), h('span', `/ ${modes.length}`)), h('small', `Dofus récolté${done > 1 ? 's' : ''} aujourd'hui`)),
     full ? h('p.home-fullstreak', h('span.streak-flame', { 'aria-hidden': 'true' }), `${full} journée${full > 1 ? 's' : ''} complète${full > 1 ? 's' : ''} d'affilée`) : null,
     h('p.muted.ring-countdown', 'Nouveaux défis dans ', countdown),
     h('div.home-actions',

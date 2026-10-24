@@ -1,17 +1,16 @@
 // Mode Juste prix : une question chiffrée improbable sur Dofus, réponse exacte à trouver.
 // Feedback : plus / moins, orange si on est à 10 % près.
-import { h, clear, toast } from '../ui/dom.js';
+import { h, clear, toast, isTouch } from '../ui/dom.js';
 import { createHints } from '../ui/hints.js';
 import { createApi } from '../core/api.js';
 import { todayKey, dayNumber, hash, rng, addDays } from '../core/daily.js';
 import { loadGame, saveGame, recordWin, loadStats, currentStreak } from '../core/storage.js';
-import { buildQuestion, THEMES, formatNumber } from '../data/chiffres.js';
+import { buildQuestion, THEMES, formatNumber, QUESTION_VERSION } from '../data/chiffres.js';
 import { shareResult } from '../ui/share.js';
 import { STATUS_EMOJI, modeHead, winCard, yesterdayLine } from './engine.js';
 import { celebrate } from '../ui/victory.js';
 
 const QUESTION_KEY = 'dofusle:v1:chiffre-question';
-const QUESTION_VERSION = 2; // à incrémenter si les modèles changent la réponse d'un jour
 
 export const chiffreMode = {
   id: 'juste-prix',
@@ -28,6 +27,17 @@ async function dailyQuestion(date, key = QUESTION_KEY) {
     const cached = JSON.parse(localStorage.getItem(key) || 'null');
     if (cached && cached.date === date && cached.v === QUESTION_VERSION) return cached.q;
   } catch { /* stockage indisponible */ }
+  const remember = (q) => { try { localStorage.setItem(key, JSON.stringify({ date, v: QUESTION_VERSION, q })); } catch { /* idem */ } return q; };
+  // Questions préparées à l'avance par la tâche automatique de GitHub (data/juste-prix.json) :
+  // instantané et indépendant de la disponibilité de DofusDB
+  try {
+    const res = await fetch('data/juste-prix.json', { cache: 'no-cache' });
+    if (res.ok) {
+      const file = await res.json();
+      const q = file.v === QUESTION_VERSION ? file.questions?.[date] : null;
+      if (q) return remember(q);
+    }
+  } catch { /* fichier absent : calcul en direct */ }
   const api = createApi({ concurrency: 4 });
   // DofusDB lent ou indisponible : on abandonne au bout de 12 s plutôt que de charger indéfiniment
   let timer;
@@ -36,8 +46,7 @@ async function dailyQuestion(date, key = QUESTION_KEY) {
   try {
     q = await Promise.race([buildQuestion(api, { day: dayNumber(date), seed: hash(`chiffre|${date}`), hashFn: hash }), timeout]);
   } finally { clearTimeout(timer); }
-  try { localStorage.setItem(key, JSON.stringify({ date, v: QUESTION_VERSION, q })); } catch { /* idem */ }
-  return q;
+  return remember(q);
 }
 
 const statusOf = (v, answer) => {
@@ -97,6 +106,8 @@ export async function runChiffreMode(root, opts = {}) {
     if (game.guesses.some((g) => g.v === v)) { toast('Déjà proposé !'); return; }
     input.value = '';
     push(v);
+    // Mobile : le clavier reste ouvert pour enchaîner, la saisie et la dernière réponse en haut de l'écran
+    if (!game.won && isTouch()) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   const counter = h('div.counter');
@@ -134,6 +145,7 @@ export async function runChiffreMode(root, opts = {}) {
 
   function refresh() {
     const n = game.guesses.length;
+    root.classList.toggle('no-guess', !n);
     counter.textContent = n ? `${n} essai${n > 1 ? 's' : ''}` : 'Astuce : vise large au début, puis resserre.';
     hints.update(game);
     input.disabled = submit.disabled = game.won;
@@ -153,7 +165,7 @@ export async function runChiffreMode(root, opts = {}) {
             h('p.small.muted', 'Source : données du jeu via DofusDB.'))),
         onShare: () => shareResult(buildShare(), 'Résultat copié !'),
       }));
-    } else if (!game.guesses.length) input.focus();
+    } else if (!game.guesses.length && !isTouch()) input.focus();
   }
 
   function buildShare() {

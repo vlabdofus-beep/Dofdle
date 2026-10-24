@@ -88,15 +88,16 @@ export async function runMapMode(root, opts = {}) {
   const list = h('div.map-rows');
 
   root.append(
+    // Ordinateur : extrait, indices, saisie et propositions à gauche, mini-carte à droite.
+    // Mobile : la mini-carte passe juste après les indices, avant la saisie.
     h('div.map-layout',
-      h('div.map-col',
-        h('div.map-frame', picture, zoomLabel),
-        hints.el),
-      h('div.map-col',
-        h('div.panel.minimap-panel', h('div.minimap-head', h('strong', 'Mini-carte'), h('span.muted', 'Molette ou pincement pour zoomer, glisser pour te déplacer, clic pour proposer')), minimap.el),
-        h('div.panel.input-panel', ac.el, counter))),
-    result, list,
-    h('div.legend', h('span', h('i.sw.ok', '✓'), 'Bonne map'), h('span', h('i.sw.partial', '≈'), `À ${NEAR} maps ou moins / bonne zone`), h('span', h('i.sw.ko', '✕'), 'Loin')),
+      h('div.map-area-frame', h('div.map-frame', picture, zoomLabel)),
+      h('div.map-area-hints', hints.el),
+      h('div.map-area-mini', h('div.panel.minimap-panel', h('div.minimap-head', h('strong', 'Mini-carte'), h('span.muted', 'Molette ou pincement pour zoomer, glisser pour te déplacer, clic pour proposer')), minimap.el)),
+      h('div.map-area-input', h('div.panel.input-panel', ac.el, counter)),
+      h('div.map-area-list', list,
+        h('div.legend', h('span', h('i.sw.ok', '✓'), 'Bonne map'), h('span', h('i.sw.partial', '≈'), `À ${NEAR} maps ou moins / bonne zone`), h('span', h('i.sw.ko', '✕'), 'Loin')))),
+    result,
     (() => { const y = pickMap(data, index, 'carte', addDays(date, -1)); return yesterdayLine('La map d\'hier se trouvait en', `[${y.posX}, ${y.posY}], ${y.sub.n}`); })());
 
   function status(g) {
@@ -132,6 +133,7 @@ export async function runMapMode(root, opts = {}) {
 
   function refresh() {
     const n = game.guesses.length;
+    root.classList.toggle('no-guess', !n);
     const scale = game.won ? 1 : Math.max(1, 3.2 - n * 0.3);
     picture.style.transform = `scale(${scale})`;
     zoomLabel.textContent = game.won ? 'Map complète' : `Zoom ×${scale.toFixed(1)}`;

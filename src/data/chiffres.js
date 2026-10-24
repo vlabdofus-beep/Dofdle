@@ -358,6 +358,9 @@ export function themeForDay(day, hashFn) {
  * Les modèles d'un thème tournent de cycle en cycle : la même formulation ne
  * revient pas avant (nb de thèmes × nb de modèles du thème) jours.
  */
+/** À incrémenter si les modèles changent la réponse d'un jour (invalide les caches). */
+export const QUESTION_VERSION = 2;
+
 export async function buildQuestion(api, { day, seed, hashFn }) {
   const r = prng(seed);
   const { theme, cycle } = themeForDay(day, hashFn);

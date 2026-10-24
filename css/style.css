@@ -973,3 +973,78 @@ body[data-mode="accueil"] .dofus-rack { display: none; }
   .day-detail { grid-template-columns: 1fr; }
 }
 .win-card { scroll-margin-top: 14px; }
+
+/* Mode en cours / survolé, Dofus pas encore récolté : il reste gris (la couleur est
+   réservée aux Dofus récoltés) et un cercle pointillé à la couleur du Dofus le désigne. */
+.mode-tab:not(.won):hover .dofus, .mode-tab.active:not(.won) .dofus { filter: grayscale(1) brightness(.78) contrast(1.1); opacity: 1; }
+.mode-tab.active:not(.won) .dofus-slot::before,
+.ring-item:not(.won):hover .dofus-slot::before, .ring-item:not(.won):focus-visible .dofus-slot::before {
+  opacity: 1; inset: -2px; background: none;
+  border: 2px dashed color-mix(in srgb, var(--accent) 75%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 30%, transparent);
+  animation: slot-spin 14s linear infinite;
+}
+.ring-item:not(.won):hover .dofus, .ring-item:not(.won):focus-visible .dofus { filter: grayscale(1) brightness(.85) contrast(1.1); }
+@media (max-width: 820px) {
+  .ring-item.selected:not(.won) .dofus { filter: grayscale(1) brightness(.85) contrast(1.1); }
+  .ring-item.selected:not(.won) .dofus-slot::before {
+    opacity: 1; inset: -2px; background: none;
+    border: 2px dashed color-mix(in srgb, var(--accent) 75%, transparent);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 30%, transparent);
+    animation: slot-spin 14s linear infinite;
+  }
+}
+@keyframes slot-spin { to { transform: rotate(360deg); } }
+
+/* Avant la première proposition : ni grille vide ni légende */
+.no-guess .grid-shell, .no-guess .legend, .no-guess .map-rows:empty { display: none; }
+
+/* ---------- Carte : grille en zones ---------- */
+.map-layout {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); column-gap: 14px; row-gap: 10px;
+  grid-template-areas: "frame mini" "hints mini" "input mini" "list mini";
+  grid-template-rows: auto auto auto 1fr;
+}
+.map-area-frame { grid-area: frame; min-width: 0; }
+.map-area-hints { grid-area: hints; min-width: 0; }
+.map-area-mini { grid-area: mini; min-width: 0; }
+.map-area-input { grid-area: input; min-width: 0; }
+.map-area-input .input-panel { margin: 0; }
+.map-area-list { grid-area: list; min-width: 0; }
+.map-area-list .map-rows { margin-top: 0; }
+.map-area-list .legend { margin-top: 10px; }
+@media (max-width: 900px) {
+  .map-layout { grid-template-columns: 1fr; grid-template-areas: "frame" "hints" "mini" "input" "list"; grid-template-rows: none; }
+}
+
+/* Mobile : en-tête de victoire compact, pour que « Mode suivant » reste à portée de pouce */
+@media (max-width: 560px) {
+  .win-card { padding: 14px 12px 12px; }
+  .win-card .win-head { flex-direction: row; text-align: left; gap: 12px; margin-bottom: 4px; }
+  .win-card .dofus-win { width: 56px; height: 56px; }
+  .win-title { font-size: 21px; }
+  .win-phrase { font-size: 15px; }
+  .win-card .reveal { gap: 12px; margin: 8px 0; flex-wrap: nowrap; }
+  .win-card .reveal-img { width: 64px; height: 64px; flex: none; }
+  .win-card .reveal h3 { font-size: 19px; }
+  .win-card .reveal p { font-size: 14px; }
+  .win-card .reveal-map { width: 100%; }
+  .win-card .reveal:has(.reveal-map) { flex-wrap: wrap; }
+  .win-stats .stat { padding: 7px 4px; }
+  .win-stats .stat strong { font-size: 21px; }
+  .win-card .victory-dist { height: 52px; margin: 10px auto; }
+}
+
+/* Centre de la vitrine plus présent : grand compteur et halo doré */
+.ring-hub { width: 320px; gap: 10px; }
+.ring-hub::before {
+  content: ''; position: absolute; left: 50%; top: 50%; width: 380px; height: 380px; transform: translate(-50%, -50%); z-index: -1;
+  border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(227, 184, 102, .16), rgba(227, 184, 102, .05) 45%, transparent 70%);
+}
+.ring-progress { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+.ring-count { display: inline-flex; align-items: baseline; gap: 6px; }
+.ring-progress .ring-count strong { font: 700 76px/1 var(--font-title); color: var(--gold-2); text-shadow: 0 0 24px rgba(227, 184, 102, .35); }
+.ring-count span { font: 700 30px var(--font-title); color: var(--muted); }
+.ring-progress small { margin-top: 6px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.ring-hub .home-fullstreak { padding: 4px 12px; border-radius: 999px; background: rgba(240, 163, 58, .1); border: 1px solid rgba(240, 163, 58, .3); font-weight: 700; }

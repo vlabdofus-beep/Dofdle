@@ -32,6 +32,9 @@ const MODES = [
   { ...chiffreMode, run: (root, o) => runChiffreMode(root, o) },
 ];
 
+// Le défilement est géré par le jeu (haut de page à chaque changement de défi)
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
 const app = document.getElementById('app');
 const nav = document.getElementById('modes');
 
@@ -100,6 +103,7 @@ function route() {
   renderNav(mode);
   renderDate();
   document.body.dataset.mode = mode ? mode.id : 'accueil';
+  app.classList.remove('no-guess');
   window.scrollTo(0, 0);
   if (!mode) {
     document.title = 'Dofusle, le défi quotidien de l\'univers Dofus';
