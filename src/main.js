@@ -4,7 +4,7 @@ import { openModal } from './ui/modal.js';
 import { showStats } from './ui/stats.js';
 import { clearCache } from './core/cache.js';
 import { harvestedToday, modeInfo, dofusImg } from './core/modes.js';
-import { todayKey, dayNumber } from './core/daily.js';
+import { todayKey, dayNumber, msUntilNextDaily } from './core/daily.js';
 import { loadGame } from './core/storage.js';
 import { shareResult } from './ui/share.js';
 import { renderHome, statsSummary } from './ui/home.js';
@@ -154,3 +154,13 @@ document.getElementById('btn-cache').addEventListener('click', async () => {
 });
 
 route();
+
+// Onglet resté ouvert après minuit : on passe automatiquement aux défis du nouveau jour
+function scheduleRollover() {
+  setTimeout(() => {
+    toast('Nouveaux défis disponibles !', 4000);
+    route();
+    scheduleRollover();
+  }, msUntilNextDaily() + 1500);
+}
+scheduleRollover();

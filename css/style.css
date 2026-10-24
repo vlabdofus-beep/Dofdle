@@ -12,12 +12,13 @@
   --gold-2: #f0d28e;
   --text: #efe3c8;          /* vélin */
   --muted: #9fae9f;
-  --ok: #3f9d5a;
-  --ok-2: #55b56f;
-  --partial: #c98a24;
-  --partial-2: #e3a43a;
-  --ko: #973b35;
-  --ko-2: #b14c44;
+  /* Statuts : teintes assez sombres pour du texte blanc lisible (contraste ≥ 4,5:1) */
+  --ok: #2a7a43;
+  --ok-2: #3a8f55;
+  --partial: #9c5d0c;
+  --partial-2: #b8741a;
+  --ko: #8f3a2f;
+  --ko-2: #a8433b;
   --radius: 14px;
   --font-title: 'Philosopher', 'Trebuchet MS', system-ui, sans-serif;
   --font: 'Inter', 'Segoe UI', system-ui, sans-serif;
@@ -41,7 +42,7 @@
 [data-mode="cri"] { --accent: var(--ivoire); --accent-ink: #2a2414; }
 [data-mode="juste-prix"] { --accent: var(--ebene); --accent-ink: #1e140b; }
 :root { --accent-deep: color-mix(in srgb, var(--accent) 62%, #000); --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent); }
-body, .dofus-slot, .dofus-win, .home-card, .home-cta { --accent-deep: color-mix(in srgb, var(--accent) 62%, #000); --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent); }
+body, .dofus-slot, .dofus-win, .home-card, .home-cta { --accent-deep: color-mix(in srgb, var(--accent) 62%, #000); --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent); --accent-text: color-mix(in srgb, var(--accent) 72%, #fff); }
 
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -428,7 +429,7 @@ button:disabled { cursor: not-allowed; }
 .hint-progress { width: 70%; height: 4px; border-radius: 4px; background: var(--panel-deep); overflow: hidden; }
 .hint-progress i { display: block; height: 100%; background: color-mix(in srgb, var(--accent) 70%, var(--muted)); border-radius: 4px; }
 .hint-tile.ready { cursor: pointer; border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent-soft); }
-.hint-tile.ready .hint-state { color: var(--accent); font-weight: 800; }
+.hint-tile.ready .hint-state { color: var(--accent-text); font-weight: 800; }
 .hint-tile.ready:hover { background: var(--accent-soft); }
 .hint-tile.open { background: var(--panel-2); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); justify-content: flex-start; }
 .hint-body { font-weight: 700; line-height: 1.3; }
@@ -643,13 +644,13 @@ body[data-mode="accueil"] .dofus-rack { display: none; }
 .home-card.won:hover .dofus { filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55)) brightness(1.08); }
 .home-card-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .home-card-title { font: 700 26px/1.1 var(--font-title); }
-.home-card-dofus { font-size: 13px; font-weight: 700; color: var(--accent); }
+.home-card-dofus { font-size: 13px; font-weight: 700; color: var(--accent-text); }
 .home-card-text { margin-top: 4px; font-size: 14.5px; color: var(--muted); line-height: 1.45; }
 .home-card-foot { grid-column: 2; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
 .home-status { font-size: 13px; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: var(--panel-deep); border: 1px solid var(--line); }
 .home-status.todo { color: var(--text); border-color: var(--accent); }
 .home-status.progress { color: var(--gold-2); }
-.home-status.won { color: #0f2416; background: var(--ok-2); border-color: var(--ok-2); }
+.home-status.won { color: #fff; background: var(--ok); border-color: var(--ok-2); }
 .home-streak { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: var(--text); }
 .home-streak .streak-flame { filter: drop-shadow(0 0 5px rgba(240, 163, 58, 0.7)); animation: flicker 1.6s ease-in-out infinite; }
 
