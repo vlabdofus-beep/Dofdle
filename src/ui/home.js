@@ -6,14 +6,6 @@ import { todayKey, dayNumber, msUntilNextDaily } from '../core/daily.js';
 import { loadGame, loadStats, currentStreak, fullDayStreaks } from '../core/storage.js';
 import { modeInfo, dofusImg } from '../core/modes.js';
 
-const TAGLINES = {
-  monstre: 'Devine le monstre grâce à sa famille, son niveau, sa zone et ses faiblesses.',
-  sort: 'Reconnais le sort de classe caché derrière son icône floutée ou zoomée.',
-  carte: 'Situe la map mystère sur la carte du Monde des Douze.',
-  objet: 'Retrouve l\'équipement à partir de ses effets ou de son icône.',
-  cri: 'Écoute le cri et retrouve le monstre qui le pousse.',
-  'juste-prix': 'Trouve le nombre exact d\'une question improbable sur le jeu.',
-};
 
 // Emplacements sur les deux arcs : trois Dofus à gauche « ( », trois à droite « ) »
 const SLOTS = [
@@ -68,7 +60,7 @@ export function renderHome(root, modes, { onShareDay } = {}) {
     panel.dataset.mode = m.id;
     panel.replaceChildren(
       h('div.ring-panel-head', h('span.home-card-title', m.label), h('span.home-card-dofus', `Dofus ${modeInfo(m.id).dofus}`)),
-      h('p.home-card-text', TAGLINES[m.id] || m.intro),
+      h('p.home-card-text', modeInfo(m.id).tagline),
       h('div.home-card-foot',
         h(`span.home-status.${st.key}`, st.text),
         streak ? h('span.home-streak', h('span.streak-flame', { 'aria-hidden': 'true' }), `${streak} j`) : null,
@@ -95,7 +87,7 @@ export function renderHome(root, modes, { onShareDay } = {}) {
       h('span.ring-label',
         h('span.ring-name', m.label),
         h('span.home-card-dofus', `Dofus ${modeInfo(m.id).dofus}`),
-        h('span.ring-text', TAGLINES[m.id] || m.intro),
+        h('span.ring-text', modeInfo(m.id).tagline),
         h('span.ring-foot',
           h(`span.home-status.${st.key}`, st.text),
           streak ? h('span.home-streak', h('span.streak-flame', { 'aria-hidden': 'true' }), `${streak} j`) : null)));

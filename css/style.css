@@ -845,12 +845,7 @@ body[data-mode="accueil"] .dofus-rack { display: none; }
 
 /* ---------- Fenêtre de victoire ---------- */
 .victory { text-align: center; }
-.victory-hero { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; text-align: left; margin-bottom: 12px; }
-.victory-dofus { width: 112px; height: 112px; object-fit: contain; filter: drop-shadow(0 0 18px var(--accent)); animation: harvest .7s cubic-bezier(.3, 1.4, .5, 1) both, dofus-float 3.2s 1s ease-in-out infinite; }
-.victory-title { margin: 0 0 6px; font: 700 24px/1.15 var(--font-title); color: var(--accent-text, var(--gold-2)); }
 .victory-phrase { margin: 0; font: italic 400 17px/1.4 var(--font-title); color: var(--text); }
-.victory-answer { margin: 0 0 12px; color: var(--muted); }
-.victory-answer strong { color: var(--text); }
 .victory-dist { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; align-items: end; height: 74px; margin: 14px 0 16px; }
 .vd-col { display: grid; grid-template-rows: 1fr auto; height: 100%; gap: 3px; }
 .vd-bar { align-self: end; width: 100%; border-radius: 4px 4px 2px 2px; background: color-mix(in srgb, var(--muted) 45%, transparent); }
@@ -860,10 +855,6 @@ body[data-mode="accueil"] .dofus-rack { display: none; }
 .victory-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .victory-actions .btn.primary { flex: 1 1 100%; font-size: 17px; padding: 13px 18px; }
 .dofus-ghost { position: fixed; z-index: 1000; pointer-events: none; object-fit: contain; filter: drop-shadow(0 0 14px rgba(242, 212, 142, .8)); }
-@media (max-width: 560px) {
-  .victory-hero { grid-template-columns: 1fr; justify-items: center; text-align: center; }
-  .victory-dofus { width: 92px; height: 92px; }
-}
 
 /* ---------- Cadres ornés des visuels mystère ---------- */
 .clue-visual::after, .map-frame::after {
@@ -913,3 +904,72 @@ body[data-mode="accueil"] .dofus-rack { display: none; }
   body:not([data-mode="accueil"]) #toast { bottom: calc(100px + env(safe-area-inset-bottom)); }
 }
 .victory-actions a.btn { text-decoration: none; }
+
+/* ---------- Section de victoire ---------- */
+.win-card { padding: 18px 18px 14px; }
+.win-card.fresh { animation: card-in .5s ease both; }
+.win-card .win-head { justify-content: flex-start; max-width: 560px; margin: 0 auto 8px; }
+.win-title { font-size: 28px; color: var(--accent-text); }
+.win-phrase { margin: 4px 0 0; font: italic 400 17px/1.4 var(--font-title); color: var(--text); }
+.win-stats { max-width: 560px; margin: 12px auto 0; }
+.win-card .victory-dist { max-width: 560px; margin: 12px auto 14px; }
+.next-mode-card {
+  --accent: var(--gold);
+  display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center;
+  width: 100%; max-width: 560px; margin: 4px auto 14px; padding: 12px 16px; text-align: left;
+  border-radius: 14px; border: 1px solid color-mix(in srgb, var(--accent) 70%, var(--line));
+  background: linear-gradient(100deg, color-mix(in srgb, var(--accent) 26%, var(--panel-deep)), var(--panel-deep) 70%);
+  color: var(--text); text-decoration: none; font: inherit; cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .35); transition: transform .2s, box-shadow .2s, border-color .2s;
+}
+.next-mode-card:hover, .next-mode-card:focus-visible { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 10px 26px rgba(0, 0, 0, .45), 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent); }
+.next-mode-card[data-mode="monstre"] { --accent: var(--pourpre); }
+.next-mode-card[data-mode="sort"] { --accent: var(--turquoise); }
+.next-mode-card[data-mode="carte"] { --accent: var(--emeraude); }
+.next-mode-card[data-mode="objet"] { --accent: var(--ocre); }
+.next-mode-card[data-mode="cri"] { --accent: var(--ivoire); }
+.next-mode-card[data-mode="juste-prix"] { --accent: var(--ebene); }
+.next-mode-art { display: flex; }
+.next-mode-art .dofus-slot, .next-mode-art .dofus { width: 56px; height: 56px; }
+.next-mode-art .dofus { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent) 60%, transparent)); opacity: 1; }
+.next-mode-art > img { width: 40px; height: 40px; object-fit: contain; margin-right: -10px; }
+.next-mode-text { display: flex; flex-direction: column; min-width: 0; }
+.next-mode-text small { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+.next-mode-text strong { font: 700 22px/1.15 var(--font-title); }
+.next-mode-text span { font-size: 13.5px; color: var(--muted); }
+.next-mode-arrow { font: 400 40px/1 var(--font-title); color: var(--accent); }
+.win-rack { display: flex; justify-content: center; gap: 10px; margin: 0 auto 6px; padding: 8px 14px; width: fit-content; max-width: 100%;
+  border-radius: 999px; background: rgba(0, 0, 0, .25); border: 1px solid var(--line); }
+.win-rack-item { position: relative; display: grid; place-items: center; }
+.win-rack-item .dofus-slot, .win-rack-item .dofus { width: 44px; height: 44px; }
+.win-rack-item.won .dofus { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 55%, transparent)); opacity: 1; }
+.win-rack-item.won .dofus-slot::before { opacity: 1; }
+.win-rack-item.current .dofus-slot { transform: scale(1.12); }
+.win-check { position: absolute; right: -4px; bottom: -2px; z-index: 3; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--ok-2); color: #fff; font: 800 11px/1 var(--font); border: 2px solid var(--panel); }
+.win-card.fresh .win-rack-item.current .win-check { animation: harvest .5s 1s cubic-bezier(.3, 1.5, .5, 1) both; }
+
+/* ---------- Journée complète ---------- */
+.day-complete { text-align: center; }
+.day-dofus { display: flex; justify-content: center; gap: 6px; margin: 4px 0 12px; }
+.day-dofus .dofus-slot, .day-dofus .dofus { width: 64px; height: 64px; }
+.day-dofus .dofus { opacity: 1; filter: drop-shadow(0 0 12px color-mix(in srgb, var(--accent) 60%, transparent)); animation: day-light .6s calc(var(--i) * .15s + .2s) cubic-bezier(.3, 1.4, .5, 1) both; }
+.day-dofus .dofus-slot:nth-child(2), .day-dofus .dofus-slot:nth-child(5) { transform: translateY(-10px); }
+.day-dofus .dofus-slot:nth-child(3), .day-dofus .dofus-slot:nth-child(4) { transform: translateY(-16px); }
+@keyframes day-light { from { filter: grayscale(1) brightness(.4); transform: scale(.7); } to { transform: none; } }
+.day-complete .victory-phrase { margin: 0 0 14px; }
+.day-detail { list-style: none; padding: 0; margin: 14px 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; text-align: left; }
+.day-detail li { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); }
+.day-detail img { width: 26px; height: 26px; object-fit: contain; }
+.day-detail span { flex: 1; }
+@media (max-width: 560px) {
+  .win-card .win-head { flex-direction: column; text-align: center; }
+  .win-title { font-size: 24px; }
+  .next-mode-card { gap: 10px; padding: 10px 12px; }
+  .next-mode-text strong { font-size: 19px; }
+  .win-rack { gap: 4px; padding: 6px 10px; }
+  .win-rack-item .dofus-slot, .win-rack-item .dofus { width: 38px; height: 38px; }
+  .day-dofus .dofus-slot, .day-dofus .dofus { width: 48px; height: 48px; }
+  .day-detail { grid-template-columns: 1fr; }
+}
+.win-card { scroll-margin-top: 14px; }

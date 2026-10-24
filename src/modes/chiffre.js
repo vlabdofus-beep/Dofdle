@@ -8,7 +8,7 @@ import { loadGame, saveGame, recordWin, loadStats, currentStreak } from '../core
 import { buildQuestion, THEMES, formatNumber } from '../data/chiffres.js';
 import { shareResult } from '../ui/share.js';
 import { STATUS_EMOJI, modeHead, winCard, yesterdayLine } from './engine.js';
-import { showVictory } from '../ui/victory.js';
+import { celebrate } from '../ui/victory.js';
 
 const QUESTION_KEY = 'dofusle:v1:chiffre-question';
 const QUESTION_VERSION = 2; // à incrémenter si les modèles changent la réponse d'un jour
@@ -129,12 +129,7 @@ export async function runChiffreMode(root, opts = {}) {
     }
     save();
     refresh();
-    if (game.won) {
-      setTimeout(() => {
-        result.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        showVictory({ cfg: chiffreMode, tries: game.guesses.length, answer: formatNumber(answer), onShare: () => shareResult(buildShare(), 'Résultat copié !') });
-      }, 600);
-    }
+    if (game.won) setTimeout(() => celebrate(chiffreMode, result), 500);
   }
 
   function refresh() {

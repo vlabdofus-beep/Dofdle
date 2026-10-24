@@ -13,6 +13,7 @@ import { maybeShowIntro, showIntro } from './ui/intro.js';
 import { krosmozDate } from './core/krosmoz.js';
 import { backfillHistory } from './core/storage.js';
 import { streakText } from './modes/engine.js';
+import { mobileBar } from './ui/victory.js';
 import { runGuessMode } from './modes/engine.js';
 import { monsterMode } from './modes/monster.js';
 import { spellMode } from './modes/spell.js';
@@ -94,6 +95,7 @@ function shareDay() {
 
 function route() {
   closeModal();
+  awaiting.clear();
   const mode = currentMode();
   renderNav(mode);
   renderDate();
@@ -111,23 +113,26 @@ function route() {
 }
 
 window.addEventListener('hashchange', route);
-// Victoire : le Dofus attend dans la fenêtre de victoire, puis s'envole vers la
-// rangée (dofusle:landed) où il se pose avec l'animation de récolte.
+// Victoire : sur mobile, le Dofus attend dans la section de victoire puis s'envole
+// vers la barre du bas (dofusle:landed) où il se pose avec l'animation de récolte.
 const awaiting = new Set();
 window.addEventListener('dofusle:progress', (ev) => {
   const mode = currentMode();
   const won = ev.detail?.mode;
   const fresh = won && !nav.querySelector(`.mode-tab.won .dofus-slot[data-mode="${won}"]`);
-  if (fresh) awaiting.add(won);
-  renderNav(mode);
+  // Mobile : le Dofus s'envole vers la barre du bas ; ordinateur : il se pose tout de suite
+  if (fresh && mobileBar()) awaiting.add(won);
+  renderNav(mode, fresh && !mobileBar() ? won : null);
   if (!mode) return;
   // Met à jour la série affichée dans l'en-tête du mode
   const badge = document.querySelector(`.streak-badge[data-mode="${mode.id}"]`);
   if (badge) {
     badge.querySelector('.streak-text').textContent = streakText(mode.id, todayKey());
     badge.classList.add('on');
+    if (fresh && !mobileBar()) { badge.classList.remove('bump'); void badge.offsetWidth; badge.classList.add('bump'); }
   }
 });
+window.addEventListener('dofusle:share-day', () => shareDay());
 window.addEventListener('dofusle:landed', (ev) => {
   const won = ev.detail?.mode;
   const fresh = awaiting.delete(won);

@@ -5,12 +5,18 @@ import { todayKey } from './daily.js';
 // Chaque mode est associé à l'un des six Dofus primordiaux : réussir le défi du jour
 // d'un mode, c'est "récolter" son Dofus.
 export const MODE_ORDER = [
-  { id: 'monstre', label: 'Monstre', dofus: 'Pourpre', icon: 23001 },
-  { id: 'sort', label: 'Sort', dofus: 'Turquoise', icon: 23003 },
-  { id: 'carte', label: 'Carte', dofus: 'Émeraude', icon: 23002 },
-  { id: 'objet', label: 'Objet', dofus: 'Ocre', icon: 23012 },
-  { id: 'cri', label: 'Cri', dofus: 'Ivoire', icon: 23011 },
-  { id: 'juste-prix', label: 'Juste prix', dofus: 'Ébène', icon: 23007 },
+  { id: 'monstre', label: 'Monstre', dofus: 'Pourpre', icon: 23001, badge: 'assets/game/ui/mode-monstre.png',
+    tagline: 'Devine le monstre grâce à sa famille, son niveau, sa zone et ses faiblesses.' },
+  { id: 'sort', label: 'Sort', dofus: 'Turquoise', icon: 23003, badge: 'assets/game/ui/mode-sort.png',
+    tagline: 'Reconnais le sort de classe caché derrière son icône floutée ou zoomée.' },
+  { id: 'carte', label: 'Carte', dofus: 'Émeraude', icon: 23002, badge: 'assets/game/ui/mode-carte.png',
+    tagline: 'Situe la map mystère sur la carte du Monde des Douze.' },
+  { id: 'objet', label: 'Objet', dofus: 'Ocre', icon: 23012, badge: 'assets/game/ui/mode-objet.png',
+    tagline: 'Retrouve l\'équipement à partir de ses effets ou de son icône.' },
+  { id: 'cri', label: 'Cri', dofus: 'Ivoire', icon: 23011, badge: 'assets/game/ui/mode-cri.png',
+    tagline: 'Écoute le cri et retrouve le monstre qui le pousse.' },
+  { id: 'juste-prix', label: 'Juste prix', dofus: 'Ébène', icon: 23007, badge: 'assets/game/ui/mode-chiffre.png',
+    tagline: 'Trouve le nombre exact d\'une question improbable sur le jeu.' },
 ];
 
 /** Icône officielle du Dofus d'un mode (servie par DofusDB, comme les autres images du jeu). */

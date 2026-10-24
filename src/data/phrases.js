@@ -67,3 +67,22 @@ export const PHRASES = [
 export function dailyPhrase(date, mode, hashFn) {
   return PHRASES[hashFn(`phrase|${date}|${mode}`) % PHRASES.length];
 }
+
+/** Phrases de la journée complète (les six Dofus récoltés). */
+export const DAY_PHRASES = [
+  'Les six Dofus primordiaux brillent entre tes mains : Osamodas lui-même en reste sans voix.',
+  'Six Dofus en une journée : les dragons du Krosmoz vont devoir pondre plus vite.',
+  'Le Monde des Douze tout entier s\'incline devant ton étagère à Dofus.',
+  'Pourpre, Turquoise, Émeraude, Ocre, Ivoire, Ébène : la collection est complète.',
+  'Six Dofus récoltés : même les Dieux du Krosmoz viennent voir ta collection.',
+  'Journée parfaite ! Ton nom sera gravé sur les murs de la Bibliothèque de Bonta.',
+  'Six œufs de dragon dans ta besace : prends garde, les Dragonnets rôdent.',
+  'Une journée digne d\'une légende d\'Amakna. Reviens demain pour écrire la suite.',
+  'Les Dofus primordiaux sont réunis. Le Krosmoz retient son souffle.',
+  'Collection complète ! Même Rushu n\'aurait pas fait mieux.',
+];
+
+/** Phrase du jour pour une journée complète. */
+export function dayPhrase(date, hashFn) {
+  return DAY_PHRASES[hashFn(`journee|${date}`) % DAY_PHRASES.length];
+}

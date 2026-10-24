@@ -6,7 +6,9 @@ import { createAutocomplete } from '../ui/autocomplete.js';
 import { loadDataset } from '../core/cache.js';
 import { todayKey, dayNumber, pickDaily, msUntilNextDaily, addDays } from '../core/daily.js';
 import { loadGame, saveGame, recordWin, loadStats, currentStreak } from '../core/storage.js';
-import { showVictory } from '../ui/victory.js';
+import { winCard, celebrate } from '../ui/victory.js';
+
+export { winCard };
 import { nextMode, modeInfo, harvestedToday, MODE_ORDER, dofusImg } from '../core/modes.js';
 import { ELEMENTS } from '../data/elements.js';
 import { shareResult } from '../ui/share.js';
@@ -67,33 +69,6 @@ export function modeHead(cfg, date) {
       h('span.day-badge', `Défi du jour n° ${dayNumber(date)}`),
       h('span.streak-badge', { class: n ? 'on' : undefined, 'data-mode': cfg.id, title: 'Défis du jour réussis d\'affilée dans ce mode' },
         h('span.streak-flame', { 'aria-hidden': 'true' }), h('span.streak-text', streakText(cfg.id, date)))));
-}
-
-/** Carte de victoire commune (partage, jeu suivant, compte à rebours). */
-export function winCard({ cfg, date, tries, reveal, onShare }) {
-  const countdown = h('span.countdown');
-  const tick = () => { countdown.textContent = formatDuration(msUntilNextDaily()); };
-  tick();
-  const timer = setInterval(() => { if (!countdown.isConnected) clearInterval(timer); else tick(); }, 1000);
-  const next = nextMode(cfg.id);
-  const info = modeInfo(cfg.id);
-  const count = harvestedToday(date).length;
-  const streak = currentStreak(loadStats(cfg.id), date);
-  return h('div.panel.win-card',
-    h('div.win-head',
-      h('img.dofus-win', { src: dofusImg(cfg.id), alt: `Dofus ${info.dofus}`, width: 96, height: 96, 'data-mode': cfg.id }),
-      h('div',
-        h('div.win-title', `Dofus ${info.dofus} récolté`),
-        h('p.win-tries', `Trouvé en ${tries} essai${tries > 1 ? 's' : ''}.`,
-          ` Série : ${streak} jour${streak > 1 ? 's' : ''}.`))),
-    reveal,
-    h('div.win-actions',
-      h('a.btn.primary.next-link', { href: `#${next.id}` }, next.done ? `Rejouer en ${next.label}` : `Défi suivant : ${next.label}`),
-      h('button.btn', { onclick: onShare }, 'Partager'),
-      h('button.btn', { onclick: () => showStats(cfg) }, 'Statistiques')),
-    h('p.next-daily',
-      count >= MODE_ORDER.length ? 'Les six Dofus du jour sont récoltés. ' : `${count} Dofus sur ${MODE_ORDER.length} récoltés aujourd'hui. `,
-      'Nouveaux défis dans ', countdown));
 }
 
 /**
@@ -221,14 +196,8 @@ export async function runGuessMode(root, cfg, opts = {}) {
     }
     save();
     refresh(true);
-    if (game.won) {
-      // La ligne gagnante se dévoile puis s'illumine ; la fenêtre de victoire suit
-      setTimeout(() => rows.querySelector('.grid-row.win')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 500);
-      setTimeout(() => {
-        result.scrollIntoView({ block: 'center' });
-        showVictory({ cfg, tries: game.guesses.length, answer: target.n, onShare: () => shareResult(buildShare(), 'Résultat copié !') });
-      }, 2300);
-    }
+    // La ligne gagnante se dévoile et s'illumine, puis on descend jusqu'à la section de victoire
+    if (game.won) setTimeout(() => celebrate(cfg, result), 1900);
   }
 
   function renderResult() {
