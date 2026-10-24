@@ -12,8 +12,8 @@ export const EXCLUDED_SUPER_RACES = new Set([27, 28, 45]);
 // défis passés) : créatures d'alignement (Bonta et Brâkmar) et monstres hors bestiaire
 // (aucun succès de chasse : monstres de quête, d'événement, de didacticiel…).
 export const ALIGNMENT_SUPER_RACE = 13;
-// Gardés malgré tout : Rats Brâkmariens et Bontariens, Volkornes sauvages, créatures d'Incarnam
-const KEPT_RACES = new Set([240, 241, 183]);
+// Gardés malgré tout : Fantômes de Brâkmar, Rats Brâkmariens et Bontariens, Volkornes sauvages, créatures d'Incarnam
+const KEPT_RACES = new Set([53, 240, 241, 183]);
 const KEPT_SUPER_RACES = new Set([18]);
 /** Famille gardée en jeu même si elle répond aux critères de retrait. */
 export const isKeptRace = (raceId, race) => KEPT_RACES.has(Number(raceId)) || KEPT_SUPER_RACES.has(race?.sr);
