@@ -3,6 +3,7 @@
 // (variantes, archimonstres…) partagent le même son : ils sont tous acceptés.
 import { h } from '../ui/dom.js';
 import { normalize } from '../core/text.js';
+import { pickDaily, pickBossWeighted, BOSS_WEIGHT_FROM } from '../core/daily.js';
 import { loadDataset } from '../core/cache.js';
 import { createHints } from '../ui/hints.js';
 import { monstersDataset, compareMonsters, monsterEntries } from '../data/monsters.js';
@@ -73,6 +74,12 @@ export const criMode = {
       pool.push({ id: `cri:${cri.f}`, n: main.n, ref: main.ref, cri, bones: new Set(cri.b), owners });
     }
     return { entries, pool };
+  },
+
+  /** Boss 20 %, monstres + archimonstres 80 % (avant le 25/10/2026 : ancien tirage). */
+  pickDaily(pool, date) {
+    if (date < BOSS_WEIGHT_FROM) return pickDaily(pool, 'cri', date);
+    return pickBossWeighted(pool, 'cri', date, (e) => e.owners.some((o) => o.ref.k === 'boss'));
   },
 
   isWin: (entry, target) => target.bones.has(entry.ref.b),

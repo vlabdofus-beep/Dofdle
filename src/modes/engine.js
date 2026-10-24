@@ -126,7 +126,8 @@ export async function runGuessMode(root, cfg, opts = {}) {
   const { entries, pool } = cfg.prepare(data);
   const byId = new Map(entries.map((e) => [e.id, e]));
   const date = todayKey();
-  const target = pickDaily(pool, cfg.salt, date);
+  const pick = (d) => (cfg.pickDaily ? cfg.pickDaily(pool, d) : pickDaily(pool, cfg.salt, d));
+  const target = pick(date);
   const isWin = (entry) => (cfg.isWin ? cfg.isWin(entry, target, data) : entry.id === target.id);
 
   const game = loadGame(cfg.id, date);
@@ -171,7 +172,7 @@ export async function runGuessMode(root, cfg, opts = {}) {
   grid.append(headRow, rows);
   const gridWrap = h('div.grid-wrap', grid);
   const result = h('div.result');
-  const yesterday = pickDaily(pool, cfg.salt, addDays(date, -1));
+  const yesterday = pick(addDays(date, -1));
   root.append(result, gridWrap, legend(cfg),
     yesterday ? yesterdayLine(cfg.yesterdayLabel || 'La réponse d\'hier était', yesterday.n) : null);
 

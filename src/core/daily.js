@@ -68,3 +68,32 @@ export function rng(seed) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
+
+/**
+ * Tirage pondéré par catégories : on choisit d'abord une catégorie selon son poids
+ * (graine du jour), puis l'élément du jour dans cette catégorie.
+ * @param {{list: any[], weight: number}[]} groups
+ */
+export function pickWeighted(groups, salt, key = todayKey(), getId = (x) => x.id) {
+  const usable = groups.filter((g) => g.list.length && g.weight > 0);
+  const total = usable.reduce((a, g) => a + g.weight, 0);
+  let r = rng(`${salt}|categorie|${key}`)() * total;
+  for (const g of usable) {
+    if (r < g.weight) return pickDaily(g.list, salt, key, getId);
+    r -= g.weight;
+  }
+  return pickDaily(usable[usable.length - 1].list, salt, key, getId);
+}
+
+/**
+ * Monstre du jour (modes Monstre et Cri) : 20 % de chances de tomber sur un boss,
+ * 80 % sur un monstre ou un archimonstre. S'applique à partir du 25/10/2026 ;
+ * les jours précédents gardent leur tirage d'origine (parties en cours, réponses d'hier).
+ */
+export const BOSS_WEIGHT_FROM = '2026-10-25';
+export function pickBossWeighted(pool, salt, key, isBoss) {
+  return pickWeighted([
+    { list: pool.filter((e) => isBoss(e)), weight: 0.2 },
+    { list: pool.filter((e) => !isBoss(e)), weight: 0.8 },
+  ], salt, key);
+}
