@@ -9,7 +9,7 @@ Une fois un défi réussi, un lien mène directement au mode suivant non termin�
 
 | Mode | Principe | Feedback / indices |
 |---|---|---|
-| **Monstre** | Deviner le monstre du jour (hors monstres de quête et invocations) | Famille (vert/rouge), niveau, PV, zone, rang, faiblesse élémentaire, couleur dominante ; indices : zone (5 essais), famille (10 essais), silhouette (30 essais) |
+| **Monstre** | Deviner le monstre du jour (hors monstres de quête et invocations) | Famille (vert/rouge), niveau, PV, zone, rang, faiblesse élémentaire, couleur dominante ; indices : continent (5 essais), zone principale (10 essais), silhouette (30 essais) |
 | **Sort** | Icône de sort de classe floutée ou zoomée (sans vignettes dans les propositions) | Classe, élément, coût PA, portée ; indices : PA & portée (3), élément (5), classe (7) |
 | **Carte** | Extrait de map zoomé + mini-carte cliquable du Monde des Douze | Distance en nombre de maps (Manhattan) ; propositions par clic, `X,Y` ou nom de zone ; indices : région, sous-zone, abscisse |
 | **Objet** | Effets de l'équipement ou icône floutée | Type, niveau, panoplie ; indices : effets (4, jours « icône »), panoplie (6) |
