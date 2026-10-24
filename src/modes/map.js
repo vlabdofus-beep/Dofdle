@@ -11,6 +11,7 @@ import { loadGame, saveGame, recordWin, loadStats, currentStreak } from '../core
 import { mapsDataset, indexMaps, pickMap, mapDistance, parseCoords } from '../data/maps.js';
 import { shareResult } from '../ui/share.js';
 import { STATUS_EMOJI, modeHead, winCard, yesterdayLine } from './engine.js';
+import { showVictory } from '../ui/victory.js';
 
 const NEAR = 5; // maps : en dessous, la proposition est "proche" (orange)
 
@@ -126,7 +127,12 @@ export async function runMapMode(root, opts = {}) {
     }
     save();
     refresh();
-    if (game.won) setTimeout(() => result.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
+    if (game.won) {
+      setTimeout(() => {
+        result.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showVictory({ cfg: mapMode, tries: game.guesses.length, answer: `[${target.posX}, ${target.posY}] (${target.sub.n})`, onShare: () => shareResult(buildShare(), 'Résultat copié !') });
+      }, 600);
+    }
   }
 
   function refresh() {

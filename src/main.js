@@ -1,6 +1,6 @@
 // Point d'entrée : navigation entre les modes (hash), aide, stats.
 import { h, clear, toast } from './ui/dom.js';
-import { openModal } from './ui/modal.js';
+import { openModal, closeModal } from './ui/modal.js';
 import { showStats } from './ui/stats.js';
 import { clearCache } from './core/cache.js';
 import { harvestedToday, modeInfo, dofusImg } from './core/modes.js';
@@ -47,7 +47,7 @@ function renderDate() {
 }
 
 function renderNav(active, justWon = null) {
-  const done = new Set(harvestedToday());
+  const done = new Set(harvestedToday().filter((id) => !awaiting.has(id)));
   clear(nav);
   MODES.forEach((m, i) => {
     const won = done.has(m.id);
@@ -93,6 +93,7 @@ function shareDay() {
 }
 
 function route() {
+  closeModal();
   const mode = currentMode();
   renderNav(mode);
   renderDate();
@@ -110,20 +111,29 @@ function route() {
 }
 
 window.addEventListener('hashchange', route);
+// Victoire : le Dofus attend dans la fenêtre de victoire, puis s'envole vers la
+// rangée (dofusle:landed) où il se pose avec l'animation de récolte.
+const awaiting = new Set();
 window.addEventListener('dofusle:progress', (ev) => {
   const mode = currentMode();
   const won = ev.detail?.mode;
-  // Animation de récolte uniquement la première fois que le Dofus du jour est obtenu
   const fresh = won && !nav.querySelector(`.mode-tab.won .dofus-slot[data-mode="${won}"]`);
-  renderNav(mode, fresh ? won : null);
+  if (fresh) awaiting.add(won);
+  renderNav(mode);
   if (!mode) return;
   // Met à jour la série affichée dans l'en-tête du mode
   const badge = document.querySelector(`.streak-badge[data-mode="${mode.id}"]`);
   if (badge) {
     badge.querySelector('.streak-text').textContent = streakText(mode.id, todayKey());
     badge.classList.add('on');
-    if (fresh) { badge.classList.remove('bump'); void badge.offsetWidth; badge.classList.add('bump'); }
   }
+});
+window.addEventListener('dofusle:landed', (ev) => {
+  const won = ev.detail?.mode;
+  const fresh = awaiting.delete(won);
+  renderNav(currentMode(), fresh ? won : null);
+  const badge = document.querySelector(`.streak-badge[data-mode="${won}"]`);
+  if (fresh && badge) { badge.classList.remove('bump'); void badge.offsetWidth; badge.classList.add('bump'); }
 });
 
 document.getElementById('btn-help').addEventListener('click', () => {

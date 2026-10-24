@@ -6,6 +6,7 @@ import { createAutocomplete } from '../ui/autocomplete.js';
 import { loadDataset } from '../core/cache.js';
 import { todayKey, dayNumber, pickDaily, msUntilNextDaily, addDays } from '../core/daily.js';
 import { loadGame, saveGame, recordWin, loadStats, currentStreak } from '../core/storage.js';
+import { showVictory } from '../ui/victory.js';
 import { nextMode, modeInfo, harvestedToday, MODE_ORDER, dofusImg } from '../core/modes.js';
 import { ELEMENTS } from '../data/elements.js';
 import { shareResult } from '../ui/share.js';
@@ -220,7 +221,14 @@ export async function runGuessMode(root, cfg, opts = {}) {
     }
     save();
     refresh(true);
-    if (game.won) setTimeout(() => result.scrollIntoView({ behavior: 'smooth', block: 'center' }), 900);
+    if (game.won) {
+      // La ligne gagnante se dévoile puis s'illumine ; la fenêtre de victoire suit
+      setTimeout(() => rows.querySelector('.grid-row.win')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 500);
+      setTimeout(() => {
+        result.scrollIntoView({ block: 'center' });
+        showVictory({ cfg, tries: game.guesses.length, answer: target.n, onShare: () => shareResult(buildShare(), 'Résultat copié !') });
+      }, 2300);
+    }
   }
 
   function renderResult() {
