@@ -92,21 +92,6 @@ function shareDay() {
   shareResult([head, ...lines, location.href.split('#')[0]].join('\n'), 'Récapitulatif copié !');
 }
 
-// Installation sur l'écran d'accueil (Chrome, Edge, Android) : bouton proposé sur l'accueil
-let installPrompt = null;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  installPrompt = e;
-  if (!currentMode()) route();
-});
-async function install() {
-  if (!installPrompt) return;
-  installPrompt.prompt();
-  await installPrompt.userChoice.catch(() => {});
-  installPrompt = null;
-  if (!currentMode()) route();
-}
-
 function route() {
   const mode = currentMode();
   renderNav(mode);
@@ -115,7 +100,7 @@ function route() {
   window.scrollTo(0, 0);
   if (!mode) {
     document.title = 'Dofusle, le défi quotidien de l\'univers Dofus';
-    renderHome(app, MODES, { onShareDay: shareDay, onInstall: installPrompt ? install : null });
+    renderHome(app, MODES, { onShareDay: shareDay });
     maybeShowIntro();
     return;
   }

@@ -32,7 +32,7 @@ export function statsSummary(modes) {
     })));
 }
 
-export function renderHome(root, modes, { onShareDay, onInstall } = {}) {
+export function renderHome(root, modes, { onShareDay } = {}) {
   clear(root);
   const date = todayKey();
   const states = modes.map((m) => ({ m, st: status(m.id, date) }));
@@ -55,8 +55,7 @@ export function renderHome(root, modes, { onShareDay, onInstall } = {}) {
       h('div.home-actions',
         next ? h('a.btn.primary.home-cta', { href: `#${next.m.id}`, 'data-mode': next.m.id }, done ? `Continuer : ${next.m.label}` : `Commencer par ${next.m.label}`)
           : h('button.btn.primary.home-cta', { type: 'button', onclick: onShareDay }, 'Partager ma journée'),
-        next && done ? h('button.btn', { type: 'button', onclick: onShareDay }, 'Partager ma journée') : null,
-        onInstall ? h('button.btn', { type: 'button', onclick: onInstall }, 'Installer l\'application') : null)),
+        next && done ? h('button.btn', { type: 'button', onclick: onShareDay }, 'Partager ma journée') : null)),
     h('div.home-grid', states.map(({ m, st }, i) => {
       const streak = currentStreak(loadStats(m.id), date);
       return h(`a.home-card.${st.key}`, { href: `#${m.id}`, 'data-mode': m.id, style: `--i:${i}` },
