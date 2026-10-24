@@ -10,7 +10,7 @@ import { shareResult } from '../ui/share.js';
 import { STATUS_EMOJI, modeHead, winCard } from './engine.js';
 
 const QUESTION_KEY = 'dofusle:v1:chiffre-question';
-const QUESTION_VERSION = 1; // à incrémenter si les modèles changent la réponse d'un jour
+const QUESTION_VERSION = 2; // à incrémenter si les modèles changent la réponse d'un jour
 
 export const chiffreMode = {
   id: 'juste-prix',

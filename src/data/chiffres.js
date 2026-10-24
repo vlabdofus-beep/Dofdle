@@ -17,6 +17,8 @@ const WORLD = 0; // super-zone "Monde des Douze"
 const WORLD_MAPS = { worldMap: 1, '$or[0][hasPriorityOnWorldmap]': true, '$or[1][posX][$ne]': 0, '$or[2][posY][$ne]': 0 };
 const REAL_JOBS = { 'id[$ne]': 1 }; // le métier "Base" n'en est pas un
 const isExpedition = (name) => /^Exp[ée]dition/i.test(name);
+// Les réponses trop petites se devinent trop vite : on ne garde que celles d'au moins 40
+export const MIN_ANSWER = 40;
 const EQUIPMENT_TYPES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 19, 22, 82, 114, 271];
 
 export const THEMES = {
@@ -71,18 +73,8 @@ export const TEMPLATES = [
       const subs = await listAll(api, 'subareas', { areaId: area.id, '$select': ['id'] });
       if (!subs.length) return null;
       const answer = await count(api, 'map-positions', { ...WORLD_MAPS, 'subAreaId[$in]': subs.map((s) => s.id) });
-      if (answer < 15) return null;
+      if (answer < MIN_ANSWER) return null;
       return { text: `Combien de maps compte la région ${q(fr(area.name))} ?`, answer, note: 'Maps de la carte du monde, toutes sous-zones de la région confondues (hors intérieurs et instances).' };
-    },
-  },
-  {
-    id: 'sous-zones-region', theme: 'geo',
-    async pick(api, r) {
-      const area = await pickOne(api, 'areas', { superAreaId: WORLD }, r, ['id', 'name']);
-      if (!fr(area?.name)) return null;
-      const answer = await count(api, 'subareas', { areaId: area.id });
-      if (answer < 4) return null;
-      return { text: `Combien de sous-zones compte la région ${q(fr(area.name))} ?`, answer };
     },
   },
   {
@@ -91,33 +83,12 @@ export const TEMPLATES = [
       const sub = await pickOne(api, 'subareas', { displayOnWorldMap: true }, r, ['id', 'name', 'areaId']);
       if (!fr(sub?.name)) return null;
       const answer = await count(api, 'map-positions', { ...WORLD_MAPS, subAreaId: sub.id });
-      if (answer < 12) return null;
+      if (answer < MIN_ANSWER) return null;
       return { text: `Combien de maps compte la sous-zone ${q(fr(sub.name))} ?`, answer, note: 'Maps de la carte du monde (hors intérieurs et instances).' };
-    },
-  },
-  {
-    id: 'monstres-zone', theme: 'geo',
-    async pick(api, r) {
-      const sub = await pickOne(api, 'subareas', { displayOnWorldMap: true }, r, ['id', 'name']);
-      if (!fr(sub?.name)) return null;
-      const { 'subareas[$gt]': _, ...filter } = await monsterFilter(api);
-      const answer = await count(api, 'monsters', { ...filter, subareas: sub.id });
-      if (answer < 5) return null;
-      return { text: `Combien de monstres différents peut-on rencontrer dans la sous-zone ${q(fr(sub.name))} ?`, answer, note: 'Monstres du bestiaire (archimonstres et boss compris), hors monstres de quête.' };
     },
   },
 
   // --- Bestiaire
-  {
-    id: 'monstres-famille', theme: 'bestiaire',
-    async pick(api, r) {
-      const race = await pickOne(api, 'monster-races', { 'superRaceId[$nin]': [...EXCLUDED_SUPER_RACES, ARCHI_SUPER_RACE] }, r, ['id', 'name']);
-      if (!fr(race?.name)) return null;
-      const answer = await count(api, 'monsters', { ...MONSTER_FILTER, race: race.id });
-      if (answer < 4) return null;
-      return { text: `Combien de monstres compte la famille ${q(fr(race.name))} ?`, answer, note: 'Monstres visibles dans le bestiaire, boss compris.' };
-    },
-  },
   {
     id: 'pv-boss', theme: 'bestiaire',
     async pick(api, r) {
@@ -132,10 +103,9 @@ export const TEMPLATES = [
   {
     id: 'drop-ressource', theme: 'bestiaire',
     async pick(api, r) {
-      const it = await pickOne(api, 'items', { 'dropMonsterIds.3[$exists]': true }, r, ['id', 'name', 'dropMonsterIds']);
+      const it = await pickOne(api, 'items', { [`dropMonsterIds.${MIN_ANSWER - 1}[$exists]`]: true }, r, ['id', 'name', 'dropMonsterIds']);
       if (!fr(it?.name)) return null;
-      const answer = it.dropMonsterIds.length;
-      return { text: `Combien de monstres différents peuvent lâcher l'objet ${q(fr(it.name))} ?`, answer, note: 'Selon les tables de drop du jeu (archimonstres et variantes compris).' };
+      return { text: `Combien de monstres différents peuvent lâcher l'objet ${q(fr(it.name))} ?`, answer: it.dropMonsterIds.length, note: 'Selon les tables de drop du jeu (archimonstres et variantes compris).' };
     },
   },
   {
@@ -144,7 +114,7 @@ export const TEMPLATES = [
       // Nombre de monstres de niveau >= N dans le bestiaire
       const level = [50, 100, 150, 180, 200][Math.floor(r() * 5)];
       const answer = await count(api, 'monsters', { ...(await monsterFilter(api)), 'grades.0.level[$gte]': level });
-      if (answer < 10) return null;
+      if (answer < MIN_ANSWER) return null;
       return { text: `Combien de monstres du bestiaire sont au moins niveau ${level} dès leur premier grade ?`, answer, note: 'Monstres visibles dans le bestiaire, hors monstres de quête et d\'expédition.' };
     },
   },
@@ -156,23 +126,23 @@ export const TEMPLATES = [
       const type = await pickOne(api, 'item-types', { 'categoryId[$in]': [0, 1, 2] }, r, ['id', 'name']);
       if (!fr(type?.name)) return null;
       const answer = await count(api, 'items', { typeId: type.id, 'level[$gt]': 0 });
-      if (answer < 10) return null;
+      if (answer < MIN_ANSWER) return null;
       return { text: `Combien d'objets de la catégorie ${q(fr(type.name))} existe-t-il ?`, answer, note: 'Objets présents dans les données du jeu pour cette catégorie.' };
     },
   },
   {
     id: 'equipements-niveau', theme: 'objets',
     async pick(api, r) {
-      const level = 5 + Math.floor(r() * 40) * 5; // 5..200
-      const answer = await count(api, 'items', { level, 'typeId[$in]': EQUIPMENT_TYPES });
-      if (answer < 5) return null;
-      return { text: `Combien d'équipements (armes comprises) sont exactement de niveau ${level} ?`, answer, note: 'Amulettes, anneaux, ceintures, bottes, coiffes, capes, boucliers, trophées et armes.' };
+      const from = 1 + Math.floor(r() * 20) * 10; // tranches de 10 niveaux : 1-10 … 191-200
+      const to = from + 9;
+      const answer = await count(api, 'items', { 'level[$gte]': from, 'level[$lte]': to, 'typeId[$in]': EQUIPMENT_TYPES });
+      return { text: `Combien d'équipements (armes comprises) ont un niveau compris entre ${from} et ${to} ?`, answer, note: 'Amulettes, anneaux, ceintures, bottes, coiffes, capes, boucliers, trophées et armes.' };
     },
   },
   {
     id: 'niveau-panoplie', theme: 'objets',
     async pick(api, r) {
-      const set = await pickOne(api, 'item-sets', { isCosmetic: false, 'level[$gt]': 1 }, r, ['id', 'name', 'level', 'items']);
+      const set = await pickOne(api, 'item-sets', { isCosmetic: false, 'level[$gte]': MIN_ANSWER }, r, ['id', 'name', 'level', 'items']);
       if (!fr(set?.name) || (set.items || []).length < 2) return null;
       const name = fr(set.name);
       return { text: /^panoplie/i.test(name) ? `Quel est le niveau de la ${name} ?` : `Quel est le niveau de la panoplie ${q(name)} ?`, answer: set.level, note: `Niveau de la panoplie (celui de son objet le plus haut). Elle compte ${set.items.length} objets.` };
@@ -184,7 +154,7 @@ export const TEMPLATES = [
       const from = 1 + Math.floor(r() * 10) * 20; // tranches de 20 niveaux
       const to = from + 19;
       const answer = await count(api, 'item-sets', { isCosmetic: false, 'level[$gte]': from, 'level[$lte]': to });
-      if (answer < 5) return null;
+      if (answer < MIN_ANSWER) return null;
       return { text: `Combien de panoplies ont un niveau compris entre ${from} et ${to} ?`, answer, note: 'Panoplies d\'équipement, hors panoplies cosmétiques.' };
     },
   },
@@ -196,14 +166,14 @@ export const TEMPLATES = [
       const job = await pickOne(api, 'jobs', REAL_JOBS, r, ['id', 'name']);
       if (!fr(job?.name)) return null;
       const answer = await count(api, 'recipes', { jobId: job.id });
-      if (answer < 20) return null;
+      if (answer < MIN_ANSWER) return null;
       return { text: `Combien de recettes peut réaliser le métier ${q(fr(job.name))} ?`, answer };
     },
   },
   {
     id: 'recettes-ressource', theme: 'craft',
     async pick(api, r) {
-      const it = await pickOne(api, 'items', { 'recipesThatUse.9[$exists]': true }, r, ['id', 'name', 'recipesThatUse']);
+      const it = await pickOne(api, 'items', { [`recipesThatUse.${MIN_ANSWER - 1}[$exists]`]: true }, r, ['id', 'name', 'recipesThatUse']);
       if (!fr(it?.name)) return null;
       return { text: `Dans combien de recettes l'objet ${q(fr(it.name))} est-il utilisé ?`, answer: it.recipesThatUse.length };
     },
@@ -211,10 +181,10 @@ export const TEMPLATES = [
   {
     id: 'quantite-craft', theme: 'craft',
     async pick(api, r) {
-      const rec = await pickOne(api, 'recipes', { 'resultLevel[$gte]': 60, 'resultTypeId[$in]': EQUIPMENT_TYPES }, r, ['id', 'resultName', 'resultLevel', 'quantities']);
+      const rec = await pickOne(api, 'recipes', { 'resultLevel[$gte]': 120, 'resultTypeId[$in]': EQUIPMENT_TYPES }, r, ['id', 'resultName', 'resultLevel', 'quantities']);
       if (!fr(rec?.resultName)) return null;
       const answer = (rec.quantities || []).reduce((a, b) => a + b, 0);
-      if (answer < 10) return null;
+      if (answer < MIN_ANSWER) return null;
       return { text: `Combien de ressources faut-il au total pour fabriquer l'objet ${q(fr(rec.resultName))} ?`, answer, note: `Somme des quantités de chaque ingrédient (${rec.quantities.length} ingrédients différents).` };
     },
   },
@@ -225,7 +195,7 @@ export const TEMPLATES = [
       if (!fr(job?.name)) return null;
       const from = [1, 50, 100, 150][Math.floor(r() * 4)];
       const answer = await count(api, 'recipes', { jobId: job.id, 'resultLevel[$gte]': from, 'resultLevel[$lte]': from + 49 });
-      if (answer < 8) return null;
+      if (answer < MIN_ANSWER) return null;
       return { text: `Combien de recettes du métier ${q(fr(job.name))} donnent un objet de niveau ${from} à ${from + 49} ?`, answer };
     },
   },
@@ -234,11 +204,11 @@ export const TEMPLATES = [
   {
     id: 'quetes-categorie', theme: 'quetes',
     async pick(api, r) {
-      const cat = await pickOne(api, 'quest-categories', {}, r, ['id', 'name', 'questIds']);
-      if (!fr(cat?.name)) return null;
-      const answer = (cat.questIds || []).length;
-      if (answer < 5) return null;
-      return { text: `Combien de quêtes compte la catégorie ${q(fr(cat.name))} ?`, answer, note: 'Catégories du journal de quêtes.' };
+      const cats = (await listAll(api, 'quest-categories', { '$select': ['id', 'name', 'questIds'] }))
+        .filter((c) => fr(c.name) && (c.questIds || []).length >= MIN_ANSWER);
+      if (!cats.length) return null;
+      const cat = cats[Math.floor(r() * cats.length)];
+      return { text: `Combien de quêtes compte la catégorie ${q(fr(cat.name))} ?`, answer: cat.questIds.length, note: 'Catégories du journal de quêtes.' };
     },
   },
   {
@@ -246,7 +216,7 @@ export const TEMPLATES = [
     async pick(api, r) {
       const from = 1 + Math.floor(r() * 10) * 20;
       const answer = await count(api, 'quests', { 'levelMin[$gte]': from, 'levelMin[$lte]': from + 19 });
-      if (answer < 10) return null;
+      if (answer < MIN_ANSWER) return null;
       return { text: `Combien de quêtes ont un niveau minimum compris entre ${from} et ${from + 19} ?`, answer };
     },
   },
@@ -261,7 +231,7 @@ export const TEMPLATES = [
       ];
       const k = kinds[Math.floor(r() * kinds.length)];
       const answer = await count(api, 'quests', k.f);
-      if (answer < 5) return null;
+      if (answer < MIN_ANSWER) return null;
       return { text: k.t, answer };
     },
   },
@@ -270,14 +240,14 @@ export const TEMPLATES = [
   {
     id: 'succes-categorie', theme: 'succes',
     async pick(api, r) {
-      const cat = await pickOne(api, 'achievement-categories', { 'parentId[$gt]': 0 }, r, ['id', 'name', 'parentId']);
-      if (!fr(cat?.name)) return null;
-      const answer = await count(api, 'achievements', { categoryId: cat.id });
-      if (answer < 5) return null;
-      const parent = await api.get('achievement-categories', { id: cat.parentId, '$select': ['name'] });
-      const p = fr(parent.data[0]?.name);
-      if (/temporis/i.test(`${p} ${fr(cat.name)}`)) return null; // serveurs éphémères
-      return { text: `Combien de succès compte la catégorie ${q(fr(cat.name))}${p ? ` (${p})` : ''} ?`, answer };
+      const all = await listAll(api, 'achievement-categories', { '$select': ['id', 'name', 'parentId', 'achievementIds'] });
+      const byId = new Map(all.map((c) => [c.id, c]));
+      const cats = all.filter((c) => c.parentId > 0 && fr(c.name) && (c.achievementIds || []).length >= MIN_ANSWER
+        && !/temporis/i.test(`${fr(c.name)} ${fr(byId.get(c.parentId)?.name)}`)); // serveurs éphémères exclus
+      if (!cats.length) return null;
+      const cat = cats[Math.floor(r() * cats.length)];
+      const p = fr(byId.get(cat.parentId)?.name);
+      return { text: `Combien de succès compte la catégorie ${q(fr(cat.name))}${p ? ` (${p})` : ''} ?`, answer: cat.achievementIds.length };
     },
   },
   {
@@ -285,7 +255,7 @@ export const TEMPLATES = [
     async pick(api, r) {
       const pts = [5, 10, 15, 20, 30, 40][Math.floor(r() * 6)];
       const answer = await count(api, 'achievements', { points: pts });
-      if (answer < 10) return null;
+      if (answer < MIN_ANSWER) return null;
       return { text: `Combien de succès rapportent exactement ${pts} points ?`, answer };
     },
   },
@@ -294,47 +264,21 @@ export const TEMPLATES = [
     async pick(api, r) {
       const from = 1 + Math.floor(r() * 10) * 20;
       const answer = await count(api, 'achievements', { 'level[$gte]': from, 'level[$lte]': from + 19 });
-      if (answer < 10) return null;
+      if (answer < MIN_ANSWER) return null;
       return { text: `Combien de succès sont de niveau ${from} à ${from + 19} ?`, answer };
     },
   },
 
   // --- Donjons
   {
-    id: 'maps-donjon', theme: 'donjons',
+    id: 'donjons-seuil', theme: 'donjons',
     async pick(api, r) {
-      const d = await pickOne(api, 'dungeons', {}, r, ['id', 'name', 'mapIds']);
-      if (!fr(d?.name) || isExpedition(fr(d.name))) return null;
-      const answer = (d.mapIds || []).length;
-      if (answer < 3) return null;
-      return { text: `Combien de salles (maps) compte le donjon ${q(fr(d.name))} ?`, answer, note: 'Toutes les maps du donjon, salle du boss comprise.' };
-    },
-  },
-  {
-    id: 'monstres-donjon', theme: 'donjons',
-    async pick(api, r) {
-      const d = await pickOne(api, 'dungeons', {}, r, ['id', 'name', 'monsters']);
-      if (!fr(d?.name) || isExpedition(fr(d.name))) return null;
-      const answer = (d.monsters || []).length;
-      if (answer < 4) return null;
-      return { text: `Combien de monstres différents peuplent le donjon ${q(fr(d.name))} ?`, answer, note: 'Boss compris.' };
-    },
-  },
-  {
-    id: 'niveau-donjon', theme: 'donjons',
-    async pick(api, r) {
-      const d = await pickOne(api, 'dungeons', { 'optimalPlayerLevel[$gt]': 0 }, r, ['id', 'name', 'optimalPlayerLevel']);
-      if (!fr(d?.name) || isExpedition(fr(d.name))) return null;
-      return { text: `Quel est le niveau conseillé pour le donjon ${q(fr(d.name))} ?`, answer: d.optimalPlayerLevel };
-    },
-  },
-  {
-    id: 'donjons-tranche', theme: 'donjons',
-    async pick(api, r) {
-      const from = 1 + Math.floor(r() * 5) * 40;
-      const answer = await count(api, 'dungeons', { 'optimalPlayerLevel[$gte]': from, 'optimalPlayerLevel[$lte]': from + 39 });
-      if (answer < 5) return null;
-      return { text: `Combien de donjons ont un niveau conseillé entre ${from} et ${from + 39} ?`, answer };
+      const variants = [
+        ...[60, 100, 140, 160, 180, 190, 200].map((x) => ({ f: { 'optimalPlayerLevel[$gte]': x }, t: `Combien de donjons ont un niveau conseillé d'au moins ${x} ?` })),
+        ...[100, 110, 120].map((x) => ({ f: { 'optimalPlayerLevel[$gt]': 0, 'optimalPlayerLevel[$lte]': x }, t: `Combien de donjons ont un niveau conseillé de ${x} ou moins ?` })),
+      ];
+      const k = variants[Math.floor(r() * variants.length)];
+      return { text: k.t, answer: await count(api, 'dungeons', k.f), note: 'Donjons répertoriés dans les données du jeu, expéditions comprises.' };
     },
   },
 
@@ -374,7 +318,7 @@ export const TEMPLATES = [
       const fam = await pickOne(api, 'mount-families', {}, r, ['id', 'name']);
       if (!fr(fam?.name)) return null;
       const answer = await count(api, 'mounts', { familyId: fam.id });
-      if (answer < 5) return null;
+      if (answer < MIN_ANSWER) return null;
       return { text: `Combien de montures différentes compte la famille ${q(fr(fam.name))} ?`, answer, note: 'Toutes les couleurs et croisements de la famille.' };
     },
   },
@@ -421,10 +365,10 @@ export async function buildQuestion(api, { day, seed, hashFn }) {
   const start = (cycle + (hashFn(`chiffre-tpl|${theme}`) % list.length)) % list.length;
   const templates = list.map((_, i) => list[(start + i) % list.length]);
   for (const tpl of templates) {
-    for (let attempt = 0; attempt < 6; attempt++) {
+    for (let attempt = 0; attempt < 8; attempt++) {
       let res = null;
-      try { res = await tpl.pick(api, r); } catch (e) { if (attempt === 5) throw e; }
-      if (res && Number.isFinite(res.answer) && res.answer > 0) return { ...res, theme, template: tpl.id };
+      try { res = await tpl.pick(api, r); } catch (e) { if (attempt === 7) throw e; }
+      if (res && Number.isFinite(res.answer) && res.answer >= MIN_ANSWER) return { ...res, theme, template: tpl.id };
     }
   }
   throw new Error('Impossible de générer une question');
