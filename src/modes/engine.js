@@ -128,7 +128,8 @@ export async function runGuessMode(root, cfg, opts = {}) {
   // --- Saisie
   const counter = h('div.counter');
   const ac = createAutocomplete({
-    items: entries,
+    // Monstres retirés du jeu : absents des suggestions, sauf s'ils sont la réponse d'un ancien tirage
+    items: entries.filter((e) => !e.hidden || isWin(e)),
     placeholder: cfg.placeholder,
     exclude: () => new Set(game.guesses),
     onSelect: (it) => guess(it.id),

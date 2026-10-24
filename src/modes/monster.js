@@ -3,7 +3,7 @@ import { h, img } from '../ui/dom.js';
 import { normalize } from '../core/text.js';
 import { pickDaily, pickBossWeighted, BOSS_WEIGHT_FROM } from '../core/daily.js';
 import { createHints } from '../ui/hints.js';
-import { monstersDataset, compareMonsters, monsterImg, monsterEntries, KIND_LABEL } from '../data/monsters.js';
+import { monstersDataset, compareMonsters, monsterImg, monsterEntries, KIND_LABEL, SPECIAL_EXCLUDED_FROM } from '../data/monsters.js';
 import { colorsFromImage } from '../data/colors.js';
 
 /** Couleurs absentes du snapshot : calculées depuis l'image (puis mises en cache). */
@@ -57,7 +57,9 @@ export const monsterMode = {
   /** Boss 20 %, monstres + archimonstres 80 % (avant le 25/10/2026 : ancien tirage sans archimonstres). */
   pickDaily(pool, date) {
     if (date < BOSS_WEIGHT_FROM) return pickDaily(pool.filter((e) => e.ref.k !== 'archi'), 'monstre', date);
-    return pickBossWeighted(pool, 'monstre', date, (e) => e.ref.k === 'boss');
+    // À partir du 25/10/2026 : sans monstres d'alignement ni monstres de quête
+    const eligible = date < SPECIAL_EXCLUDED_FROM ? pool : pool.filter((e) => !e.hidden);
+    return pickBossWeighted(eligible, 'monstre', date, (e) => e.ref.k === 'boss');
   },
 
   compare: (g, t, data) => compareMonsters(g, t, data, COLUMNS),

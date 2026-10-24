@@ -58,6 +58,8 @@ const memory = new Map();
  */
 export async function loadDataset(dataset, onProgress = () => {}) {
   const { key, version } = dataset;
+  // minVersion : anciens fichiers encore lisibles (le temps que la tâche GitHub les régénère)
+  const ok = (v) => v === version || (dataset.minVersion && v >= dataset.minVersion && v <= version);
   if (memory.has(key)) return memory.get(key);
 
   const p = (async () => {
@@ -66,13 +68,13 @@ export async function loadDataset(dataset, onProgress = () => {}) {
       const res = await fetch(`data/${key}.json`, { cache: 'no-cache' });
       if (res.ok) {
         const json = await res.json();
-        if (json?.v === version) return json;
+        if (ok(json?.v)) return json;
       }
     } catch { /* pas de snapshot */ }
 
     // 2. IndexedDB
     const cached = await idbGet(key);
-    if (cached?.data?.v === version && Date.now() - cached.savedAt < TTL) return cached.data;
+    if (ok(cached?.data?.v) && Date.now() - cached.savedAt < TTL) return cached.data;
 
     // 3. API en direct
     const api = createApi();
@@ -82,7 +84,7 @@ export async function loadDataset(dataset, onProgress = () => {}) {
       return data;
     } catch (e) {
       // Hors-ligne / API en panne : on se rabat sur un cache périmé s'il existe
-      if (cached?.data?.v === version) return cached.data;
+      if (ok(cached?.data?.v)) return cached.data;
       throw e;
     }
   })();

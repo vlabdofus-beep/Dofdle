@@ -6,7 +6,7 @@ import { normalize } from '../core/text.js';
 import { pickDaily, pickBossWeighted, BOSS_WEIGHT_FROM } from '../core/daily.js';
 import { loadDataset } from '../core/cache.js';
 import { createHints } from '../ui/hints.js';
-import { monstersDataset, compareMonsters, monsterEntries } from '../data/monsters.js';
+import { monstersDataset, compareMonsters, monsterEntries, SPECIAL_EXCLUDED_FROM } from '../data/monsters.js';
 import { monsterReveal } from './monster.js';
 
 const COLUMNS = ['race'];
@@ -37,6 +37,24 @@ function audioPlayer(src) {
   return h('div.cry-player', btn, bar);
 }
 
+/** Une cible = un cri ; sa "fiche" est le monstre non-archi le plus bas niveau qui l'utilise. */
+function criPool(data, entries) {
+  const byBones = new Map();
+  for (const e of entries) {
+    if (!e.ref.b) continue;
+    if (!byBones.has(e.ref.b)) byBones.set(e.ref.b, []);
+    byBones.get(e.ref.b).push(e);
+  }
+  const pool = [];
+  for (const cri of data.cris) {
+    const owners = cri.b.flatMap((b) => byBones.get(b) || []);
+    const main = owners.filter((e) => e.ref.k !== 'archi').sort((a, b) => a.ref.l[0] - b.ref.l[0])[0];
+    if (!main) continue;
+    pool.push({ id: `cri:${cri.f}`, n: main.n, ref: main.ref, cri, bones: new Set(cri.b), owners });
+  }
+  return pool;
+}
+
 export const criMode = {
   id: 'cri',
   label: 'Cri',
@@ -59,27 +77,15 @@ export const criMode = {
 
   prepare(data) {
     const entries = monsterEntries(data, normalize);
-    const byBones = new Map();
-    for (const e of entries) {
-      if (!e.ref.b) continue;
-      if (!byBones.has(e.ref.b)) byBones.set(e.ref.b, []);
-      byBones.get(e.ref.b).push(e);
-    }
-    // Une cible = un cri ; sa "fiche" est le monstre non-archi le plus bas niveau qui l'utilise
-    const pool = [];
-    for (const cri of data.cris) {
-      const owners = cri.b.flatMap((b) => byBones.get(b) || []);
-      const main = owners.filter((e) => e.ref.k !== 'archi').sort((a, b) => a.ref.l[0] - b.ref.l[0])[0];
-      if (!main) continue;
-      pool.push({ id: `cri:${cri.f}`, n: main.n, ref: main.ref, cri, bones: new Set(cri.b), owners });
-    }
-    return { entries, pool };
+    // pool.all : tirage historique ; pool.visible : sans monstres d'alignement ni de quête
+    return { entries, pool: { all: criPool(data, entries), visible: criPool(data, entries.filter((e) => !e.hidden)) } };
   },
 
   /** Boss 20 %, monstres + archimonstres 80 % (avant le 25/10/2026 : ancien tirage). */
   pickDaily(pool, date) {
-    if (date < BOSS_WEIGHT_FROM) return pickDaily(pool, 'cri', date);
-    return pickBossWeighted(pool, 'cri', date, (e) => e.owners.some((o) => o.ref.k === 'boss'));
+    if (date < BOSS_WEIGHT_FROM) return pickDaily(pool.all, 'cri', date);
+    const eligible = date < SPECIAL_EXCLUDED_FROM ? pool.all : pool.visible;
+    return pickBossWeighted(eligible, 'cri', date, (e) => e.owners.some((o) => o.ref.k === 'boss'));
   },
 
   isWin: (entry, target) => target.bones.has(entry.ref.b),

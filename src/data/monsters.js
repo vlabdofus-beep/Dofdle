@@ -8,12 +8,18 @@ import { COLORS, compareColors } from './colors.js';
 export const ARCHI_SUPER_RACE = 20;
 // Super-familles exclues : créatures de quête, invocations, créatures des Expéditions
 export const EXCLUDED_SUPER_RACES = new Set([27, 28, 45]);
+// Monstres retirés du jeu à partir du 25/10/2026 (marqués `x` dans les données, gardés pour les
+// défis passés) : créatures d'alignement (Bonta et Brâkmar) et monstres hors bestiaire
+// (aucun succès de chasse : monstres de quête, d'événement, de didacticiel…).
+export const ALIGNMENT_SUPER_RACE = 13;
+export const SPECIAL_EXCLUDED_FROM = '2026-10-25';
 const NORMAL_GRADES = 5;
 const RES_KEYS = { neutre: 'reductionNeutral', terre: 'reductionEarth', feu: 'reductionFire', eau: 'reductionWater', air: 'reductionAir' };
 
 export const monstersDataset = {
   key: 'monsters',
-  version: 7,
+  version: 8,
+  minVersion: 7, // v8 ajoute seulement le marqueur x (monstres retirés)
   async build(api, onProgress = () => {}) {
     const step = stepper(onProgress, [['Monstres', 6], ['Familles', 1], ['Zones', 2]]);
 
@@ -21,7 +27,7 @@ export const monstersDataset = {
       'hideInBestiary[$ne]': true,
       'isQuestMonster[$ne]': true,
       'subareas[$gt]': 0, // au moins une sous-zone
-      '$select': ['id', 'name', 'gfxId', 'look', 'race', 'isBoss', 'isMiniBoss', 'favoriteSubareaId', 'subareas',
+      '$select': ['id', 'name', 'gfxId', 'look', 'race', 'isBoss', 'isMiniBoss', 'favoriteSubareaId', 'subareas', 'achievements',
         'grades.grade', 'grades.level', 'grades.lifePoints', ...Object.values(RES_KEYS).map((k) => `grades.${k}`)],
     }, { onProgress: step.Monstres });
 
@@ -73,6 +79,7 @@ export const monstersDataset = {
         z: main,
         zs: subs,
         res,
+        ...(isSpecialMonster(race, m.achievements) ? { x: 1 } : {}),
       });
     }
     data.monsters.sort((a, b) => a.id - b.id);
@@ -85,6 +92,12 @@ export const monstersDataset = {
 // Monstres exclus du jeu : monstres de test et niveaux aberrants (raids à niveau variable, au-delà de 300)
 export const MAX_MONSTER_LEVEL = 300;
 export const isPlayableMonster = (m) => !/^test/i.test(m.n) && m.l[1] <= MAX_MONSTER_LEVEL;
+
+/** Créature d'alignement, ou monstre (hors archimonstre) qui ne compte dans aucun succès de chasse. */
+function isSpecialMonster(race, achievements) {
+  if (race?.sr === ALIGNMENT_SUPER_RACE) return true;
+  return race?.sr !== ARCHI_SUPER_RACE && !(achievements || []).length;
+}
 
 export const KIND_LABEL = { boss: 'Boss', miniboss: 'Mini-boss', archi: 'Archimonstre', normal: 'Normal' };
 
@@ -169,7 +182,9 @@ export function monsterEntries(data, normalize) {
     if (seen.has(key)) continue;
     seen.add(key);
     const race = data.races[m.r]?.n || '';
-    entries.push({ id: m.id, n: m.n, img: monsterImg(m), sub: `${race} · niv. ${fmtRange(m.l)}`, ref: m });
+    // hidden : retiré des suggestions et des tirages (voir SPECIAL_EXCLUDED_FROM)
+    const hidden = !!m.x || data.races[m.r]?.sr === ALIGNMENT_SUPER_RACE;
+    entries.push({ id: m.id, n: m.n, img: monsterImg(m), sub: `${race} · niv. ${fmtRange(m.l)}`, ref: m, hidden });
   }
   return entries;
 }
