@@ -5,6 +5,7 @@ import { showStats } from './ui/stats.js';
 import { clearCache } from './core/cache.js';
 import { harvestedToday, modeInfo, dofusImg } from './core/modes.js';
 import { todayKey } from './core/daily.js';
+import { streakText } from './modes/engine.js';
 import { runGuessMode } from './modes/engine.js';
 import { monsterMode } from './modes/monster.js';
 import { spellMode } from './modes/spell.js';
@@ -43,15 +44,15 @@ function renderDate() {
   document.getElementById('krosmoz-date').textContent = `${WEEKDAYS[wd]} ${d} ${KROSMOZ_MONTHS[m - 1]}`;
 }
 
-function renderNav(active) {
+function renderNav(active, justWon = null) {
   const done = new Set(harvestedToday());
   clear(nav);
-  for (const m of MODES) {
+  MODES.forEach((m, i) => {
     const won = done.has(m.id);
     const current = m.id === active.id;
     nav.append(h('a.mode-tab', {
       href: `#${m.id}`,
-      class: [current ? 'active' : '', won ? 'won' : ''].join(' ').trim() || undefined,
+      class: [current ? 'active' : '', won ? 'won' : '', m.id === justWon ? 'just-won' : ''].join(' ').trim() || undefined,
       'aria-current': current ? 'page' : undefined,
       title: `${m.label} : Dofus ${modeInfo(m.id).dofus}${won ? ', récolté aujourd\'hui' : ''}`,
     },
@@ -59,7 +60,8 @@ function renderNav(active) {
       h('img.dofus', { src: dofusImg(m.id), alt: '', width: 64, height: 64 }),
       h('img.mode-badge', { src: m.icon, alt: '' })),
     h('span.mode-label', m.label)));
-  }
+    nav.lastChild.style.setProperty('--i', String(i));
+  });
   const n = done.size;
   document.getElementById('rack-count').textContent = n === MODES.length
     ? 'Les six Dofus du jour sont récoltés.'
@@ -76,7 +78,20 @@ function route() {
 }
 
 window.addEventListener('hashchange', route);
-window.addEventListener('dofusle:progress', () => renderNav(currentMode()));
+window.addEventListener('dofusle:progress', (ev) => {
+  const mode = currentMode();
+  const won = ev.detail?.mode;
+  // Animation de récolte uniquement la première fois que le Dofus du jour est obtenu
+  const fresh = won && !nav.querySelector(`.mode-tab.won .dofus-slot[data-mode="${won}"]`);
+  renderNav(mode, fresh ? won : null);
+  // Met à jour la série affichée dans l'en-tête du mode
+  const badge = document.querySelector(`.streak-badge[data-mode="${mode.id}"]`);
+  if (badge) {
+    badge.querySelector('.streak-text').textContent = streakText(mode.id, todayKey());
+    badge.classList.add('on');
+    if (fresh) { badge.classList.remove('bump'); void badge.offsetWidth; badge.classList.add('bump'); }
+  }
+});
 
 document.getElementById('btn-help').addEventListener('click', () => {
   const mode = currentMode();

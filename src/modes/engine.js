@@ -37,13 +37,23 @@ export function renderCell(cell, delay = 0) {
     cell.arrow ? h(`span.arrow.${cell.arrow}`, { 'aria-label': cell.arrow === 'up' ? 'plus haut' : 'plus bas' }, cell.arrow === 'up' ? '▲' : '▼') : null);
 }
 
-/** En-tête commun (titre du mode + numéro du défi du jour). */
+/** Texte de la série en cours d'un mode. */
+export function streakText(id, date) {
+  const n = currentStreak(loadStats(id), date);
+  return n ? `${n} jour${n > 1 ? 's' : ''} de suite` : 'Pas encore de série';
+}
+
+/** En-tête commun (titre du mode, numéro du défi du jour, série en cours). */
 export function modeHead(cfg, date) {
+  const n = currentStreak(loadStats(cfg.id), date);
   return h('div.mode-head',
     h('div.mode-title', img(cfg.icon, '', 'mode-icon'), h('div',
       h('h2', cfg.label),
       h('p.mode-intro', cfg.intro))),
-    h('span.day-badge', `Défi du jour n° ${dayNumber(date)}`));
+    h('div.mode-badges',
+      h('span.day-badge', `Défi du jour n° ${dayNumber(date)}`),
+      h('span.streak-badge', { class: n ? 'on' : undefined, 'data-mode': cfg.id, title: 'Défis du jour réussis d\'affilée dans ce mode' },
+        h('span.streak-flame', { 'aria-hidden': 'true' }), h('span.streak-text', streakText(cfg.id, date)))));
 }
 
 /** Carte de victoire commune (partage, jeu suivant, compte à rebours). */
