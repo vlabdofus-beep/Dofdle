@@ -10,11 +10,14 @@ import { normalize } from '../core/text.js';
  *  - exclude(): Set d'ids déjà proposés (retirés de la liste)
  *  - onFreeText(text): appelé sur Entrée sans suggestion (ex. coordonnées)
  *  - browse: champ vide + focus = liste complète à parcourir (défaut : oui)
+ *  - filters: [{ id, label, all, options: [[valeur, libellé]], test(item, valeur) }] : listes déroulantes
+ *  - sorts: [{ value, label, cmp? }] : ordre de la liste (le premier = ordre alphabétique)
+ *  - noun: ['monstre', 'monstres'] pour le compteur de résultats
  * La liste n'est pas limitée : elle se remplit au fil du défilement.
  */
 const PAGE = 40;
 
-export function createAutocomplete({ items, placeholder, shortPlaceholder, onSelect, exclude = () => new Set(), onFreeText, browse = true }) {
+export function createAutocomplete({ items, placeholder, shortPlaceholder, onSelect, exclude = () => new Set(), onFreeText, browse = true, filters = [], sorts = [], noun = ['résultat', 'résultats'] }) {
   // Petit écran : texte d'exemple sans la parenthèse, pour qu'il ne soit pas coupé
   const narrow = typeof matchMedia === 'function' && matchMedia('(max-width: 560px)').matches;
   const shown_placeholder = narrow ? (shortPlaceholder || placeholder.replace(/\s*\(.*\)\s*/, '').replace(/…$/, '')) : placeholder;
@@ -33,14 +36,62 @@ export function createAutocomplete({ items, placeholder, shortPlaceholder, onSel
   const form = h('form.guess-form', { onsubmit: (e) => { e.preventDefault(); submit(); } },
     h('div.ac-wrap', input, list), button);
 
+  // --- Filtres et tri : réduisent la liste (champ vide = toute la sélection à parcourir)
+  const chosen = {};
+  let sortBy = sorts[0]?.value || '';
+  const count = h('span.ac-count', { 'aria-live': 'polite' });
+  const reset = h('button.link.ac-reset', { type: 'button', hidden: true, onclick: () => {
+    for (const k of Object.keys(chosen)) delete chosen[k];
+    sortBy = sorts[0]?.value || '';
+    bar.querySelectorAll('select').forEach((s) => { s.value = s.dataset.default; });
+    reset.hidden = true; count.textContent = '';
+    results = []; render();
+  } }, 'Tout afficher');
+  const select = (label, def, options, onchange) => {
+    const s = h('select.ac-select', { 'aria-label': label, 'data-default': def, onchange: (e) => { onchange(e.target.value); refreshFilters(); } },
+      options.map(([v, t]) => h('option', { value: v }, t)));
+    s.value = def;
+    return s;
+  };
+  const hasControls = filters.length || sorts.length > 1;
+  const bar = hasControls ? h('div.ac-filters',
+    filters.map((f) => select(f.label, '', [['', f.all], ...f.options], (v) => { if (v) chosen[f.id] = v; else delete chosen[f.id]; })),
+    sorts.length > 1 ? select('Classer par', sortBy, sorts.map((s) => [s.value, s.label]), (v) => { sortBy = v; }) : null,
+    count, reset) : null;
+  // Filtres au-dessus du champ : la liste qui s'ouvre sous le champ ne les cache pas
+  const block = h('div.ac-block', bar, form);
+  const active_filters = () => filters.filter((f) => chosen[f.id] !== undefined);
+  const filtering = () => active_filters().length > 0 || (sorts.length && sortBy !== sorts[0].value);
+  const passes = (it) => active_filters().every((f) => f.test(it, chosen[f.id]));
+  const sortCmp = () => sorts.find((s) => s.value === sortBy)?.cmp;
+
+  function refreshFilters() {
+    const on = filtering();
+    reset.hidden = !on;
+    if (on) {
+      const ex = exclude();
+      const n = items.filter((it) => !ex.has(it.id) && passes(it)).length;
+      count.textContent = `${n} ${n > 1 ? noun[1] : noun[0]}`;
+    } else count.textContent = '';
+    // La sélection s'affiche tout de suite, sans avoir à taper
+    results = search(input.value);
+    active = input.value.trim() && results.length ? 0 : -1;
+    render();
+  }
+
   /** Toutes les correspondances, meilleures en premier, sans les éléments déjà proposés. */
   function search(q) {
     const nq = normalize(q);
     const ex = exclude();
-    if (!nq) return browse ? alphabetical.filter((row) => !ex.has(row.it.id)).map((row) => row.it) : [];
+    const cmp = sortCmp();
+    if (!nq) {
+      if (!browse && !filtering()) return [];
+      const all = alphabetical.filter((row) => !ex.has(row.it.id) && passes(row.it)).map((row) => row.it);
+      return cmp ? all.sort((a, b) => cmp(a, b) || a.n.localeCompare(b.n, 'fr')) : all;
+    }
     const scored = [];
     for (const row of index) {
-      if (ex.has(row.it.id)) continue;
+      if (ex.has(row.it.id) || !passes(row.it)) continue;
       let score = -1;
       if (row.key === nq) score = 0;
       else if (row.key.startsWith(nq)) score = 1;
@@ -49,7 +100,9 @@ export function createAutocomplete({ items, placeholder, shortPlaceholder, onSel
       if (score >= 0) scored.push([score, row.key.length, row.it]);
     }
     scored.sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2].n.localeCompare(b[2].n));
-    return scored.map((s) => s[2]);
+    const found = scored.map((s) => s[2]);
+    // Un tri choisi par le joueur prime sur la pertinence
+    return cmp ? found.sort((a, b) => cmp(a, b) || a.n.localeCompare(b.n, 'fr')) : found;
   }
 
   function itemEl(it, i) {
@@ -118,7 +171,7 @@ export function createAutocomplete({ items, placeholder, shortPlaceholder, onSel
   input.addEventListener('input', refresh);
   // Liste complète seulement quand le joueur la demande (clic dans le champ, flèche bas),
   // jamais quand le champ reçoit le focus automatiquement à l'arrivée sur un mode
-  input.addEventListener('pointerdown', () => { if (browse && !input.value.trim() && !results.length) setTimeout(refresh, 0); });
+  input.addEventListener('pointerdown', () => { if ((browse || filtering()) && !input.value.trim() && !results.length) setTimeout(refresh, 0); });
   input.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown' && !results.length && browse && !input.value.trim()) { e.preventDefault(); refresh(); setActive(0); }
     else if (e.key === 'ArrowDown' && results.length) { e.preventDefault(); setActive(Math.min(active + 1, results.length - 1)); }
@@ -126,11 +179,15 @@ export function createAutocomplete({ items, placeholder, shortPlaceholder, onSel
     else if (e.key === 'Enter' && active >= 0 && !input.value.trim()) { e.preventDefault(); choose(results[active]); }
     else if (e.key === 'Escape') { results = []; render(); }
   });
-  input.addEventListener('blur', () => setTimeout(() => { results = []; render(); }, 120));
+  // La liste se ferme quand on quitte la zone de recherche (pas en touchant les filtres)
+  input.addEventListener('blur', () => setTimeout(() => { if (!block.contains(document.activeElement)) { results = []; render(); } }, 150));
+  document.addEventListener('pointerdown', (e) => { if (results.length && !block.contains(e.target)) { results = []; render(); } });
 
   return {
-    el: form,
+    el: block,
+    /** À appeler après chaque proposition : le compteur de la sélection suit. */
+    sync() { if (filtering()) { const ex = exclude(); const n = items.filter((x) => !ex.has(x.id) && passes(x)).length; count.textContent = `${n} ${n > 1 ? noun[1] : noun[0]}`; } },
     focus: () => input.focus(),
-    disable(flag) { input.disabled = flag; button.disabled = flag; form.classList.toggle('disabled', flag); },
+    disable(flag) { input.disabled = flag; button.disabled = flag; form.classList.toggle('disabled', flag); bar?.querySelectorAll('select').forEach((s) => { s.disabled = flag; }); },
   };
 }

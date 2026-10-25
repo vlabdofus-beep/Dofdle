@@ -19,6 +19,7 @@ export const spellMode = {
   dataset: spellsDataset,
   intro: 'Retrouve le sort de classe caché derrière cette icône. Elle se dévoile un peu plus à chaque essai.',
   placeholder: 'Nom d\'un sort (ex. Flèche Magique, Pression…)',
+  listNoun: ['sort', 'sorts'],
   nameLabel: 'Sort',
   yesterdayLabel: 'Le sort d\'hier était',
   rowImages: false,
@@ -38,6 +39,23 @@ export const spellMode = {
     for (const e of entries) count[e.n] = (count[e.n] || 0) + 1;
     for (const e of entries) if (count[e.n] > 1) e.n = `${e.n} (${e.sub})`;
     return { entries, pool: entries };
+  },
+
+  filters(data) {
+    const breeds = Object.entries(data.breeds).sort((a, b) => a[1].localeCompare(b[1], 'fr'));
+    return {
+      filters: [
+        { id: 'classe', label: 'Classe', all: 'Toutes les classes', options: breeds, test: (e, v) => String(e.ref.b) === v },
+        { id: 'element', label: 'Élément', all: 'Tous les éléments',
+          options: [...Object.entries(ELEMENTS).map(([k, el]) => [k, el.label]), ['aucun', 'Sans élément']],
+          test: (e, v) => (v === 'aucun' ? !(e.ref.el || []).length : (e.ref.el || []).includes(v)) },
+      ],
+      sorts: [
+        { value: 'nom', label: 'Ordre alphabétique' },
+        { value: 'pa', label: 'Coût en PA croissant', cmp: (x, y) => x.ref.pa - y.ref.pa },
+        { value: 'po', label: 'Portée croissante', cmp: (x, y) => x.ref.po[1] - y.ref.po[1] },
+      ],
+    };
   },
 
   compare: compareSpells,

@@ -1318,3 +1318,28 @@ body:not([data-mode="accueil"]) .mode-tab { font-size: 12px; }
 /* Changement de page : fondu court */
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .22s; }
 .question-frame.unveil { overflow: hidden; }
+
+/* =====================================================================
+   Barre de recherche : filtres (région, niveau, classe, élément) et tri
+   ===================================================================== */
+.ac-block { display: flex; flex-direction: column; gap: 8px; }
+.ac-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ac-select {
+  appearance: none; -webkit-appearance: none; font: 600 14px var(--font); color: var(--text);
+  padding: 7px 30px 7px 12px; border: 1px solid var(--line); border-radius: 3px; cursor: pointer;
+  background: var(--panel-deep) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23d9ad57' stroke-width='1.8'/%3E%3C/svg%3E") right 11px center / 11px no-repeat;
+  max-width: 100%;
+}
+@supports (corner-shape: bevel) { .ac-select { border-radius: 7px; corner-shape: bevel; } }
+.ac-select:hover { border-color: color-mix(in srgb, var(--accent) 60%, var(--line)); }
+.ac-select:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 1px; }
+.ac-select option { background: var(--panel-deep); color: var(--text); }
+.ac-count { font-size: 13px; color: var(--muted); }
+.ac-reset { font-size: 13px; }
+@media (max-width: 560px) {
+  .ac-filters { gap: 6px; }
+  .ac-select { flex: 1 1 calc(50% - 6px); font-size: 13.5px; padding-right: 26px; }
+}
+/* La liste de suggestions prend toute la largeur de la barre (champ + bouton) */
+.guess-form { position: relative; }
+.guess-form .ac-wrap { position: static; }

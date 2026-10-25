@@ -102,7 +102,9 @@ function shareDay() {
 function route() {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (!document.startViewTransition || reduce || !app.firstChild) { render(); return; }
-  document.startViewTransition(() => Promise.race([render(), new Promise((r) => setTimeout(r, 350))]));
+  const t = document.startViewTransition(() => Promise.race([render(), new Promise((r) => setTimeout(r, 350))]));
+  // Une navigation rapide interrompt la transition en cours : ce n'est pas une erreur
+  for (const p of [t.ready, t.finished, t.updateCallbackDone]) p?.catch(() => {});
 }
 
 function render() {
@@ -172,6 +174,7 @@ document.getElementById('btn-help').addEventListener('click', () => {
       h('li', h('strong', 'Cri : '), 'écoute le cri d\'un monstre (tiré des fichiers du jeu) et retrouve à qui il appartient.'),
       h('li', h('strong', 'Juste prix : '), 'une question chiffrée improbable (maps d\'une région, recettes d\'un métier, PV d\'un boss…). Trouve le nombre exact grâce aux indications plus / moins.')),
     h('p.muted', 'Les indices ne s\'affichent jamais tout seuls : une fois débloqués, clique dessus pour les révéler.'),
+    h('p.muted', 'Bloqué ? Au-dessus du champ, filtre la liste par région et niveau (Monstre, Cri) ou par classe et élément (Sort), et classe-la par niveau.'),
     h('div.legend.static',
       h('span', h('i.sw.ok', '✓'), 'Correct'),
       h('span', h('i.sw.partial', '≈'), 'Partiel / proche'),

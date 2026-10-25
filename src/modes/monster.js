@@ -3,7 +3,7 @@ import { h, img } from '../ui/dom.js';
 import { normalize } from '../core/text.js';
 import { pickDaily, pickBossWeighted, BOSS_WEIGHT_FROM } from '../core/daily.js';
 import { createHints } from '../ui/hints.js';
-import { monstersDataset, compareMonsters, monsterImg, monsterEntries, KIND_LABEL, SPECIAL_EXCLUDED_FROM } from '../data/monsters.js';
+import { monstersDataset, compareMonsters, monsterImg, monsterEntries, monsterFilters, KIND_LABEL, SPECIAL_EXCLUDED_FROM } from '../data/monsters.js';
 import { colorsFromImage } from '../data/colors.js';
 
 /** Couleurs absentes du snapshot : calculées depuis l'image (puis mises en cache). */
@@ -37,6 +37,7 @@ export const monsterMode = {
   dataset: monstersDataset,
   intro: 'Devine le monstre du jour. Chaque proposition révèle ce qu\'elle a en commun avec lui.',
   placeholder: 'Nom d\'un monstre (ex. Bouftou, Tofu…)',
+  listNoun: ['monstre', 'monstres'],
   nameLabel: 'Monstre',
   yesterdayLabel: 'Le monstre d\'hier était',
   partialHelp: 'Partiel (plages qui se chevauchent, même région, couleur en commun…)',
@@ -54,6 +55,8 @@ export const monsterMode = {
     const entries = monsterEntries(data, normalize);
     return { entries, pool: entries };
   },
+
+  filters: (data, entries) => monsterFilters(data, entries),
 
   /** Boss 20 %, monstres + archimonstres 80 % (avant le 25/10/2026 : ancien tirage sans archimonstres). */
   pickDaily(pool, date) {

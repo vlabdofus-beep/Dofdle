@@ -195,3 +195,28 @@ export function monsterEntries(data, normalize) {
   }
   return entries;
 }
+
+// ---------- Filtres de la barre de recherche (Monstre, Cri) ----------
+
+export const LEVEL_BANDS = [[1, 20], [21, 50], [51, 100], [101, 150], [151, 200], [201, 300]];
+
+/** Filtres « région » et « niveau » et ordres de tri pour la liste des monstres proposables. */
+export function monsterFilters(data, entries) {
+  const areaOf = (s) => data.subareas[s]?.a;
+  const used = new Set(entries.flatMap((e) => (e.ref.zs || [e.ref.z]).map(areaOf)).filter((a) => a !== undefined));
+  const areas = [...used].map((a) => [String(a), data.areas[a]]).filter(([, n]) => n).sort((x, y) => x[1].localeCompare(y[1], 'fr'));
+  return {
+    filters: [
+      { id: 'zone', label: 'Région', all: 'Toutes les régions', options: areas,
+        test: (e, v) => (e.ref.zs || [e.ref.z]).some((s) => String(areaOf(s)) === v) },
+      { id: 'niveau', label: 'Niveau', all: 'Tous les niveaux',
+        options: LEVEL_BANDS.map(([a, b], i) => [String(i), b >= 300 ? `${a} et plus` : `${a} à ${b}`]),
+        test: (e, v) => { const [a, b] = LEVEL_BANDS[Number(v)]; return e.ref.l[0] <= b && e.ref.l[1] >= a; } },
+    ],
+    sorts: [
+      { value: 'nom', label: 'Ordre alphabétique' },
+      { value: 'niveau', label: 'Niveau croissant', cmp: (x, y) => x.ref.l[0] - y.ref.l[0] || x.ref.l[1] - y.ref.l[1] },
+      { value: 'niveau-desc', label: 'Niveau décroissant', cmp: (x, y) => y.ref.l[1] - x.ref.l[1] || y.ref.l[0] - x.ref.l[0] },
+    ],
+  };
+}

@@ -146,6 +146,8 @@ export async function runGuessMode(root, cfg, opts = {}) {
   const ac = createAutocomplete({
     // Monstres retirés du jeu : absents des suggestions, sauf s'ils sont la réponse d'un ancien tirage
     items: entries.filter((e) => !e.hidden || isWin(e)),
+    ...(cfg.filters ? cfg.filters(data, entries) : {}),
+    noun: cfg.listNoun,
     placeholder: cfg.placeholder,
     exclude: () => new Set(game.guesses),
     onSelect: (it) => guess(it.id),
@@ -199,6 +201,7 @@ export async function runGuessMode(root, cfg, opts = {}) {
     counter.textContent = game.guesses.length ? `${game.guesses.length} essai${game.guesses.length > 1 ? 's' : ''}` : '';
     clue?.update(game);
     ac.disable(game.won);
+    ac.sync();
     // Défi réussi : plus de champ de saisie, la section de victoire remonte sous l'objet mystère
     inputPanel.classList.toggle('done', game.won);
     renderResult();

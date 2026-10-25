@@ -6,7 +6,7 @@ import { normalize } from '../core/text.js';
 import { pickDaily, pickBossWeighted, BOSS_WEIGHT_FROM } from '../core/daily.js';
 import { loadDataset } from '../core/cache.js';
 import { createHints } from '../ui/hints.js';
-import { monstersDataset, compareMonsters, monsterEntries, SPECIAL_EXCLUDED_FROM } from '../data/monsters.js';
+import { monstersDataset, compareMonsters, monsterEntries, monsterFilters, SPECIAL_EXCLUDED_FROM } from '../data/monsters.js';
 import { monsterReveal } from './monster.js';
 
 const COLUMNS = ['race'];
@@ -113,6 +113,7 @@ export const criMode = {
   salt: 'cri',
   intro: 'Écoute le cri du monstre mystère et retrouve à qui il appartient. Les variantes qui partagent le même cri sont acceptées.',
   placeholder: 'Nom d\'un monstre…',
+  listNoun: ['monstre', 'monstres'],
   nameLabel: 'Monstre',
   yesterdayLabel: 'Le cri d\'hier était celui de',
   noPartial: true, // la famille est juste ou fausse
@@ -124,6 +125,8 @@ export const criMode = {
     const [monsters, cris] = await Promise.all([loadDataset(monstersDataset, onProgress), loadCris()]);
     return { ...monsters, cris: cris.cris };
   },
+
+  filters: (data, entries) => monsterFilters(data, entries),
 
   prepare(data) {
     const entries = monsterEntries(data, normalize);
