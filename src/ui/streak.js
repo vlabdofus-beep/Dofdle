@@ -3,20 +3,20 @@
 import { h } from './dom.js';
 
 export const STEP = 5;
-// [nom, icône DofusDB, couleur de l'aura]
+// [nom, icône DofusDB, couleur de l'aura (teinte dominante de l'icône)]
 export const STREAK_EGGS = [
-  ['Dofawa', 23009, '#d8b98a'],
-  ['Dofus Cawotte', 23006, '#f08a2c'],
-  ['Dokille', 23017, '#9bd16a'],
-  ['Dofus Kaliptus', 23010, '#6fcf8e'],
-  ['Dolmanax', 23018, '#e4c25a'],
-  ['Dofus Vulbis', 23004, '#b48cf0'],
-  ['Dofus des Glaces', 23005, '#8fd6f2'],
-  ['Dofus Tacheté', 23008, '#e6d8b0'],
-  ['Dofus Nébuleux', 23016, '#9aa8ff'],
-  ['Dofus Abyssal', 23023, '#4fb6d8'],
-  ['Dofus Forgelave', 23024, '#ff7a3c'],
-  ['Dofus du Cauchemar', 23034, '#d05a8c'],
+  ['Dofawa', 23009, '#d8842d'],
+  ['Dofus Cawotte', 23006, '#e68e1e'],
+  ['Dokille', 23017, '#6da5da'],
+  ['Dofus Kaliptus', 23010, '#bbdf6f'],
+  ['Dolmanax', 23018, '#da664c'],
+  ['Dofus Vulbis', 23004, '#c4402a'],
+  ['Dofus des Glaces', 23005, '#7ac5e0'],
+  ['Dofus Tacheté', 23008, '#a7ca9f'],
+  ['Dofus Nébuleux', 23016, '#788cdf'],
+  ['Dofus Abyssal', 23023, '#5cbebb'],
+  ['Dofus Forgelave', 23024, '#d19227'],
+  ['Dofus du Cauchemar', 23034, '#c08a5a'],
 ];
 
 const eggImg = (icon) => `https://api.dofusdb.fr/img/items/${icon}.png`;
@@ -48,5 +48,5 @@ export function streakEgg(n) {
   return h(`span.streak-egg${n ? '.on' : ''}`, {
     'aria-hidden': 'true', title: streakTitle(n), 'data-tier': String(t.index),
     style: `--aura:${t.color};--aura-a:${strength.toFixed(2)}`,
-  }, h('img', { src: eggImg(t.icon), alt: '', width: 22, height: 22, loading: 'lazy' }));
+  }, h('img', { src: eggImg(t.icon), alt: '', width: 22, height: 22 }));
 }
