@@ -12,8 +12,9 @@ export function h(tag, attrs, ...children) {
     if (v === undefined || v === null || v === false) continue;
     if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
     else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
-    else if (k === 'html') el.innerHTML = v;
     else if (k === 'class') el.className += ` ${v}`;
+    // Liens et sources : jamais d'URL exécutable (données externes, stockage local modifiable)
+    else if ((k === 'href' || k === 'src') && /^\s*(javascript|vbscript|data:text\/html)/i.test(String(v))) continue;
     else el.setAttribute(k, v === true ? '' : v);
   }
   for (const c of children.flat(Infinity)) {

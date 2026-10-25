@@ -1,3 +1,11 @@
+/* Polices hébergées sur le site (licence SIL OFL, voir assets/fonts/LICENCE.txt) :
+   aucune requête vers un service tiers, rien n'est transmis à Google. */
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('../assets/fonts/inter-latin-var.woff2') format('woff2'); }
+@font-face { font-family: 'Philosopher'; font-style: normal; font-weight: 400; font-display: swap; src: url('../assets/fonts/philosopher-400.woff2') format('woff2'); }
+@font-face { font-family: 'Philosopher'; font-style: normal; font-weight: 700; font-display: swap; src: url('../assets/fonts/philosopher-700.woff2') format('woff2'); }
+@font-face { font-family: 'Philosopher'; font-style: italic; font-weight: 400; font-display: swap; src: url('../assets/fonts/philosopher-400-italic.woff2') format('woff2'); }
+@font-face { font-family: 'Philosopher'; font-style: italic; font-weight: 700; font-display: swap; src: url('../assets/fonts/philosopher-700-italic.woff2') format('woff2'); }
+
 /* Dofusle : "les six Dofus du jour".
    Fond d'encre bleu ardoise, panneaux de pierre gravés, texte vélin, filets dorés.
    Chaque mode porte la couleur de l'un des six Dofus primordiaux (--accent). */

@@ -10,3 +10,7 @@ README.md
 package.json
 wrangler.jsonc
 vercel.json
+.github
+__pycache__
+*.pyc
+.DS_Store

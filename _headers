@@ -1,8 +1,19 @@
-# Cloudflare Pages : cache des données et assets
+# En-têtes servis par Cloudflare (Workers Static Assets).
+# Sécurité : le site ne charge que ses propres fichiers, plus les images et l'API de DofusDB.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://api.dofusdb.fr; connect-src 'self' https://api.dofusdb.fr; font-src 'self'; media-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
+  Strict-Transport-Security: max-age=31536000
+
+# Cache
 /data/*
   Cache-Control: public, max-age=3600, stale-while-revalidate=604800
 /assets/*
-  Cache-Control: public, max-age=2592000, immutable
+  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
 /src/*
   Cache-Control: public, max-age=300, must-revalidate
 /css/*
