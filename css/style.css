@@ -1162,3 +1162,47 @@ body { background: color-mix(in srgb, var(--bg) 92%, var(--accent)); }
     border-radius: 7px; corner-shape: bevel;
   }
 }
+
+/* =====================================================================
+   Review visuelle n° 3
+   ===================================================================== */
+
+/* 2. Juste prix : la question est l'objet mystère, dans le cadre doré */
+.number-clue { display: flex; flex-direction: column; align-items: center; gap: 14px; margin: 6px 0 4px; }
+.clue-visual.question-frame {
+  width: min(720px, 100%); height: auto; min-height: 168px; padding: 30px 44px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center;
+  overflow: visible;
+}
+.question-frame .number-question { margin: 0; font: 700 clamp(22px, 3.2vw, 30px)/1.25 var(--font-title); color: var(--text); text-wrap: balance; }
+.question-frame .theme-chip { position: relative; z-index: 4; }
+.number-clue .hints { width: min(720px, 100%); }
+@media (max-width: 560px) { .clue-visual.question-frame { padding: 26px 22px; } }
+
+/* 3. Compteur vide : pas de ligne fantôme */
+.counter:empty { display: none; }
+
+/* 6. Collection : chiffres sur une ligne, entre deux traits */
+.coll-stats { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 6px 0; gap: 4px; }
+.coll-stats .stat { background: none; border: 0; padding: 4px; }
+@media (max-width: 560px) { .stat-row.four.coll-stats { grid-template-columns: repeat(2, 1fr); } }
+
+/* 7. Fenêtre focalisée à l'ouverture : pas de cadre */
+.modal:focus { outline: none; }
+
+/* 8. Bouton du cri : biseauté comme les autres, la lecture remplit le bouton */
+.cry-player { max-width: none; }
+.cry-play {
+  position: relative; overflow: hidden; isolation: isolate; border-radius: 3px;
+  background: var(--panel-deep); border: 1px solid color-mix(in srgb, var(--accent) 70%, var(--line)); color: var(--text);
+  padding: 11px 22px;
+}
+@supports (corner-shape: bevel) { .cry-play { border-radius: 7px; corner-shape: bevel; } }
+.cry-play:hover { border-color: var(--accent); }
+.cry-play .cry-icon { color: var(--accent-text); }
+.cry-progress {
+  position: absolute; inset: 0 auto 0 0; width: 0; z-index: -1; border-radius: 0;
+  background: color-mix(in srgb, var(--accent) 35%, transparent); transition: width .1s linear;
+}
+.cry-play.playing { box-shadow: 0 0 0 3px var(--accent-soft); }
+.question-frame .theme-chip { align-self: center; }

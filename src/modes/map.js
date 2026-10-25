@@ -1,7 +1,7 @@
 // Mode Carte : retrouver une map à partir d'un extrait de son image.
 // Propositions : clic sur la mini-carte, coordonnées [X, Y] ou nom de zone.
 // Feedback : distance en nombre de maps (Manhattan).
-import { h, clear, img, toast } from '../ui/dom.js';
+import { h, clear, img, toast, isTouch } from '../ui/dom.js';
 import { createAutocomplete } from '../ui/autocomplete.js';
 import { createHints } from '../ui/hints.js';
 import { createMinimap } from '../ui/minimap.js';
@@ -95,7 +95,7 @@ export async function runMapMode(root, opts = {}) {
     h('div.map-layout',
       h('div.map-area-frame', h('div.map-frame', picture, zoomLabel)),
       h('div.map-area-hints', hints.el),
-      h('div.map-area-mini', h('div.panel.minimap-panel', h('div.minimap-head', h('strong', 'Mini-carte'), h('span.muted', 'Molette ou pincement pour zoomer, glisser pour te déplacer, clic pour proposer')), minimap.el)),
+      h('div.map-area-mini', h('div.panel.minimap-panel', h('div.minimap-head', h('strong', 'Mini-carte'), h('span.muted', isTouch() ? 'Pince pour zoomer, touche une map pour proposer' : 'Molette pour zoomer, glisser pour te déplacer, clic pour proposer')), minimap.el)),
       h('div.map-area-input', h('div.panel.input-panel', ac.el, counter)),
       h('div.map-area-list', list,
         h('div.legend', h('span', h('i.sw.ok', '✓'), 'Bonne map'), h('span', h('i.sw.partial', '≈'), `À ${NEAR} maps ou moins / bonne zone`), h('span', h('i.sw.ko', '✕'), 'Loin')))),

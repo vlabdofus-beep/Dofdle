@@ -120,12 +120,11 @@ export async function runChiffreMode(root, opts = {}) {
     .catch(() => {});
 
   root.append(
-    h('div.panel.clue.number-clue',
-      h('div.clue-meta',
+    h('div.number-clue',
+      h('div.clue-visual.question-frame',
         h('span.theme-chip', theme.label),
-        h('h3.number-question', question.text),
-        h('p.muted', 'Les indices se débloquent au fil des essais : clique pour les révéler.'),
-        hints.el)),
+        h('h3.number-question', question.text)),
+      hints.el),
     h('div.panel.input-panel', form, counter),
     result, list,
     h('div.legend', h('span', h('i.sw.ok', '✓'), 'Exact'), h('span', h('i.sw.partial', '≈'), 'À 10 % près'), h('span', h('i.sw.ko', '✕'), 'Plus loin'), h('span', '▲▼ la réponse est plus haute / plus basse')),

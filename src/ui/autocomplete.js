@@ -116,9 +116,12 @@ export function createAutocomplete({ items, placeholder, shortPlaceholder, onSel
     render();
   };
   input.addEventListener('input', refresh);
-  input.addEventListener('focus', () => { if (browse && !input.value.trim()) refresh(); });
+  // Liste complète seulement quand le joueur la demande (clic dans le champ, flèche bas),
+  // jamais quand le champ reçoit le focus automatiquement à l'arrivée sur un mode
+  input.addEventListener('pointerdown', () => { if (browse && !input.value.trim() && !results.length) setTimeout(refresh, 0); });
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowDown' && results.length) { e.preventDefault(); setActive(Math.min(active + 1, results.length - 1)); }
+    if (e.key === 'ArrowDown' && !results.length && browse && !input.value.trim()) { e.preventDefault(); refresh(); setActive(0); }
+    else if (e.key === 'ArrowDown' && results.length) { e.preventDefault(); setActive(Math.min(active + 1, results.length - 1)); }
     else if (e.key === 'ArrowUp' && results.length) { e.preventDefault(); setActive(Math.max(active - 1, 0)); }
     else if (e.key === 'Enter' && active >= 0 && !input.value.trim()) { e.preventDefault(); choose(results[active]); }
     else if (e.key === 'Escape') { results = []; render(); }

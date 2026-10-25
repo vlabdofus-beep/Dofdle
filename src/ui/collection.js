@@ -66,9 +66,9 @@ export function showCollection(modes) {
       return h(`a.coll-dofus${tries ? '.won' : ''}`, { href: `#${mode.id}`, 'data-mode': mode.id, title: tries ? `Récolté en ${tries} essai${tries > 1 ? 's' : ''}` : 'Pas encore récolté' },
         h('span.dofus-slot', { 'data-mode': mode.id }, h('img.dofus', { src: dofusImg(mode.id), alt: '', width: 56, height: 56 })),
         h('span.coll-name', modeInfo(mode.id).dofus),
-        h('span.coll-tries', tries ? `${tries} essai${tries > 1 ? 's' : ''}` : '—'));
+        tries ? h('span.coll-tries', `${tries} essai${tries > 1 ? 's' : ''}`) : null);
     })),
-    h('div.stat-row.four',
+    h('div.stat-row.four.coll-stats',
       box(current, 'série de journées complètes'),
       box(best, 'meilleure série 6/6'),
       box(daysPlayed, 'jours joués'),

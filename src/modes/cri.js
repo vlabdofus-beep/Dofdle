@@ -22,19 +22,19 @@ function audioPlayer(src) {
   audio.preload = 'auto';
   const label = h('span', 'Écouter le cri');
   const btn = h('button.cry-play', { type: 'button', 'aria-label': 'Écouter le cri du monstre' }, h('span.cry-icon', '▶'), label);
-  const bar = h('div.cry-bar', h('div.cry-progress'));
-  const progress = bar.firstChild;
+  const progress = h('span.cry-progress', { 'aria-hidden': 'true' });
+  btn.prepend(progress);
   btn.addEventListener('click', () => {
     if (!audio.paused) { audio.pause(); audio.currentTime = 0; return; }
     audio.currentTime = 0;
     audio.play().catch(() => { label.textContent = 'Lecture impossible'; });
   });
-  audio.addEventListener('play', () => { btn.classList.add('playing'); btn.firstChild.textContent = '■'; label.textContent = 'Lecture…'; });
-  const stop = () => { btn.classList.remove('playing'); btn.firstChild.textContent = '▶'; label.textContent = 'Réécouter'; progress.style.width = '0%'; };
+  audio.addEventListener('play', () => { btn.classList.add('playing'); btn.querySelector('.cry-icon').textContent = '■'; label.textContent = 'Lecture…'; });
+  const stop = () => { btn.classList.remove('playing'); btn.querySelector('.cry-icon').textContent = '▶'; label.textContent = 'Réécouter'; progress.style.width = '0%'; };
   audio.addEventListener('ended', stop);
   audio.addEventListener('pause', stop);
   audio.addEventListener('timeupdate', () => { progress.style.width = `${(audio.currentTime / (audio.duration || 1)) * 100}%`; });
-  return h('div.cry-player', btn, bar);
+  return h('div.cry-player', btn);
 }
 
 /** Une cible = un cri ; sa "fiche" est le monstre non-archi le plus bas niveau qui l'utilise. */
@@ -103,7 +103,6 @@ export const criMode = {
       h('div.clue-meta',
         h('h3', 'Cri mystère'),
         audioPlayer(`assets/cris/${target.cri.f}`),
-        h('p.muted', 'Les indices se débloquent au fil des essais : clique pour les révéler.'),
         hints.el));
     return { el, update: (g) => hints.update(g) };
   },

@@ -63,7 +63,7 @@ export function renderHome(root, modes, { onShareDay } = {}) {
       h('div.ring-panel-head', h('span.home-card-title', m.label), h('span.home-card-dofus', `Dofus ${modeInfo(m.id).dofus}`)),
       h('p.home-card-text', modeInfo(m.id).tagline),
       h('div.home-card-foot',
-        h(`span.home-status.${st.key}`, st.text),
+        st.key !== 'todo' ? h(`span.home-status.${st.key}`, st.text) : null,
         streak ? h('span.home-streak', h('span.streak-flame', { 'aria-hidden': 'true' }), `${streak} j`) : null,
         h('a.btn.primary', { href: `#${m.id}`, 'data-mode': m.id }, st.key === 'won' ? 'Revoir' : 'Jouer')));
     ring.querySelectorAll('.ring-item').forEach((el) => el.classList.toggle('selected', el.dataset.mode === selected));

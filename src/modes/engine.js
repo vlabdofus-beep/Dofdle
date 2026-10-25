@@ -179,7 +179,7 @@ export async function runGuessMode(root, cfg, opts = {}) {
     // Grille et légende n'apparaissent qu'à la première proposition
     root.classList.toggle('no-guess', !game.guesses.length);
     requestAnimationFrame(updateScrollHint);
-    counter.textContent = game.guesses.length ? `${game.guesses.length} essai${game.guesses.length > 1 ? 's' : ''}` : 'Tape un nom pour commencer';
+    counter.textContent = game.guesses.length ? `${game.guesses.length} essai${game.guesses.length > 1 ? 's' : ''}` : '';
     clue?.update(game);
     ac.disable(game.won);
     renderResult();

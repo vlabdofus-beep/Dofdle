@@ -61,7 +61,6 @@ export const spellMode = {
       h('div.clue-visual', picture),
       h('div.clue-meta',
         h('h3', variant === 'flou' ? 'Icône floutée' : 'Icône zoomée'),
-        h('p.muted', 'Elle se dévoile à chaque essai. Des indices se débloquent en chemin : clique pour les révéler.'),
         hints.el));
 
     function update(g) {

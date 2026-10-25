@@ -19,7 +19,7 @@ export function openModal(title, ...content) {
   lastFocus = document.activeElement;
   onCloseCb = opts.onClose || null;
   const close = h('button.modal-close', { 'aria-label': 'Fermer', onclick: closeModal }, '×');
-  const box = h('div.modal', { role: 'dialog', 'aria-modal': 'true', 'aria-label': title },
+  const box = h('div.modal', { role: 'dialog', 'aria-modal': 'true', 'aria-label': title, tabindex: '-1' },
     h('div.modal-head', h('h2', title), close),
     h('div.modal-body', ...content));
   const backdrop = h('div.modal-backdrop', { onclick: (e) => { if (e.target === backdrop) closeModal(); } }, box);
@@ -27,7 +27,7 @@ export function openModal(title, ...content) {
   document.addEventListener('keydown', onKey);
   current = backdrop;
   requestAnimationFrame(() => backdrop.classList.add('open'));
-  close.focus();
+  box.focus({ preventScroll: true });
   return box;
 }
 
