@@ -1145,3 +1145,20 @@ body { background: color-mix(in srgb, var(--bg) 92%, var(--accent)); }
 @media (max-width: 720px) {
   .mode-head .mode-badges { width: auto; flex: none; margin-left: auto; }
 }
+
+/* =====================================================================
+   Angles : arrondi pour ce qu'on joue (cases, Dofus), taillé en biseau pour les cadres
+   (rappel des cadres de l'interface de Dofus). Sans corner-shape : coins presque droits.
+   ===================================================================== */
+.panel, .modal, .hint-tile, .ring-label, .ring-panel, .next-mode-card, .ac-list, .calendar, .clue-visual, .map-frame,
+.win-rack, #toast, .guess-input, .guess-btn, .btn, .stat, .day-detail li, .day-badge, .streak-badge, .theme-chip, .cal-day {
+  border-radius: 3px;
+}
+@supports (corner-shape: bevel) {
+  .panel, .modal, .hint-tile, .ring-label, .ring-panel, .next-mode-card, .ac-list, .calendar, .clue-visual, .map-frame, .win-rack, #toast {
+    border-radius: 12px; corner-shape: bevel;
+  }
+  .guess-input, .guess-btn, .btn, .stat, .day-detail li, .day-badge, .streak-badge, .theme-chip, .cal-day {
+    border-radius: 7px; corner-shape: bevel;
+  }
+}
