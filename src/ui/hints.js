@@ -26,7 +26,7 @@ export function createHints(ctx, hints, { className = '' } = {}) {
     el.replaceChildren(...hints.map((hint) => {
       const left = hint.at - n;
       const unlocked = left <= 0 || game.won;
-      if (open.has(hint.key)) {
+      if (open.has(hint.key) || game.won) {
         const anim = hint.key === justOpened;
         if (anim) justOpened = null;
         return h(`div.hint-tile.open${anim ? '.revealing' : ''}`, h('span.hint-title', hint.title), h('div.hint-body', hint.render()));

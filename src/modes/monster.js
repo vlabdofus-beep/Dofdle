@@ -21,7 +21,7 @@ export function monsterReveal(m, data, extra = null) {
       h('h3', m.n),
       h('p', data.races[m.r]?.n || ''),
       h('p', `${KIND_LABEL[m.k]}, niveau ${m.l[0] === m.l[1] ? m.l[0] : m.l.join('–')}`),
-      h('p.muted', `${sub?.n || ''}${sub ? ` — ${data.areas[sub.a] || ''}` : ''}`),
+      h('p.muted', `${sub?.n || ''}${sub ? `, ${data.areas[sub.a] || ''}` : ''}`),
       extra,
       h('a.ext', { href: `https://dofusdb.fr/fr/database/monster/${m.id}`, target: '_blank', rel: 'noopener' }, 'Voir sur DofusDB ↗')));
 }

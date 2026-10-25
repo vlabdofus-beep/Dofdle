@@ -112,6 +112,7 @@ export async function runChiffreMode(root, opts = {}) {
 
   const counter = h('div.counter');
   const result = h('div.result');
+  const inputPanel = h('div.panel.input-panel', form, counter);
   const list = h('div.map-rows.number-rows');
   // Question d'hier : calculée en arrière-plan (1 à 4 requêtes), sans bloquer la partie
   const yesterdayBox = h('div');
@@ -125,7 +126,7 @@ export async function runChiffreMode(root, opts = {}) {
         h('span.theme-chip', theme.label),
         h('h3.number-question', question.text)),
       hints.el),
-    h('div.panel.input-panel', form, counter),
+    inputPanel,
     result, list,
     h('div.legend', h('span', h('i.sw.ok', '✓'), 'Exact'), h('span', h('i.sw.partial', '≈'), 'À 10 % près'), h('span', h('i.sw.ko', '✕'), 'Plus loin'), h('span', '▲▼ la réponse est plus haute / plus basse')),
     yesterdayBox);
@@ -148,6 +149,7 @@ export async function runChiffreMode(root, opts = {}) {
     counter.textContent = n ? `${n} essai${n > 1 ? 's' : ''}` : 'Astuce : vise large au début, puis resserre.';
     hints.update(game);
     input.disabled = submit.disabled = game.won;
+    inputPanel.classList.toggle('done', game.won);
     list.replaceChildren(...[...game.guesses].reverse().map((g) => {
       const st = statusOf(g.v, answer);
       const dir = st === 'ok' ? '✓' : answer > g.v ? '▲' : '▼';

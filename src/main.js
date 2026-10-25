@@ -14,6 +14,7 @@ import { krosmozDate } from './core/krosmoz.js';
 import { backfillHistory } from './core/storage.js';
 import { streakText } from './modes/engine.js';
 import { mobileBar } from './ui/victory.js';
+import { streakEgg } from './ui/streak.js';
 import { runGuessMode } from './modes/engine.js';
 import { monsterMode } from './modes/monster.js';
 import { spellMode } from './modes/spell.js';
@@ -132,8 +133,10 @@ window.addEventListener('dofusle:progress', (ev) => {
   const badge = document.querySelector(`.streak-badge[data-mode="${mode.id}"]`);
   if (badge) {
     badge.querySelector('.streak-text').textContent = streakText(mode.id, todayKey());
+    const n = currentStreak(loadStats(mode.id), todayKey());
     const short = badge.querySelector('.streak-short');
-    if (short) short.textContent = `${currentStreak(loadStats(mode.id), todayKey())} j`;
+    if (short) short.textContent = `${n} j`;
+    badge.querySelector('.streak-egg')?.replaceWith(streakEgg(n));
     badge.classList.add('on');
     if (fresh && !mobileBar()) { badge.classList.remove('bump'); void badge.offsetWidth; badge.classList.add('bump'); }
   }
@@ -150,7 +153,7 @@ window.addEventListener('dofusle:landed', (ev) => {
 document.getElementById('btn-help').addEventListener('click', () => {
   const mode = currentMode();
   openModal('Comment jouer',
-    h('p', 'Chaque jour à minuit (heure de Paris), un nouveau défi par mode — le même pour tout le monde.'),
+    h('p', 'Chaque jour à minuit (heure de Paris), un nouveau défi par mode, le même pour tout le monde. Ta série fait évoluer ton œuf : un nouveau Dofus tous les 5 jours.'),
     h('p', h('button.link', { type: 'button', onclick: showIntro }, 'Revoir l\'exemple de lecture des réponses')),
     h('ul.help-list',
       h('li', h('strong', 'Monstre : '), 'propose des monstres. Chaque colonne (famille, niveau, PV, zone, rang, faiblesse, couleur) se colore selon la ressemblance avec le monstre secret.'),
@@ -177,7 +180,7 @@ document.getElementById('btn-legal').addEventListener('click', () => openModal('
   h('p', 'Pas de compte, pas de publicité, aucune donnée collectée : ta progression reste dans ton navigateur.')));
 document.getElementById('btn-cache').addEventListener('click', async () => {
   await clearCache();
-  toast('Cache vidé — rechargement des données…');
+  toast('Cache vidé, rechargement des données…');
   setTimeout(() => location.reload(), 600);
 });
 

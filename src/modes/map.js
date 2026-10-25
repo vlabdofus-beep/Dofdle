@@ -88,6 +88,7 @@ export async function runMapMode(root, opts = {}) {
   });
   const result = h('div.result');
   const list = h('div.map-rows');
+  const inputArea = h('div.map-area-input', h('div.panel.input-panel', ac.el, counter));
 
   root.append(
     // Ordinateur : extrait, indices, saisie et propositions à gauche, mini-carte à droite.
@@ -96,7 +97,7 @@ export async function runMapMode(root, opts = {}) {
       h('div.map-area-frame', h('div.map-frame', picture, zoomLabel)),
       h('div.map-area-hints', hints.el),
       h('div.map-area-mini', h('div.panel.minimap-panel', h('div.minimap-head', h('strong', 'Mini-carte'), h('span.muted', isTouch() ? 'Pince pour zoomer, touche une map pour proposer' : 'Molette pour zoomer, glisser pour te déplacer, clic pour proposer')), minimap.el)),
-      h('div.map-area-input', h('div.panel.input-panel', ac.el, counter)),
+      inputArea,
       h('div.map-area-list', list,
         h('div.legend', h('span', h('i.sw.ok', '✓'), 'Bonne map'), h('span', h('i.sw.partial', '≈'), `À ${NEAR} maps ou moins / bonne zone`), h('span', h('i.sw.ko', '✕'), 'Loin')))),
     result,
@@ -152,6 +153,7 @@ export async function runMapMode(root, opts = {}) {
       return h(`div.map-row.${st}`, label, h('span.dist', dist));
     }));
     ac.disable(game.won);
+    inputArea.classList.toggle('done', game.won);
     clear(result);
     if (game.won) {
       result.append(winCard({

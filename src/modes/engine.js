@@ -7,6 +7,7 @@ import { loadDataset } from '../core/cache.js';
 import { todayKey, dayNumber, pickDaily, msUntilNextDaily, addDays } from '../core/daily.js';
 import { loadGame, saveGame, recordWin, loadStats, currentStreak } from '../core/storage.js';
 import { winCard, celebrate } from '../ui/victory.js';
+import { streakEgg } from '../ui/streak.js';
 
 export { winCard };
 import { nextMode, modeInfo, harvestedToday, MODE_ORDER, dofusImg } from '../core/modes.js';
@@ -40,7 +41,12 @@ export function renderCell(cell, delay = 0) {
   const label = { ok: 'correct', partial: 'partiellement correct', ko: 'incorrect' }[cell.status];
   const dir = cell.arrow === 'up' ? 'plus haut' : 'plus bas';
   const arrowLabel = cell.arrow ? `${cell.far ? 'beaucoup ' : ''}${dir}` : '';
-  return h(`div.cell.${cell.status}`, { style: { animationDelay: `${delay}ms` }, title: label + (arrowLabel ? `, ${arrowLabel}` : ''), 'aria-label': label + (arrowLabel ? `, ${arrowLabel}` : '') },
+  const long = typeof cell.value === 'string' && cell.value.length > 18;
+  const full = long ? `${cell.value}${cell.sub ? `, ${cell.sub}` : ''} : ` : '';
+  return h(`div.cell.${cell.status}${long ? '.long' : ''}`, {
+    style: { animationDelay: `${delay}ms` }, title: full + label + (arrowLabel ? `, ${arrowLabel}` : ''), 'aria-label': full + label + (arrowLabel ? `, ${arrowLabel}` : ''),
+    onclick: long ? () => toast(`${cell.value}${cell.sub ? `, ${cell.sub}` : ''}`, 2600) : undefined,
+  },
     h('span.cell-mark', { 'aria-hidden': 'true' }, STATUS_MARK[cell.status]),
     h('span.cell-main',
       cellContent(cell),
@@ -66,8 +72,8 @@ export function modeHead(cfg, date) {
     h('div.mode-title', img(cfg.icon, '', 'mode-icon'), h('h2', { title: cfg.intro }, cfg.label),
       h('span.day-badge', `Défi n° ${dayNumber(date)}`)),
     h('div.mode-badges',
-      h('span.streak-badge', { class: n ? 'on' : undefined, 'data-mode': cfg.id, title: 'Défis du jour réussis d\'affilée dans ce mode' },
-        h('span.streak-flame', { 'aria-hidden': 'true' }), h('span.streak-text', streakText(cfg.id, date)),
+      h('span.streak-badge', { class: n ? 'on' : undefined, 'data-mode': cfg.id, title: 'Défis du jour réussis d\'affilée dans ce mode. Ton œuf évolue tous les 5 jours.' },
+        streakEgg(n), h('span.streak-text', streakText(cfg.id, date)),
         h('span.streak-short', { 'aria-hidden': 'true' }, `${n} j`))));
 }
 
@@ -134,7 +140,8 @@ export async function runGuessMode(root, cfg, opts = {}) {
     exclude: () => new Set(game.guesses),
     onSelect: (it) => guess(it.id),
   });
-  root.append(h('div.panel.input-panel', ac.el, counter));
+  const inputPanel = h('div.panel.input-panel', ac.el, counter);
+  root.append(inputPanel);
 
   // --- Grille
   const grid = h('div.grid', { role: 'table', 'aria-label': 'Propositions' });
@@ -182,6 +189,8 @@ export async function runGuessMode(root, cfg, opts = {}) {
     counter.textContent = game.guesses.length ? `${game.guesses.length} essai${game.guesses.length > 1 ? 's' : ''}` : '';
     clue?.update(game);
     ac.disable(game.won);
+    // Défi réussi : plus de champ de saisie, la section de victoire remonte sous l'objet mystère
+    inputPanel.classList.toggle('done', game.won);
     renderResult();
   }
 

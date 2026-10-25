@@ -55,8 +55,8 @@ export async function flyToRack(mode, fromRect) {
   done();
 }
 
-function distribution(stats, tries) {
-  const bucket = tries >= 10 ? '10+' : String(tries);
+export function distribution(stats, tries) {
+  const bucket = !tries ? null : tries >= 10 ? '10+' : String(tries);
   const buckets = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'];
   const max = Math.max(1, ...buckets.map((b) => stats.dist[b] || 0));
   return h('div.victory-dist', { 'aria-label': 'Répartition de tes essais dans ce mode' },

@@ -5,6 +5,7 @@ import { h, clear, formatDuration } from './dom.js';
 import { todayKey, dayNumber, msUntilNextDaily } from '../core/daily.js';
 import { loadGame, loadStats, currentStreak, fullDayStreaks } from '../core/storage.js';
 import { modeInfo, dofusImg } from '../core/modes.js';
+import { streakEgg } from './streak.js';
 
 
 // Emplacements sur les deux arcs : trois Dofus à gauche « ( », trois à droite « ) »
@@ -46,7 +47,7 @@ export function renderHome(root, modes, { onShareDay } = {}) {
     h('h1.home-title', `Défis du jour n° ${dayNumber(date)}`),
     h('p.ring-progress', { 'aria-label': `${done} Dofus récoltés sur ${modes.length}` },
       h('span.ring-count', h('strong', `${done}`), h('span', `/ ${modes.length}`)), h('small', `Dofus récolté${done > 1 ? 's' : ''} aujourd'hui`)),
-    full ? h('p.home-fullstreak', h('span.streak-flame', { 'aria-hidden': 'true' }), `${full} journée${full > 1 ? 's' : ''} complète${full > 1 ? 's' : ''} d'affilée`) : null,
+    full ? h('p.home-fullstreak', streakEgg(full), `${full} journée${full > 1 ? 's' : ''} complète${full > 1 ? 's' : ''} d'affilée`) : null,
     h('p.muted.ring-countdown', 'Nouveaux défis dans ', countdown),
     h('div.home-actions',
       next ? h('a.btn.primary.home-cta', { href: `#${next.m.id}`, 'data-mode': next.m.id }, done ? `Continuer : ${next.m.label}` : `Commencer par ${next.m.label}`)
@@ -64,7 +65,7 @@ export function renderHome(root, modes, { onShareDay } = {}) {
       h('p.home-card-text', modeInfo(m.id).tagline),
       h('div.home-card-foot',
         st.key !== 'todo' ? h(`span.home-status.${st.key}`, st.text) : null,
-        streak ? h('span.home-streak', h('span.streak-flame', { 'aria-hidden': 'true' }), `${streak} j`) : null,
+        streak ? h('span.home-streak', streakEgg(streak), `${streak} j`) : null,
         h('a.btn.primary', { href: `#${m.id}`, 'data-mode': m.id }, st.key === 'won' ? 'Revoir' : 'Jouer')));
     ring.querySelectorAll('.ring-item').forEach((el) => el.classList.toggle('selected', el.dataset.mode === selected));
   };
@@ -91,7 +92,7 @@ export function renderHome(root, modes, { onShareDay } = {}) {
         h('span.ring-text', modeInfo(m.id).tagline),
         h('span.ring-foot',
           h(`span.home-status.${st.key}`, st.text),
-          streak ? h('span.home-streak', h('span.streak-flame', { 'aria-hidden': 'true' }), `${streak} j`) : null)));
+          streak ? h('span.home-streak', streakEgg(streak), `${streak} j`) : null)));
       return item;
     })),
     hub);
