@@ -1,7 +1,8 @@
 // Moteur commun des modes "à la Loldle" (Monstre, Sort, Objet, Cri) :
 // chargement des données, tirage du jour, saisie, grille de
 // feedback, victoire, partage et statistiques. Chaque mode fournit sa config.
-import { h, clear, img, formatDuration, toast, isTouch } from '../ui/dom.js';
+import { h, clear, img, formatDuration, toast, isTouch, announce } from '../ui/dom.js';
+import { play } from '../ui/sound.js';
 import { createAutocomplete } from '../ui/autocomplete.js';
 import { loadDataset } from '../core/cache.js';
 import { todayKey, dayNumber, pickDaily, msUntilNextDaily, addDays } from '../core/daily.js';
@@ -17,6 +18,13 @@ import { showStats } from '../ui/stats.js';
 
 export const STATUS_EMOJI = { ok: '🟩', partial: '🟧', ko: '🟥' };
 const ELEMENT_EXTRA = { soin: { label: 'Soin', icon: 'assets/game/elements/soin.png' } };
+
+/** Dévoilement final : le cadre de l'objet mystère s'ouvre (une seule fois, à la victoire). */
+export function unveil(root) {
+  const frame = root.querySelector('.clue-visual, .map-frame');
+  if (!frame) return;
+  frame.classList.remove('unveil'); void frame.offsetWidth; frame.classList.add('unveil');
+}
 
 /** Rendu par défaut d'une valeur de cellule. */
 export function cellContent(cell) {
@@ -44,9 +52,11 @@ export function renderCell(cell, delay = 0) {
   const long = typeof cell.value === 'string' && cell.value.length > 18;
   const full = long ? `${cell.value}${cell.sub ? `, ${cell.sub}` : ''} : ` : '';
   return h(`div.cell.${cell.status}${long ? '.long' : ''}`, {
-    style: { animationDelay: `${delay}ms` }, title: full + label + (arrowLabel ? `, ${arrowLabel}` : ''), 'aria-label': full + label + (arrowLabel ? `, ${arrowLabel}` : ''),
+    role: 'cell', style: { animationDelay: `${delay}ms` }, title: full + label + (arrowLabel ? `, ${arrowLabel}` : ''),
     onclick: long ? () => toast(`${cell.value}${cell.sub ? `, ${cell.sub}` : ''}`, 2600) : undefined,
   },
+    // Lecteur d'écran : le verdict, puis la valeur affichée dans la case
+    h('span.sr-only', `${label}${arrowLabel ? `, ${arrowLabel}` : ''} : `),
     h('span.cell-mark', { 'aria-hidden': 'true' }, STATUS_MARK[cell.status]),
     h('span.cell-main',
       cellContent(cell),
@@ -146,13 +156,13 @@ export async function runGuessMode(root, cfg, opts = {}) {
   // --- Grille
   const grid = h('div.grid', { role: 'table', 'aria-label': 'Propositions' });
   const headRow = h('div.grid-row.grid-head', { role: 'row' },
-    h('div.cell.head.name-col', cfg.nameLabel || 'Nom'),
+    h('div.cell.head.name-col', { role: 'columnheader' }, cfg.nameLabel || 'Nom'),
     // En-têtes cliquables : l'aide s'affiche aussi au toucher (pas de survol sur mobile)
     cfg.columns.map((c) => (c.help
       ? h('button.cell.head.has-help', { type: 'button', role: 'columnheader', title: c.help, 'aria-label': `${c.label} : ${c.help}`, onclick: () => toast(`${c.label} : ${c.help}`, 4200) }, c.label)
       : h('div.cell.head', { role: 'columnheader' }, c.label))));
   grid.style.setProperty('--cols', cfg.columns.length);
-  const rows = h('div.grid-rows');
+  const rows = h('div.grid-rows', { role: 'rowgroup' });
   grid.append(headRow, rows);
   const gridWrap = h('div.grid-wrap', grid);
   // Indice de défilement horizontal (mobile) : dégradé + flèche tant qu'il reste des colonnes à droite
@@ -174,7 +184,7 @@ export async function runGuessMode(root, cfg, opts = {}) {
     const cells = cfg.compare(e.ref, target.ref, data);
     const won = isWin(e);
     return h(`div.grid-row${won ? '.win' : ''}${animate ? '.new' : ''}`, { role: 'row' },
-      h(`div.cell.name-col${won ? '.ok' : ''}${cfg.rowImages === false ? '.no-img' : ''}`,
+      h(`div.cell.name-col${won ? '.ok' : ''}${cfg.rowImages === false ? '.no-img' : ''}`, { role: 'rowheader' },
         cfg.rowImages !== false && e.img ? img(e.img, '', 'row-img') : null, h('span.row-name', e.n)),
       cells.map((c, i) => renderCell(c, animate ? (i + 1) * 140 : 0)));
   }
@@ -208,10 +218,28 @@ export async function runGuessMode(root, cfg, opts = {}) {
     }
     save();
     refresh(true);
+    feedback(byId.get(id));
     // Mobile : la nouvelle ligne reste visible une fois le clavier fermé
     if (!game.won && isTouch()) setTimeout(() => rows.firstElementChild?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 250);
     // La ligne gagnante se dévoile et s'illumine, puis on descend jusqu'à la section de victoire
     if (game.won) setTimeout(() => celebrate(cfg, result), 1900);
+  }
+
+  /** Résultat d'un essai : annoncé aux lecteurs d'écran, son (si activé), dévoilement final. */
+  function feedback(e) {
+    if (game.won) {
+      announce(`${e.n} : bonne réponse, trouvée en ${game.guesses.length} essai${game.guesses.length > 1 ? 's' : ''} !`);
+      unveil(root);
+      setTimeout(() => play('harvest'), 900);
+      return;
+    }
+    const cells = cfg.compare(e.ref, target.ref, data);
+    const ok = cells.filter((c) => c.status === 'ok').length;
+    const near = cells.filter((c) => c.status === 'partial').length;
+    const arrows = cells.map((c, i) => (c.arrow ? `${cfg.columns[i]?.label || ''} ${c.arrow === 'up' ? 'plus haut' : 'plus bas'}` : null)).filter(Boolean);
+    announce(`${e.n} : ${ok} critère${ok > 1 ? 's' : ''} juste${ok > 1 ? 's' : ''} sur ${cells.length}`
+      + (near ? `, ${near} proche${near > 1 ? 's' : ''}` : '') + (arrows.length ? `. ${arrows.join(', ')}.` : '.'));
+    play(ok ? 'good' : 'guess');
   }
 
   function renderResult() {

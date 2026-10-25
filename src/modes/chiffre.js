@@ -1,13 +1,14 @@
 // Mode Juste prix : une question chiffrée improbable sur Dofus, réponse exacte à trouver.
 // Feedback : plus / moins, orange si on est à 10 % près.
-import { h, clear, toast, isTouch } from '../ui/dom.js';
+import { h, clear, toast, isTouch, announce } from '../ui/dom.js';
+import { play } from '../ui/sound.js';
 import { createHints } from '../ui/hints.js';
 import { createApi } from '../core/api.js';
 import { todayKey, dayNumber, hash, rng, addDays } from '../core/daily.js';
 import { loadGame, saveGame, recordWin, loadStats, currentStreak } from '../core/storage.js';
 import { buildQuestion, THEMES, formatNumber, QUESTION_VERSION } from '../data/chiffres.js';
 import { shareResult } from '../ui/share.js';
-import { STATUS_EMOJI, modeHead, winCard, yesterdayLine } from './engine.js';
+import { STATUS_EMOJI, modeHead, winCard, yesterdayLine, unveil } from './engine.js';
 import { celebrate } from '../ui/victory.js';
 
 const QUESTION_KEY = 'dofusle:v1:chiffre-question';
@@ -140,7 +141,15 @@ export async function runChiffreMode(root, opts = {}) {
     }
     save();
     refresh();
-    if (game.won) setTimeout(() => celebrate(chiffreMode, result), 500);
+    if (game.won) {
+      announce(`${formatNumber(v)} : exact, trouvé en ${game.guesses.length} essai${game.guesses.length > 1 ? 's' : ''} !`);
+      unveil(root);
+      setTimeout(() => play('harvest'), 400);
+      setTimeout(() => celebrate(chiffreMode, result), 500);
+    } else {
+      announce(`${formatNumber(v)} : c'est ${answer > v ? 'plus' : 'moins'}${statusOf(v, answer) === 'partial' ? ', tu es à 10 % près' : ''}.`);
+      play(statusOf(v, answer) === 'partial' ? 'good' : 'guess');
+    }
   }
 
   function refresh() {

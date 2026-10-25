@@ -15,6 +15,7 @@ import { backfillHistory } from './core/storage.js';
 import { streakText } from './modes/engine.js';
 import { mobileBar } from './ui/victory.js';
 import { streakEgg } from './ui/streak.js';
+import { soundOn, setSound } from './ui/sound.js';
 import { runGuessMode } from './modes/engine.js';
 import { monsterMode } from './modes/monster.js';
 import { spellMode } from './modes/spell.js';
@@ -97,7 +98,14 @@ function shareDay() {
   shareResult([head, ...lines, location.href.split('#')[0]].join('\n'), 'Récapitulatif copié !');
 }
 
+/** Change de page ; fondu enchaîné quand le navigateur sait animer les changements de vue. */
 function route() {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!document.startViewTransition || reduce || !app.firstChild) { render(); return; }
+  document.startViewTransition(() => Promise.race([render(), new Promise((r) => setTimeout(r, 350))]));
+}
+
+function render() {
   closeModal();
   awaiting.clear();
   const mode = currentMode();
@@ -110,11 +118,12 @@ function route() {
     document.title = 'Dofusle, le défi quotidien de l\'univers Dofus';
     renderHome(app, MODES, { onShareDay: shareDay });
     maybeShowIntro();
-    return;
+    return Promise.resolve();
   }
   document.title = `Dofusle — ${mode.label}`;
-  mode.run(app, {});
+  const running = Promise.resolve(mode.run(app, {})).catch(() => {});
   maybeShowIntro();
+  return running;
 }
 
 window.addEventListener('hashchange', route);
@@ -171,6 +180,17 @@ document.getElementById('btn-help').addEventListener('click', () => {
     h('p', 'Une fois le défi du jour réussi, partage ton résultat et passe au défi suivant.'),
     mode?.help ? h('p.muted', mode.help) : null);
 });
+
+// Sons : désactivés par défaut, le choix est mémorisé
+const soundBtn = document.getElementById('btn-sound');
+const showSound = () => {
+  const on = soundOn();
+  soundBtn.setAttribute('aria-pressed', String(on));
+  soundBtn.title = on ? 'Couper les sons' : 'Activer les sons';
+  soundBtn.classList.toggle('on', on);
+};
+soundBtn.addEventListener('click', () => { setSound(!soundOn()); showSound(); toast(soundOn() ? 'Sons activés' : 'Sons coupés'); });
+showSound();
 
 // Trophée : la collection complète (série 6/6, calendrier, statistiques par mode)
 document.getElementById('btn-stats').addEventListener('click', () => showCollection(MODES));

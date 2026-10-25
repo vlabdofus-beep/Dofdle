@@ -8,6 +8,8 @@ import { hash, todayKey, dayNumber, msUntilNextDaily } from '../core/daily.js';
 import { loadGame, loadStats, currentStreak, fullDayStreaks } from '../core/storage.js';
 import { nextMode, modeInfo, dofusImg, harvestedToday, MODE_ORDER } from '../core/modes.js';
 import { dailyPhrase, dayPhrase } from '../data/phrases.js';
+import { streakEgg, streakTier } from './streak.js';
+import { play } from './sound.js';
 
 const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 /** Sur mobile, la rangée des Dofus est une barre fixe en bas d'écran : toujours visible. */
@@ -112,6 +114,7 @@ export function winCard({ cfg, date, tries, reveal, onShare }) {
       box(streak, streak > 1 ? 'jours de suite' : 'jour de suite'),
       box(`${count}/${MODE_ORDER.length}`, 'Dofus du jour')),
     distribution(stats, tries),
+    eggLine(streak),
     allDone
       ? h('button.next-mode-card.day-done', { type: 'button', onclick: () => showDayComplete() },
         h('span.next-mode-art', MODE_ORDER.slice(0, 3).map((m) => h('img', { src: dofusImg(m.id), alt: '' }))),
@@ -152,7 +155,20 @@ export function celebrate(cfg, result) {
 }
 
 /** Fenêtre de la journée complète : les six Dofus réunis. */
+/** L'œuf de série du mode et sa prochaine évolution : une raison de revenir demain. */
+function eggLine(streak) {
+  if (!streak) return null;
+  const t = streakTier(streak);
+  return h('p.win-egg',
+    streakEgg(streak),
+    t.next
+      ? h('span', `Ton ${t.name} évolue en ${t.next} dans ${t.nextIn} jour${t.nextIn > 1 ? 's' : ''}`)
+      : h('span', `Ton ${t.name} a atteint sa forme la plus rare`),
+    t.next ? h('span.win-egg-next', { 'aria-hidden': 'true' }, '›', streakEgg(streak + t.nextIn)) : null);
+}
+
 export function showDayComplete() {
+  play('day');
   const date = todayKey();
   const games = MODE_ORDER.map((m) => ({ m, n: loadGame(m.id, date).guesses.length }));
   const total = games.reduce((a, x) => a + x.n, 0);

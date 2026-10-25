@@ -50,3 +50,11 @@ export function formatDuration(ms) {
 
 /** Écran tactile sans souris : on évite d'ouvrir le clavier virtuel sans action du joueur. */
 export const isTouch = () => typeof matchMedia === 'function' && matchMedia('(hover: none) and (pointer: coarse)').matches;
+
+/** Message lu par les lecteurs d'écran (zone invisible), sans rien afficher. */
+export function announce(text) {
+  let el = document.getElementById('sr-announcer');
+  if (!el) { el = h('div#sr-announcer.sr-only', { role: 'status', 'aria-live': 'polite' }); document.body.append(el); }
+  el.textContent = '';
+  setTimeout(() => { el.textContent = text; }, 60);
+}

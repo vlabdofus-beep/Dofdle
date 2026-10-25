@@ -17,20 +17,70 @@ async function loadCris() {
   return res.json();
 }
 
-function audioPlayer(src) {
+/**
+ * Lecteur du cri. Pendant la lecture, l'onde du son se dessine en direct dans le cadre
+ * doré (`visual`) : on voit que le cri joue, et sa forme fait partie de l'indice.
+ */
+function audioPlayer(src, visual) {
   const audio = new Audio(src);
   audio.preload = 'auto';
   const label = h('span', 'Écouter le cri');
   const btn = h('button.cry-play', { type: 'button', 'aria-label': 'Écouter le cri du monstre' }, h('span.cry-icon', '▶'), label);
   const progress = h('span.cry-progress', { 'aria-hidden': 'true' });
   btn.prepend(progress);
+
+  const canvas = h('canvas.cry-wave', { width: 320, height: 320, 'aria-hidden': 'true' });
+  visual?.append(canvas);
+  let analyser = null, raf = 0, buf = null;
+  const setupAnalyser = () => {
+    if (analyser) return;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      const ac = new AC();
+      const source = ac.createMediaElementSource(audio);
+      analyser = ac.createAnalyser();
+      analyser.fftSize = 1024;
+      buf = new Uint8Array(analyser.fftSize);
+      source.connect(analyser).connect(ac.destination);
+      audio.addEventListener('play', () => ac.state === 'suspended' && ac.resume());
+    } catch { analyser = null; }
+  };
+  const draw = () => {
+    const g = canvas.getContext('2d');
+    const { width: w, height: hgt } = canvas;
+    g.clearRect(0, 0, w, hgt);
+    if (analyser) {
+      analyser.getByteTimeDomainData(buf);
+      const color = getComputedStyle(canvas).color || '#f0d28e';
+      g.lineWidth = 3; g.strokeStyle = color; g.shadowColor = color; g.shadowBlur = 10;
+      g.beginPath();
+      for (let i = 0; i < buf.length; i++) {
+        const x = (i / (buf.length - 1)) * w;
+        const y = hgt / 2 + ((buf[i] - 128) / 128) * hgt * 0.42;
+        if (i) g.lineTo(x, y); else g.moveTo(x, y);
+      }
+      g.stroke();
+    }
+    raf = requestAnimationFrame(draw);
+  };
+
   btn.addEventListener('click', () => {
     if (!audio.paused) { audio.pause(); audio.currentTime = 0; return; }
+    setupAnalyser();
     audio.currentTime = 0;
     audio.play().catch(() => { label.textContent = 'Lecture impossible'; });
   });
-  audio.addEventListener('play', () => { btn.classList.add('playing'); btn.querySelector('.cry-icon').textContent = '■'; label.textContent = 'Lecture…'; });
-  const stop = () => { btn.classList.remove('playing'); btn.querySelector('.cry-icon').textContent = '▶'; label.textContent = 'Réécouter'; progress.style.width = '0%'; };
+  audio.addEventListener('play', () => {
+    btn.classList.add('playing'); visual?.classList.add('playing');
+    btn.querySelector('.cry-icon').textContent = '■'; label.textContent = 'Lecture…';
+    cancelAnimationFrame(raf); draw();
+  });
+  const stop = () => {
+    btn.classList.remove('playing'); visual?.classList.remove('playing');
+    btn.querySelector('.cry-icon').textContent = '▶'; label.textContent = 'Réécouter'; progress.style.width = '0%';
+    cancelAnimationFrame(raf);
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+  };
   audio.addEventListener('ended', stop);
   audio.addEventListener('pause', stop);
   audio.addEventListener('timeupdate', () => { progress.style.width = `${(audio.currentTime / (audio.duration || 1)) * 100}%`; });
@@ -98,11 +148,12 @@ export const criMode = {
       { key: 'niveau', at: 5, title: 'Niveau', render: () => h('p', lmin === lmax ? `Niveau ${lmin}` : `Niveau ${lmin} à ${lmax}`) },
       { key: 'famille', at: 10, title: 'Famille', render: () => h('p', data.races[target.ref.r]?.n || '?') },
     ], { className: 'compact' });
+    const visual = h('div.clue-visual.cry-visual', h('img.cry-emblem', { src: 'assets/game/ui/mode-cri.png', alt: '' }));
     const el = h('div.panel.clue.cry-clue',
-      h('div.clue-visual.cry-visual', h('img.cry-emblem', { src: 'assets/game/ui/mode-cri.png', alt: '' })),
+      visual,
       h('div.clue-meta',
         h('h3', 'Cri mystère'),
-        audioPlayer(`assets/cris/${target.cri.f}`),
+        audioPlayer(`assets/cris/${target.cri.f}`, visual),
         hints.el));
     return { el, update: (g) => hints.update(g) };
   },

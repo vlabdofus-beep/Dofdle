@@ -2,6 +2,7 @@
 // si le joueur clique. Les indices révélés sont mémorisés avec la partie.
 // Rendu : une grille de tuiles de taille identique, quel que soit leur état.
 import { h } from './dom.js';
+import { play } from './sound.js';
 
 /**
  * @param {object} ctx  contexte de partie ({ game, save })
@@ -15,6 +16,7 @@ export function createHints(ctx, hints, { className = '' } = {}) {
 
   function reveal(key) {
     justOpened = key;
+    play('reveal');
     ctx.game.hints = [...revealed(), key];
     ctx.save?.();
     update(ctx.game);

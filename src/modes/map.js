@@ -1,7 +1,8 @@
 // Mode Carte : retrouver une map à partir d'un extrait de son image.
 // Propositions : clic sur la mini-carte, coordonnées [X, Y] ou nom de zone.
 // Feedback : distance en nombre de maps (Manhattan).
-import { h, clear, img, toast, isTouch } from '../ui/dom.js';
+import { h, clear, img, toast, isTouch, announce } from '../ui/dom.js';
+import { play } from '../ui/sound.js';
 import { createAutocomplete } from '../ui/autocomplete.js';
 import { createHints } from '../ui/hints.js';
 import { createMinimap } from '../ui/minimap.js';
@@ -10,7 +11,7 @@ import { todayKey, dayNumber, hash, rng, addDays } from '../core/daily.js';
 import { loadGame, saveGame, recordWin, loadStats, currentStreak } from '../core/storage.js';
 import { mapsDataset, indexMaps, pickMap, mapDistance, parseCoords } from '../data/maps.js';
 import { shareResult } from '../ui/share.js';
-import { STATUS_EMOJI, modeHead, winCard, yesterdayLine } from './engine.js';
+import { STATUS_EMOJI, modeHead, winCard, yesterdayLine, unveil } from './engine.js';
 import { celebrate } from '../ui/victory.js';
 
 const NEAR = 5; // maps : en dessous, la proposition est "proche" (orange)
@@ -131,7 +132,16 @@ export async function runMapMode(root, opts = {}) {
     }
     save();
     refresh();
-    if (game.won) setTimeout(() => celebrate(mapMode, result), 500);
+    const where = g.zone ? (subById.get(g.zone)?.n || 'Zone') : `[${g.x}, ${g.y}]`;
+    if (game.won) {
+      announce(`${where} : bonne map, trouvée en ${game.guesses.length} essai${game.guesses.length > 1 ? 's' : ''} !`);
+      unveil(root);
+      setTimeout(() => play('harvest'), 400);
+      setTimeout(() => celebrate(mapMode, result), 500);
+    } else {
+      announce(g.zone && g.sameZone ? `${where} : bonne zone, trouve maintenant la map exacte.` : `${where} : à ${g.dist} map${g.dist > 1 ? 's' : ''}.`);
+      play(status(g) === 'ko' ? 'guess' : 'good');
+    }
   }
 
   function refresh() {
