@@ -66,7 +66,7 @@ export const itemMode = {
         const shown = done ? lines.length : Math.min(lines.length, 3 + n);
         const left = lines.length - shown;
         list.replaceChildren(...lines.slice(0, shown).map((l) => h('li', l)),
-          left > 0 ? h('li.hidden-fx', `+ ${left} effet${left > 1 ? 's' : ''} à découvrir`) : null);
+          ...(left > 0 ? [h('li.hidden-fx', `+ ${left} effet${left > 1 ? 's' : ''} à découvrir`)] : []));
         if (done) el.querySelector('.clue-visual').replaceChildren(img(itemImg(it), it.n));
       } else {
         picture.style.filter = done ? '' : `blur(${Math.max(0, 10 - n * 1.6)}px) grayscale(${n >= 2 ? 0 : 1})`;
