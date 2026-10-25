@@ -94,7 +94,7 @@ export async function runChiffreMode(root, opts = {}) {
 
   const input = h('input.guess-input.number-input', {
     type: 'text', inputmode: 'numeric', autocomplete: 'off', enterkeyhint: 'send',
-    placeholder: 'Ta réponse (un nombre entier)', 'aria-label': 'Ta réponse',
+    placeholder: matchMedia('(max-width: 560px)').matches ? 'Ta réponse' : 'Ta réponse (un nombre entier)', 'aria-label': 'Ta réponse',
   });
   const submit = h('button.btn.primary', { type: 'submit' }, 'Proposer');
   const form = h('form.number-form', input, submit);
@@ -122,7 +122,7 @@ export async function runChiffreMode(root, opts = {}) {
   root.append(
     h('div.panel.clue.number-clue',
       h('div.clue-meta',
-        h('span.theme-chip', `${theme.emoji} ${theme.label}`),
+        h('span.theme-chip', theme.label),
         h('h3.number-question', question.text),
         h('p.muted', 'Les indices se débloquent au fil des essais : clique pour les révéler.'),
         hints.el)),

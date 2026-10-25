@@ -14,7 +14,10 @@ import { normalize } from '../core/text.js';
  */
 const PAGE = 40;
 
-export function createAutocomplete({ items, placeholder, onSelect, exclude = () => new Set(), onFreeText, browse = true }) {
+export function createAutocomplete({ items, placeholder, shortPlaceholder, onSelect, exclude = () => new Set(), onFreeText, browse = true }) {
+  // Petit écran : texte d'exemple sans la parenthèse, pour qu'il ne soit pas coupé
+  const narrow = typeof matchMedia === 'function' && matchMedia('(max-width: 560px)').matches;
+  const shown_placeholder = narrow ? (shortPlaceholder || placeholder.replace(/\s*\(.*\)\s*/, '').replace(/…$/, '')) : placeholder;
   const index = items.map((it) => ({ it, key: normalize(it.n), words: normalize(it.n).split(' ') }));
   const alphabetical = [...index].sort((a, b) => a.key.localeCompare(b.key));
   let results = [];
@@ -22,7 +25,7 @@ export function createAutocomplete({ items, placeholder, onSelect, exclude = () 
   let active = -1;
 
   const input = h('input.guess-input', {
-    type: 'text', placeholder, autocomplete: 'off', spellcheck: 'false',
+    type: 'text', placeholder: shown_placeholder, autocomplete: 'off', spellcheck: 'false',
     'aria-autocomplete': 'list', 'aria-controls': 'ac-list', role: 'combobox', 'aria-expanded': 'false',
   });
   const list = h('ul.ac-list#ac-list', { role: 'listbox' });
@@ -56,7 +59,8 @@ export function createAutocomplete({ items, placeholder, onSelect, exclude = () 
       onmousedown: (e) => { e.preventDefault(); choose(it); },
     },
     it.img ? img(it.img, '', 'ac-img') : null,
-    h('span.ac-text', h('span.ac-name', it.n), h('span.ac-sub', it.sub || '')));
+    h('span.ac-text', h('span.ac-name', it.n), it.sub ? h('span.ac-sub', it.sub) : null),
+    it.tag ? h('span.ac-tag', it.tag) : null);
   }
 
   /** Ajoute la page suivante de suggestions (défilement infini). */

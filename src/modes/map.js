@@ -75,6 +75,7 @@ export async function runMapMode(root, opts = {}) {
   const ac = createAutocomplete({
     items: entries,
     placeholder: 'Coordonnées (ex. -2,5) ou nom de zone',
+    shortPlaceholder: 'X,Y ou nom de zone',
     browse: false, // le champ sert aussi aux coordonnées : pas de liste au simple clic
     exclude: () => new Set(game.guesses.filter((g) => g.zone).map((g) => g.zone)),
     onSelect: (it) => guessZone(it.id),

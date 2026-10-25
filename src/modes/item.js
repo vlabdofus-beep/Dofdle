@@ -25,7 +25,7 @@ export const itemMode = {
 
   prepare(data) {
     // Pas de vignette : l'icône des propositions permettrait de comparer avec l'icône floutée
-    const entries = data.items.map((it) => ({ id: it.id, n: it.n, sub: `${data.types[it.t] || ''} · niv. ${it.l}`, ref: it }));
+    const entries = data.items.map((it) => ({ id: it.id, n: it.n, sub: data.types[it.t] || '', tag: `niv. ${it.l}`, ref: it }));
     const count = {};
     for (const e of entries) count[e.n] = (count[e.n] || 0) + 1;
     for (const e of entries) if (count[e.n] > 1) e.n = `${e.n} (niv. ${e.ref.l})`;
@@ -82,7 +82,7 @@ export const itemMode = {
       img(itemImg(it), it.n, 'reveal-img'),
       h('div',
         h('h3', it.n),
-        h('p', `${data.types[it.t] || ''} · niveau ${it.l}`),
+        h('p', `${data.types[it.t] || ''}, niveau ${it.l}`),
         it.s ? h('p.muted', `Panoplie : ${data.sets[it.s] || '?'}`) : null,
         h('ul.effects.small', itemEffectLines(it, data).map((l) => h('li', l))),
         h('a.ext', { href: `https://dofusdb.fr/fr/database/object/${it.id}`, target: '_blank', rel: 'noopener' }, 'Voir sur DofusDB ↗')));

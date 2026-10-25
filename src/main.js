@@ -5,7 +5,7 @@ import { showStats } from './ui/stats.js';
 import { clearCache } from './core/cache.js';
 import { harvestedToday, modeInfo, dofusImg } from './core/modes.js';
 import { todayKey, dayNumber, msUntilNextDaily } from './core/daily.js';
-import { loadGame } from './core/storage.js';
+import { loadGame, loadStats, currentStreak } from './core/storage.js';
 import { shareResult } from './ui/share.js';
 import { renderHome } from './ui/home.js';
 import { showCollection } from './ui/collection.js';
@@ -132,6 +132,8 @@ window.addEventListener('dofusle:progress', (ev) => {
   const badge = document.querySelector(`.streak-badge[data-mode="${mode.id}"]`);
   if (badge) {
     badge.querySelector('.streak-text').textContent = streakText(mode.id, todayKey());
+    const short = badge.querySelector('.streak-short');
+    if (short) short.textContent = `${currentStreak(loadStats(mode.id), todayKey())} j`;
     badge.classList.add('on');
     if (fresh && !mobileBar()) { badge.classList.remove('bump'); void badge.offsetWidth; badge.classList.add('bump'); }
   }
@@ -169,6 +171,10 @@ document.getElementById('btn-help').addEventListener('click', () => {
 
 // Trophée : la collection complète (série 6/6, calendrier, statistiques par mode)
 document.getElementById('btn-stats').addEventListener('click', () => showCollection(MODES));
+document.getElementById('btn-legal').addEventListener('click', () => openModal('Mentions',
+  h('p', h('strong', 'Fan game non officiel. '), 'Dofusle n\'est ni affilié, ni approuvé, ni sponsorisé par Ankama Games. Dofus et tous les noms, images et contenus associés sont la propriété d\'Ankama Games.'),
+  h('p', 'Données et images issues de ', h('a', { href: 'https://dofusdb.fr', target: '_blank', rel: 'noopener' }, 'DofusDB'), ', pour un usage non commercial.'),
+  h('p', 'Pas de compte, pas de publicité, aucune donnée collectée : ta progression reste dans ton navigateur.')));
 document.getElementById('btn-cache').addEventListener('click', async () => {
   await clearCache();
   toast('Cache vidé — rechargement des données…');

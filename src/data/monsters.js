@@ -191,7 +191,7 @@ export function monsterEntries(data, normalize) {
     // hidden : retiré des suggestions et des tirages (voir SPECIAL_EXCLUDED_FROM)
     const raceInfo = data.races[m.r];
     const hidden = (!!m.x || raceInfo?.sr === ALIGNMENT_SUPER_RACE) && !isKeptRace(m.r, raceInfo);
-    entries.push({ id: m.id, n: m.n, img: monsterImg(m), sub: `${race} · niv. ${fmtRange(m.l)}`, ref: m, hidden });
+    entries.push({ id: m.id, n: m.n, img: monsterImg(m), sub: race, tag: `niv. ${fmtRange(m.l)}`, ref: m, hidden });
   }
   return entries;
 }

@@ -61,14 +61,14 @@ export function streakText(id, date) {
 /** En-tête commun (titre du mode, numéro du défi du jour, série en cours). */
 export function modeHead(cfg, date) {
   const n = currentStreak(loadStats(cfg.id), date);
+  // Une seule ligne : la règle du mode est dans l'aide (?) et dans la présentation
   return h('div.mode-head',
-    h('div.mode-title', img(cfg.icon, '', 'mode-icon'), h('div',
-      h('h2', cfg.label),
-      h('p.mode-intro', cfg.intro))),
+    h('div.mode-title', img(cfg.icon, '', 'mode-icon'), h('h2', { title: cfg.intro }, cfg.label),
+      h('span.day-badge', `Défi n° ${dayNumber(date)}`)),
     h('div.mode-badges',
-      h('span.day-badge', `Défi du jour n° ${dayNumber(date)}`),
       h('span.streak-badge', { class: n ? 'on' : undefined, 'data-mode': cfg.id, title: 'Défis du jour réussis d\'affilée dans ce mode' },
-        h('span.streak-flame', { 'aria-hidden': 'true' }), h('span.streak-text', streakText(cfg.id, date)))));
+        h('span.streak-flame', { 'aria-hidden': 'true' }), h('span.streak-text', streakText(cfg.id, date)),
+        h('span.streak-short', { 'aria-hidden': 'true' }, `${n} j`))));
 }
 
 /**

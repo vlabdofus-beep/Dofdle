@@ -86,7 +86,8 @@ export const spellMode = {
       img(spellImg(s), s.n, 'reveal-img'),
       h('div',
         h('h3', s.n),
-        h('p', h('img', { src: breedHead(s.b), alt: '', width: 22, height: 22, style: { verticalAlign: 'middle' } }), ` ${data.breeds[s.b]} · ${s.pa} PA · PO ${s.po[0]}–${s.po[1]}`),
+        h('p', h('img', { src: breedHead(s.b), alt: '', width: 22, height: 22, style: { verticalAlign: 'middle' } }), ` ${data.breeds[s.b]}`),
+        h('p', `${s.pa} PA, portée ${s.po[0]} à ${s.po[1]}`),
         s.de ? h('p.muted', { style: { maxWidth: '460px' } }, s.de) : null,
         h('a.ext', { href: `https://dofusdb.fr/fr/database/spell/${s.id}`, target: '_blank', rel: 'noopener' }, 'Voir sur DofusDB ↗')));
   },
