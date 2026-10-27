@@ -173,10 +173,11 @@ function chestIntro(overlay, draws, onReveal) {
   const best = Math.max(...draws.map((d) => d.card.rarity));
   const sparks = [...Array(28)].map((_, i) => h('i', { style: `--a:${(i * 360) / 28 + (i % 3) * 7}deg;--d:${7 + (i % 5) * 2.2}em;--t:${(i % 4) * 60}ms` }));
   const chest = h('button.cs-chest', { type: 'button', 'aria-label': draws.length > 1 ? `Ouvrir les ${draws.length} coffres` : 'Ouvrir le coffre' },
+    // Narkoffret Infini : le dessin du jeu découpé en coffre et couvercle ; le couvercle pivote
+    // sur sa charnière arrière et laisse voir l'intérieur, puis son dessous
     h('span.cs-inside', { 'aria-hidden': 'true' }),
-    // Narkoffret Infini : le même dessin en deux morceaux, le coffre et son couvercle
     h('img.cs-body', { src: NARKOFFRET, alt: '' }),
-    h('img.cs-lid', { src: NARKOFFRET, alt: '' }),
+    h('span.cs-lid', { 'aria-hidden': 'true' }, h('img.cs-lid-top', { src: NARKOFFRET, alt: '' }), h('span.cs-lid-under')),
     h('span.cs-seam', { 'aria-hidden': 'true' }),
     draws.length > 1 ? h('span.cs-count', `×${draws.length}`) : null);
   const stage = h(`div.cs-stage.r${best}`, { style: `--hc:${HALO[best]}` },

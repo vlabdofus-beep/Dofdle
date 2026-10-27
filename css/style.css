@@ -1870,3 +1870,24 @@ body:not([data-mode="accueil"]) .mode-tab { font-size: 12px; }
 .home-bestiary:hover .hb-chest{transform:translateY(-4px) rotate(-3deg)}
 .hb-n{position:absolute;right:6px;top:4px;padding:2px 8px;border-radius:99px;background:#1c2731;border:1px solid var(--gold);color:#f0d28e;font:700 13px Inter,sans-serif}
 @media (prefers-reduced-motion: reduce){.cp-aura,.cp-chest,.cp-shadow{animation:none}}
+
+/* Narkoffret : ouverture sur charnière (coin arrière gauche du coffre) */
+.cs-chest{transform-style:preserve-3d}
+.cs-body{clip-path:polygon(0 50%,13% 50%,40% 58.5%,82% 46%,100% 46%,100% 100%,0 100%)}
+.cs-inside{left:0;right:0;top:0;height:100%;transform:none;z-index:0;opacity:1;border-radius:0;
+  clip-path:polygon(13% 50%,40% 58.5%,82% 46%,55% 37.5%);
+  background:radial-gradient(ellipse 40% 30% at 48% 49%,#fff,color-mix(in srgb,var(--hc) 85%,#fff) 30%,#4a3622 75%,#24180e)}
+.cs-stage:not(.charge):not(.burst) .cs-inside{opacity:0}
+.cs-lid{position:absolute;inset:0;width:100%;height:100%;z-index:2;transform-origin:13% 50%;clip-path:none;transform-style:preserve-3d;
+  transition:transform .55s cubic-bezier(.25,1.6,.45,1);filter:none}
+.cs-lid-top,.cs-lid-under{position:absolute;inset:0;width:100%;height:100%;backface-visibility:hidden}
+.cs-lid-top{object-fit:contain;clip-path:polygon(0 0,100% 0,100% 47%,82% 47%,40% 59.5%,13% 51%,0 51%)}
+.cs-lid-under{clip-path:polygon(13% 50%,40% 58.5%,82% 46%,55% 37.5%);transform:rotateY(180deg);
+  background:linear-gradient(200deg,#3a2c22 10%,#6a5644 55%,color-mix(in srgb,var(--hc) 55%,#8a7660) 100%)}
+.cs-lid-under::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(105deg,transparent 0 9%,rgba(0,0,0,.18) 9% 9.6%)}
+.cs-stage .cs-lid{transform:none}
+.cs-stage.charge .cs-lid{animation:cs-rattle .16s ease-in-out infinite alternate}
+@keyframes cs-rattle{from{transform:rotate3d(.958,-.285,0,4deg)}to{transform:rotate3d(.958,-.285,0,13deg)}}
+.cs-stage.burst .cs-lid{animation:none;transform:rotate3d(.958,-.285,0,122deg);filter:none}
+.cs-seam{display:none}
+.cs-chest::before{left:22%;right:22%;bottom:52%}
