@@ -54,7 +54,26 @@ export const POOLS = [
 ];
 /** Décor de la carte : la zone d'origine (classe CSS z-<zone>, voir css/scenes.css). */
 const zoneSlug = (name) => normalize(name || '').trim().replace(/ /g, '-');
-const SPELL_SCENE = { feu: 'el-feu', eau: 'el-eau', terre: 'el-terre', air: 'el-air', neutre: 'el-neutre' };
+// Sous-zones souterraines ou funéraires : variante du décor (sauf zones déjà de ce type)
+const UNDERGROUND = /\b(donjon|grotte|caverne|souterrain|egout|cloaque|mine|carriere|galerie|antre|terrier|taniere|boyau|hypogee|excavation|repaire|fosse|faille|cache)\b/;
+const GRAVEYARD = /\b(cimetiere|crypte|catacomb|tombe|tombeau|tombeaux|ossuaire|mausolee)\b/;
+const OWN_STYLE = new Set(['srambad', 'ile-de-grobe', 'enutrosor', 'labyrinthe-du-dragon-cochon', 'gouffre-du-gigalodon', 'profondeurs-de-sufokia', 'foret-malefique']);
+function monsterScene(area, sub) {
+  const zone = zoneSlug(area || sub);
+  const n = normalize(sub || '');
+  if (!OWN_STYLE.has(zone)) {
+    if (GRAVEYARD.test(n)) return 'cimetiere';
+    if (UNDERGROUND.test(n)) return 'souterrain';
+  }
+  return zone;
+}
+// Équipements : l'atelier du métier qui les fabrique
+const CRAFT = {
+  anneau: 'bijoutier', amulette: 'bijoutier', chapeau: 'tailleur', cape: 'tailleur', bottes: 'cordonnier', ceinture: 'cordonnier',
+  bouclier: 'faconneur', arc: 'sculpteur', baton: 'sculpteur', baguette: 'sculpteur', 'arme magique': 'sculpteur',
+};
+const craftScene = (type) => CRAFT[normalize(type || '').trim()] || 'forgeron';
+const breedSymbol = (id) => `https://api.dofusdb.fr/img/breeds/symbol_${id}.png`;
 const pad = (n, w) => String(n).padStart(w, '0');
 
 /**
@@ -70,7 +89,7 @@ export function buildCards(monsters, items = null, spells = null) {
     const sub = data.subareas[m.z];
     const area = data.areas[sub?.a];
     return {
-      scene: zoneSlug(area || sub?.n),
+      scene: monsterScene(area, sub?.n),
       id: `m${m.id}`, name: m.n, rarity: r, img: monsterImg(m),
       family: m.k === 'boss' ? (race ? `Boss des ${race}` : 'Boss') : race,
       habitat: data.areas[sub?.a] || sub?.n || 'Inconnu', level: m.l,
@@ -84,13 +103,13 @@ export function buildCards(monsters, items = null, spells = null) {
   }));
 
   const equip = !items ? [] : [...items.items].sort((a, b) => a.l - b.l || a.n.localeCompare(b.n, 'fr')).map((it, i) => ({
-    id: `e${it.id}`, name: it.n, rarity: itemRarity(it), img: itemImg(it), series: 'e', num: `E-${pad(i + 1, 4)}`, scene: 'atelier',
+    id: `e${it.id}`, name: it.n, rarity: itemRarity(it), img: itemImg(it), series: 'e', num: `E-${pad(i + 1, 4)}`, scene: craftScene(items.types[it.t]),
     family: items.types[it.t] || 'Équipement', level: [it.l, it.l],
     habitat: it.s ? (items.sets[it.s] || 'Panoplie') : 'Hors panoplie', habLabel: 'Panoplie',
   }));
 
   const spellCards = !spells ? [] : [...spells.spells].sort((a, b) => a.b - b.b || a.n.localeCompare(b.n, 'fr')).map((sp, i) => ({
-    id: `s${sp.id}`, name: sp.n, rarity: spellRarity(sp), img: spellImg(sp), series: 's', num: `S-${pad(i + 1, 4)}`, scene: SPELL_SCENE[(sp.el || [])[0]] || 'el-neutre',
+    id: `s${sp.id}`, name: sp.n, rarity: spellRarity(sp), img: spellImg(sp), series: 's', num: `S-${pad(i + 1, 4)}`, scene: `classe-${sp.b}`, symbol: breedSymbol(sp.b),
     family: spells.breeds[sp.b] || 'Sort', habLabel: 'Élément',
     habitat: (sp.el || []).length ? sp.el.map((e) => ELEMENTS[e]?.label || e).join(', ') : (sp.soin ? 'Soin' : 'Aucun'),
     stat: `${sp.pa} PA, portée ${sp.po[0] === sp.po[1] ? sp.po[0] : `${sp.po[0]} à ${sp.po[1]}`}`,
@@ -99,7 +118,7 @@ export function buildCards(monsters, items = null, spells = null) {
   const classes = !spells ? [] : Object.entries(spells.breeds).map(([id, name], i) => {
     const n = spells.spells.filter((sp) => String(sp.b) === id).length;
     return {
-      id: `c${id}`, name, rarity: 4, img: `https://api.dofusdb.fr/img/breeds/logo_transparent_${id}.png`, series: 'c', scene: 'temple',
+      id: `c${id}`, name, rarity: 4, img: breedSymbol(id), series: 'c', scene: `classe-${id}`, symbol: breedSymbol(id),
       num: `C-${pad(i + 1, 2)}`, family: 'Classe', habLabel: 'Sorts', habitat: `${n} sort${n > 1 ? 's' : ''}`, stat: 'Classe du Monde des Douze',
     };
   });

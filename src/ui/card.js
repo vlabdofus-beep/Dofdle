@@ -50,11 +50,14 @@ export function cardEl(card, { count = 1 } = {}) {
   const width = Math.max(2, Math.min(100, (hi / 200) * 100) - left);
   const long = card.name.length > 22 ? '.long' : card.name.length > 16 ? '.mid' : '';
   const el = h(`article.bcard.r${card.rarity}`, { 'aria-label': `${card.name}, carte ${r.label.toLowerCase()}`, 'data-card': card.id },
-    h(`div.bc-scene.z-${card.scene || 'amakna'}`, { 'aria-hidden': 'true' }, h('i.bc-sky'), h('i.bc-far'), h('i.bc-near')),
     h('div.bc-top', h('span', `Planche n° ${card.num}`), h('span', card.family)),
     h(`div.bc-name${long}`, card.name),
     h('div.bc-rule', { 'aria-hidden': 'true' }),
-    h(`div.bc-art.s-${card.series || 'm'}`, h('img', { src: card.img, alt: '', loading: 'lazy', decoding: 'async' })),
+    // Vignette : le décor de la zone d'origine (ou le symbole de la classe), le spécimen devant
+    h(`div.bc-art.s-${card.series || 'm'}`,
+      h(`div.bc-scene.z-${card.scene || 'amakna'}`, { 'aria-hidden': 'true', style: card.symbol ? `--sym:url("${card.symbol}")` : undefined },
+        card.symbol ? h('i.bc-sym') : null),
+      h('img', { src: card.img, alt: '', loading: 'lazy', decoding: 'async' })),
     // Règle graduée du niveau ; pour les sorts et les classes, une ligne de caractéristiques
     card.level
       ? h('div.bc-scale', { 'aria-label': levelText(card.level) },

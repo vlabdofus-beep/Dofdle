@@ -1603,23 +1603,17 @@ body:not([data-mode="accueil"]) .mode-tab { font-size: 12px; }
 .bs-to,.bs-hint{width:max-content;margin:0 auto;padding:.1em .5em;background:#e6d6b2;border-radius:.2em}
 @media (prefers-reduced-motion: reduce){.co-slot::before,.chest-open.flash::after{display:none}.bcard.shine::after{animation:none}}
 
-/* Décor de zone : lavis ciel/sol fondu dans la matière de la rareté, puis deux plans gravés
-   (lointain, proche) dans l'encre de la carte. Les motifs et palettes sont dans css/scenes.css. */
-.bc-scene{position:absolute;inset:.44em;z-index:-1;border-radius:.5em;overflow:hidden;pointer-events:none;
-  --sky:#d8e4ea;--ground:#8aa46a;--far:none;--near:none}
+/* Vignette de décor : la zone d'origine en couleur, encadrée comme une gravure rehaussée.
+   La rareté reste portée par la planche autour (matière, cadre, sceau, encre, reflet). */
+.bc-art{margin:.35em 0 .3em}
+.bc-scene{position:absolute;inset:0;z-index:0;overflow:hidden;border-radius:.3em;background:#cfc4ad center/cover no-repeat;
+  box-shadow:0 0 0 1px var(--ink),0 0 0 .2em color-mix(in srgb,var(--ink) 18%,transparent),inset 0 0 1.2em rgba(0,0,0,.28)}
 @supports (corner-shape: bevel) { .bc-scene { corner-shape: bevel; } }
-/* Lavis : le ciel en haut, le sol en bas, en multiplication sur le papier */
-.bc-scene::before{content:'';position:absolute;inset:0;mix-blend-mode:multiply;opacity:.75;
-  background:linear-gradient(180deg,transparent 3%,var(--sky) 28%,color-mix(in srgb,var(--sky) 40%,var(--ground)) 60%,var(--ground) 100%)}
-/* Matières sombres : le lavis teinte sans assombrir */
-.bcard.r3 .bc-scene::before,.bcard.r4 .bc-scene::before,.bcard.r5 .bc-scene::before{mix-blend-mode:soft-light;opacity:.8}
-.bc-sky,.bc-far,.bc-near{position:absolute;left:0;right:0;top:17%;height:57%;
-  -webkit-mask:var(--far) center bottom/100% 100% no-repeat,linear-gradient(#000 74%,transparent);-webkit-mask-composite:source-in;
-  mask:var(--far) center bottom/100% 100% no-repeat,linear-gradient(#000 74%,transparent);mask-composite:intersect}
-/* Ciel : teinte propre à la zone ; lointain : couleur de la zone ; premier plan : encre de la carte */
-.bc-sky{background:var(--c-sky);opacity:.9;-webkit-mask-image:var(--m-sky),linear-gradient(#000,#000);mask-image:var(--m-sky),linear-gradient(#000,#000)}
-.bc-far{background:var(--c-far);opacity:.68}
-.bc-near{background:var(--ink);opacity:.72;-webkit-mask-image:var(--near),linear-gradient(#000 74%,transparent);mask-image:var(--near),linear-gradient(#000 74%,transparent)}
-.bcard.r3 .bc-far,.bcard.r4 .bc-far,.bcard.r5 .bc-far{background:color-mix(in srgb,var(--c-far) 45%,var(--ink));opacity:.6}
-.bcard.r1 .bc-sky,.bcard.r2 .bc-sky{mix-blend-mode:normal}
+.bc-art img{position:relative;z-index:1}
+.bc-art:has(.bc-scene)::after{display:none}
+/* Sorts et classes : le symbole de la classe en filigrane */
+.bc-sym{position:absolute;inset:-8%;background:var(--sym) center/78% no-repeat;opacity:.3;transform:rotate(-8deg);filter:saturate(.8)}
+.bc-art.s-c .bc-sym{opacity:.18;inset:-25%}
+.bc-art.s-c img{filter:drop-shadow(0 .2em .3em rgba(0,0,0,.45))}
 .win-egg-chests { flex-basis: 100%; text-align: center; font-size: 13px; color: var(--gold, #e7c26a); }
+.bc-art:has(.bc-scene)::before{display:none}
