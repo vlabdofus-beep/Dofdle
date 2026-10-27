@@ -14,7 +14,13 @@
   Cache-Control: public, max-age=3600, stale-while-revalidate=604800
 /assets/*
   Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+# Code et styles : revalidés à chaque chargement (réponse 304 si rien n'a changé),
+# pour qu'une mise en ligne ne mélange jamais anciens et nouveaux fichiers.
 /src/*
-  Cache-Control: public, max-age=300, must-revalidate
+  Cache-Control: no-cache
 /css/*
-  Cache-Control: public, max-age=300, must-revalidate
+  Cache-Control: no-cache
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
