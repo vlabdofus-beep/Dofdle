@@ -51,6 +51,9 @@ export function cardEl(card, { count = 1 } = {}) {
   const width = Math.max(2, Math.min(100, (hi / 200) * 100) - left);
   const long = card.name.length > 22 ? '.long' : card.name.length > 16 ? '.mid' : '';
   const el = h(`article.bcard.r${card.rarity}`, { 'aria-label': `${card.name}, carte ${r.label.toLowerCase()}`, 'data-card': card.id },
+    // Écrin : monogramme, filigrane du logo, coins ornés, médaillon
+    h('div.bc-orn', { 'aria-hidden': 'true' }, h('i.bc-mono'), h('i.bc-wm'),
+      h('i.bc-c.tl'), h('i.bc-c.tr'), h('i.bc-c.bl'), h('i.bc-c.br'), h('i.bc-crest')),
     h('div.bc-top', h('span', `Planche n° ${card.num}`), h('span', card.family)),
     h(`div.bc-name${long}`, card.name),
     h('div.bc-rule', { 'aria-hidden': 'true' }),
