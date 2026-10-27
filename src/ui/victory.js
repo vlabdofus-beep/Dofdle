@@ -8,7 +8,7 @@ import { hash, todayKey, dayNumber, msUntilNextDaily } from '../core/daily.js';
 import { loadGame, loadStats, currentStreak, fullDayStreaks } from '../core/storage.js';
 import { nextMode, modeInfo, dofusImg, harvestedToday, MODE_ORDER } from '../core/modes.js';
 import { dailyPhrase, dayPhrase } from '../data/phrases.js';
-import { streakEgg, streakTier } from './streak.js';
+import { streakEgg, streakTier, STEP } from './streak.js';
 import { play } from './sound.js';
 
 const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -160,12 +160,17 @@ export function celebrate(cfg, result) {
 function eggLine(streak) {
   if (!streak) return null;
   const t = streakTier(streak);
+  const goal = streak + (STEP - (streak % STEP));
+  const left = goal - streak;
+  // Prochain palier de série : autant de coffres que de jours
+  const chests = h('span.win-egg-chests', `Prochain palier : ${goal} coffres dans ${left} jour${left > 1 ? 's' : ''}`);
   return h('p.win-egg',
     streakEgg(streak),
     t.next
       ? h('span', `Ton ${t.name} évolue en ${t.next} dans ${t.nextIn} jour${t.nextIn > 1 ? 's' : ''}`)
       : h('span', `Ton ${t.name} a atteint sa forme la plus rare`),
-    t.next ? h('span.win-egg-next', { 'aria-hidden': 'true' }, '›', streakEgg(streak + t.nextIn)) : null);
+    t.next ? h('span.win-egg-next', { 'aria-hidden': 'true' }, '›', streakEgg(streak + t.nextIn)) : null,
+    chests);
 }
 
 export function showDayComplete() {

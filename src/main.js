@@ -142,7 +142,7 @@ const awaiting = new Set();
 window.addEventListener('dofusle:progress', (ev) => {
   const mode = currentMode();
   const won = ev.detail?.mode;
-  // Coffres : 1 par défi, 3 pour la journée complète, 2 par évolution d'œuf (une seule fois chacun)
+  // Coffres : 1 par défi, 3 pour la journée complète, N tous les 5 jours de série (une seule fois chacun)
   if (won) {
     const gained = rewardWin(won, todayKey(), MODES.length);
     if (gained.length) {
@@ -189,7 +189,7 @@ document.getElementById('btn-help').addEventListener('click', () => {
       h('li', h('strong', 'Cri : '), 'écoute le cri d\'un monstre (tiré des fichiers du jeu) et retrouve à qui il appartient.'),
       h('li', h('strong', 'Juste prix : '), 'une question chiffrée improbable (maps d\'une région, recettes d\'un métier, PV d\'un boss…). Trouve le nombre exact grâce aux indications plus / moins.')),
     h('p.muted', 'Les indices ne s\'affichent jamais tout seuls : une fois débloqués, clique dessus pour les révéler.'),
-    h('p.muted', 'Bestiaire : chaque défi réussi rapporte un coffre (3 pour la journée complète, 2 à chaque évolution d\'œuf). Ouvre-les dans le Bestiaire, par 1 ou par 10, pour collectionner les cartes des monstres et des Dofus.'),
+    h('p.muted', 'Bestiaire : chaque défi réussi rapporte un coffre (3 pour la journée complète ; tous les 5 jours de série, autant de coffres que de jours : 5, 10, 15…). Ouvre-les dans le Bestiaire, par 1 ou par 10, pour collectionner les cartes des monstres et des Dofus.'),
     h('p.muted', 'Bloqué ? Au-dessus du champ, filtre la liste par région et niveau (Monstre, Cri) ou par classe et élément (Sort), et classe-la par niveau.'),
     h('div.legend.static',
       h('span', h('i.sw.ok', '✓'), 'Correct'),

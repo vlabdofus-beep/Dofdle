@@ -1618,3 +1618,4 @@ body:not([data-mode="accueil"]) .mode-tab { font-size: 12px; }
   -webkit-mask:var(--far) center bottom/100% 100% no-repeat,linear-gradient(#000 72%,transparent);-webkit-mask-composite:source-in;
   mask:var(--far) center bottom/100% 100% no-repeat,linear-gradient(#000 72%,transparent);mask-composite:intersect}
 .bc-near{-webkit-mask-image:var(--near),linear-gradient(#000 72%,transparent);mask-image:var(--near),linear-gradient(#000 72%,transparent);opacity:.5}
+.win-egg-chests { flex-basis: 100%; text-align: center; font-size: 13px; color: var(--gold, #e7c26a); }

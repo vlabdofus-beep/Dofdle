@@ -1,12 +1,12 @@
 // Coffres et collection du Bestiaire (stockage local, sans compte).
-// Gains : 1 coffre par mode réussi, 3 pour la journée complète, 2 à chaque évolution
-// d'un œuf de série (un œuf par mode + celui des journées complètes).
+// Gains : 1 coffre par mode réussi, 3 pour la journée complète, et des paliers de série :
+// tous les 5 jours d'affilée, autant de coffres que de jours (5, puis 10, puis 15…),
+// pour la série de chaque mode comme pour celle des journées complètes.
 import { loadStats, currentStreak, loadHistory, fullDayStreaks } from './storage.js';
 import { RARITIES, rarity } from '../data/cards.js';
-import { STEP, STREAK_EGGS } from '../ui/streak.js';
+import { STEP } from '../ui/streak.js';
 
 const KEY = 'dofusle:v1:bestiaire';
-const MAX_EGG_STREAK = STEP * (STREAK_EGGS.length - 1); // dernière évolution
 export const WELCOME_CAP = 20; // coffres offerts aux joueurs déjà là (victoires passées)
 
 function load() {
@@ -39,7 +39,7 @@ function grant(s, key, n) {
 }
 
 /**
- * Gains liés à une victoire : le mode, la journée complète, les évolutions d'œuf.
+ * Gains liés à une victoire : le mode, la journée complète, les paliers de série.
  * Sans effet si déjà accordés (rechargement, sauvegardes répétées).
  */
 export function rewardWin(mode, date, totalModes) {
@@ -47,15 +47,15 @@ export function rewardWin(mode, date, totalModes) {
   const gained = [];
   if (grant(s, `win:${mode}:${date}`, 1)) gained.push({ n: 1, why: 'défi réussi' });
   const streak = currentStreak(loadStats(mode), date);
-  if (streak > 0 && streak % STEP === 0 && streak <= MAX_EGG_STREAK && grant(s, `egg:${mode}:${date}`, 2)) {
-    gained.push({ n: 2, why: 'ton œuf a évolué' });
+  if (streak > 0 && streak % STEP === 0 && grant(s, `egg:${mode}:${date}`, streak)) {
+    gained.push({ n: streak, why: `${streak} jours de série` });
   }
   const today = loadHistory()[date] || {};
   if (Object.keys(today).length >= totalModes) {
     if (grant(s, `day:${date}`, 3)) gained.push({ n: 3, why: 'journée complète' });
     const full = fullDayStreaks(date, totalModes).current;
-    if (full > 0 && full % STEP === 0 && full <= MAX_EGG_STREAK && grant(s, `egg:jour:${date}`, 2)) {
-      gained.push({ n: 2, why: 'ton œuf des journées complètes a évolué' });
+    if (full > 0 && full % STEP === 0 && grant(s, `egg:jour:${date}`, full)) {
+      gained.push({ n: full, why: `${full} journées complètes d'affilée` });
     }
   }
   if (gained.length) save(s);

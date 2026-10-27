@@ -116,7 +116,7 @@ export async function renderBestiary(root) {
           h('td', r.label), h('td', `${String(r.weight).replace('.', ',')} %`), h('td', `+${r.shards}`), h('td', fmt(r.cost)))))),
       h('p.small.muted', 'Chaque coffre contient une carte : une chance sur deux d\'un équipement, une chance sur deux d\'un monstre, d\'un sort, d\'une classe ou d\'un Dofus. La rareté est ensuite tirée selon ce tableau.'),
       h('p.small.muted', 'Ouverture par 10 : au moins une carte Rare ou mieux. Un doublon se transforme en éclats ; avec assez d\'éclats, tu crées la carte manquante de ton choix.'),
-      h('p.small.muted', 'Les coffres se gagnent en jouant : 1 par défi réussi, 3 pour la journée complète, 2 à chaque évolution d\'un œuf de série. Rien ne s\'achète.'));
+      h('p.small.muted', 'Les coffres se gagnent en jouant : 1 par défi réussi, 3 pour la journée complète, et tous les 5 jours de série, autant de coffres que de jours : 5, puis 10, puis 15… La série de chaque mode compte, et celle des journées complètes aussi. Rien ne s\'achète.'));
   }
 
   function refresh() { drawHead(); drawGrid(); }
