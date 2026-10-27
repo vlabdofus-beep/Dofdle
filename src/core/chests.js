@@ -6,14 +6,20 @@ import { loadStats, currentStreak, loadHistory, fullDayStreaks } from './storage
 import { addDays } from './daily.js';
 import { RARITIES, rarity } from '../data/cards.js';
 import { STEP } from '../ui/streak.js';
+import { readSigned, writeSigned } from './seal.js';
 
 const KEY = 'dofusle:v1:bestiaire';
 export const WELCOME_CAP = 20; // ancien cadeau d'accueil plafonné (déduit du rattrapage)
 const CATCHUP_VERSION = 1;
 
+const GIFT_KEY = 'gift:30:2026-10-27'; // compensation offerte à tous à l'arrivée du garde-fou
+const GIFT = 30;
+
 function load() {
   let s = null;
-  try { s = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { s = null; }
+  const { raw, state } = readSigned(KEY);
+  // Sauvegarde modifiée à la main : ignorée (secureChests la remet à zéro au démarrage)
+  try { s = state === 'tampered' ? null : JSON.parse(raw || 'null'); } catch { s = null; }
   // Données modifiables à la main : on vérifie la forme avant de s'en servir
   if (!s || typeof s !== 'object') s = {};
   return {
@@ -27,7 +33,7 @@ function load() {
   };
 }
 function save(s) {
-  try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* stockage plein ou bloqué */ }
+  writeSigned(KEY, JSON.stringify(s));
   window.dispatchEvent(new CustomEvent('dofusle:chests', { detail: { chests: s.chests } }));
 }
 
@@ -49,7 +55,8 @@ export function rewardWin(mode, date, totalModes) {
   const s = load();
   const gained = [];
   if (grant(s, `win:${mode}:${date}`, 1)) gained.push({ n: 1, why: 'défi réussi' });
-  const streak = currentStreak(loadStats(mode), date);
+  // La série des statistiques est recoupée avec l'historique (les deux sont signés)
+  const streak = Math.min(currentStreak(loadStats(mode), date), historyRun(mode, date));
   if (streak > 0 && streak % STEP === 0 && grant(s, `egg:${mode}:${date}`, streak)) {
     gained.push({ n: streak, why: `${streak} jours de série` });
   }
@@ -63,6 +70,63 @@ export function rewardWin(mode, date, totalModes) {
   }
   if (gained.length) save(s);
   return gained;
+}
+
+/** Jours d'affilée où le mode a été réussi, en remontant depuis `date`. */
+function historyRun(mode, date) {
+  const hist = loadHistory();
+  let n = 0, d = date;
+  while (hist[d] && hist[d][mode] != null && n < 5000) { n++; d = addDays(d, -1); }
+  return n;
+}
+
+/** Tout ce que l'historique permet d'avoir gagné (règles actuelles) : total et clés du registre. */
+function entitlement(modes, today) {
+  const hist = loadHistory();
+  const dates = Object.keys(hist).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d) && d <= today).sort();
+  const keys = [];
+  let total = 0;
+  const run = {};
+  let fullRun = 0;
+  for (const d of dates) {
+    const day = hist[d] || {};
+    const prev = hist[addDays(d, -1)] || {};
+    for (const m of Object.keys(day)) {
+      keys.push(`win:${m}:${d}`); total += 1;
+      run[m] = prev[m] != null ? (run[m] || 0) + 1 : 1;
+      if (run[m] % STEP === 0) { keys.push(`egg:${m}:${d}`, `egg:${m}:${d}:+`); total += run[m]; }
+    }
+    if (modes.length && modes.every((m) => day[m] != null)) {
+      keys.push(`day:${d}`); total += 3;
+      fullRun = modes.every((m) => prev[m] != null) ? fullRun + 1 : 1;
+      if (fullRun % STEP === 0) { keys.push(`egg:jour:${d}`, `egg:jour:${d}:+`); total += fullRun; }
+    } else fullRun = 0;
+  }
+  return { total, keys };
+}
+
+/**
+ * Au démarrage : garde-fou sur la sauvegarde du Bestiaire, puis compensation de 30 coffres.
+ * - modifiée à la main : coffres, éclats et cartes remis à zéro ;
+ * - ancienne sauvegarde non signée : les coffres sont plafonnés à ce que l'historique permet ;
+ * renvoie { reset, gift }.
+ */
+export function secureChests(modes = [], today = '') {
+  const { raw, state } = readSigned(KEY);
+  const ent = entitlement(modes, today);
+  let reset = false;
+  let s;
+  if (state === 'tampered') {
+    reset = true;
+    s = { chests: 0, shards: 0, cards: {}, granted: [...ent.keys, GIFT_KEY], welcomed: true, catchup: CATCHUP_VERSION, opened: 0 };
+  } else {
+    s = load();
+    if (raw && state === 'legacy') s.chests = Math.min(s.chests, Math.max(0, ent.total + WELCOME_CAP - s.opened));
+  }
+  let gift = 0;
+  if (!s.granted.includes(GIFT_KEY)) { s.granted.push(GIFT_KEY); s.chests += GIFT; gift = GIFT; }
+  if (reset || gift || state === 'legacy') save(s);
+  return { reset, gift };
 }
 
 /**

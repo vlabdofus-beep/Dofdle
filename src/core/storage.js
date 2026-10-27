@@ -1,12 +1,25 @@
 // Persistance locale (sans compte) : parties du jour, statistiques, séries.
 import { addDays } from './daily.js';
+import { readSigned, writeSigned } from './seal.js';
 
 const NS = 'dofusle:v1:';
+// Historique et statistiques servent à calculer les coffres : ils sont signés (garde-fou)
+const SIGNED = (key) => key === 'history' || key.startsWith('stats:');
 
 function read(key, fallback) {
+  if (SIGNED(key)) {
+    const { raw, state } = readSigned(NS + key);
+    if (raw == null || state === 'tampered') return fallback; // modifié à la main : ignoré
+    try {
+      const v = JSON.parse(raw);
+      if (state === 'legacy') writeSigned(NS + key, raw); // sauvegarde d'avant le garde-fou : on la signe
+      return v;
+    } catch { return fallback; }
+  }
   try { const v = localStorage.getItem(NS + key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
 }
 function write(key, value) {
+  if (SIGNED(key)) { writeSigned(NS + key, JSON.stringify(value)); return; }
   try { localStorage.setItem(NS + key, JSON.stringify(value)); } catch { /* stockage indisponible */ }
 }
 
