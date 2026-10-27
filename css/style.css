@@ -1996,3 +1996,19 @@ body:not([data-mode="accueil"]) .mode-tab { font-size: 12px; }
 .bcard.r5 .bc-name{font-size:1.2em;letter-spacing:.02em}
 .bcard.r5 .bc-name.mid{font-size:1.02em} .bcard.r5 .bc-name.long{font-size:.9em}
 .bcard.r5 .bc-art img,.bcard.r5 .bc-art.s-m img,.bcard.r5 .bc-art.s-d img,.bcard.r5 .bc-art.s-e img{inset:-4% 0}
+
+/* Carte : les distances juste sous les indices, avant la saisie, sans avoir à défiler.
+   La plus récente en haut ; au-delà de quelques propositions, la liste défile sur place. */
+.map-layout { grid-template-areas: "frame mini" "hints mini" "input mini" "list mini"; grid-template-rows: auto auto auto 1fr; }
+.map-area-input { align-self: start; }
+.map-area-list .map-rows { max-height: 10.5em; overflow-y: auto; padding-right: 2px; scrollbar-width: thin; }
+.map-area-list .map-row { padding: 7px 12px; }
+.map-area-list .legend { margin-top: 6px; font-size: 12.5px; }
+.map-area-list:has(.map-rows:empty) { display: none; }
+@media (min-width: 901px) { .map-frame { max-height: min(386px, 36vh); } }
+@media (max-width: 900px) { .map-layout { grid-template-areas: "frame" "hints" "mini" "input" "list"; } }
+.map-last{display:inline-flex;align-items:center;gap:8px;font-weight:700}
+.map-last .dist{padding:2px 8px;border-radius:99px;font-size:12.5px}
+.map-last.ok .dist{background:var(--ok,#3f8a4a);color:#fff}.map-last.partial .dist{background:var(--partial,#b8862f);color:#fff}.map-last.ko .dist{background:var(--ko,#8a3a32);color:#fff}
+.map-area-input .counter{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.map-count{color:var(--muted)}

@@ -150,7 +150,15 @@ export async function runMapMode(root, opts = {}) {
     const scale = game.won ? 1 : Math.max(1, 3.2 - n * 0.3);
     picture.style.transform = `scale(${scale})`;
     zoomLabel.textContent = game.won ? 'Map complète' : `Zoom ×${scale.toFixed(1)}`;
-    counter.textContent = n ? `${n} essai${n > 1 ? 's' : ''}` : 'La distance est comptée en nombre de maps (|ΔX| + |ΔY|)';
+    // Sous la saisie : la dernière proposition et sa distance, toujours visibles sans défiler
+    const last = game.guesses[n - 1];
+    if (!n) counter.textContent = 'La distance est comptée en nombre de maps (|ΔX| + |ΔY|)';
+    else {
+      const st = status(last);
+      const where = last.zone ? (subById.get(last.zone)?.n || 'Zone') : `[${last.x}, ${last.y}]`;
+      const d = last.dist === 0 ? (last.zone ? 'dans la zone' : 'bonne map') : `${last.dist} map${last.dist > 1 ? 's' : ''}`;
+      counter.replaceChildren(h(`span.map-last.${st}`, `Dernière : ${where}`, h('span.dist', d)), h('span.map-count', `${n} essai${n > 1 ? 's' : ''}`));
+    }
     hints.update(game);
     minimap.setMarks(game.guesses.filter((g) => !g.zone).map((g) => ({ posX: g.x, posY: g.y, status: status(g) })));
     minimap.disable(game.won);
