@@ -1527,3 +1527,9 @@ body:not([data-mode="accueil"]) .mode-tab { font-size: 12px; }
 .bc-back.missing .bc-num { color: rgba(201, 167, 106, .6); }
 .bst-cell:hover .bc-back.missing { border-color: rgba(217, 173, 87, .6); }
 .btn[disabled] { opacity: .45; cursor: default; filter: none; }
+/* Sorts et classes : pas de niveau, une ligne de caractéristiques à la place de la règle */
+.bc-stat { margin: 0 .4em .45em; padding-top: .35em; border-top: 1px solid color-mix(in srgb, var(--ink) 55%, transparent);
+  text-align: center; font: 600 .7em Inter, sans-serif; color: var(--ink); }
+.bc-art.s-s img { width: 5.4em; height: 5.4em; border-radius: .5em; box-shadow: 0 .2em .5em rgba(0,0,0,.35); }
+.bc-art.s-e img { width: 6.6em; height: 6.6em; }
+.bc-art.s-c img { width: 8.2em; height: 8.2em; filter: drop-shadow(0 0 .7em rgba(240,207,122,.35)); }

@@ -17,7 +17,7 @@ function followLight(el) {
 
 export function cardEl(card, { count = 1 } = {}) {
   const r = rarity(card.rarity);
-  const [lo, hi] = card.level;
+  const [lo, hi] = card.level || [0, 0];
   const left = Math.min(100, (lo / 200) * 100);
   const width = Math.max(2, Math.min(100, (hi / 200) * 100) - left);
   const long = card.name.length > 22 ? '.long' : card.name.length > 16 ? '.mid' : '';
@@ -25,12 +25,15 @@ export function cardEl(card, { count = 1 } = {}) {
     h('div.bc-top', h('span', `Planche n° ${card.num}`), h('span', card.family)),
     h(`div.bc-name${long}`, card.name),
     h('div.bc-rule', { 'aria-hidden': 'true' }),
-    h('div.bc-art', h('img', { src: card.img, alt: '', loading: 'lazy', decoding: 'async' })),
-    h('div.bc-scale', { 'aria-label': levelText(card.level) },
-      h('div.bc-ruler', h('i', { style: `left:${left.toFixed(1)}%;width:${width.toFixed(1)}%` })),
-      h('span', h('em', '1'), h('b', levelText(card.level)), h('em', '200'))),
+    h(`div.bc-art.s-${card.series || 'm'}`, h('img', { src: card.img, alt: '', loading: 'lazy', decoding: 'async' })),
+    // Règle graduée du niveau ; pour les sorts et les classes, une ligne de caractéristiques
+    card.level
+      ? h('div.bc-scale', { 'aria-label': levelText(card.level) },
+        h('div.bc-ruler', h('i', { style: `left:${left.toFixed(1)}%;width:${width.toFixed(1)}%` })),
+        h('span', h('em', '1'), h('b', levelText(card.level)), h('em', '200')))
+      : h('div.bc-stat', card.stat || ''),
     h('div.bc-foot',
-      h('div.bc-hab', card.habitat, h('small', 'Habitat')),
+      h('div.bc-hab', card.habitat, h('small', card.habLabel || 'Habitat')),
       h('div.bc-sealbox', h('div.bc-seal', { 'aria-hidden': 'true' }), h('div.bc-rar', r.label))),
     count > 1 ? h('span.bc-count', { title: `${count} exemplaires` }, `×${count}`) : null);
   if (card.rarity >= 3) followLight(el);

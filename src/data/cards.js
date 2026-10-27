@@ -1,6 +1,13 @@
-// Cartes du Bestiaire du Krosmoz : une carte par monstre jouable et par Dofus.
-// La rareté découle des données : Dofus > boss > archimonstres > monstres de niveau 140+ > le reste.
+// Cartes du Bestiaire du Krosmoz : monstres, équipements, sorts, classes et Dofus.
+// Raretés, d'après les données du jeu :
+//  - monstres : Dofus > boss > archimonstres > niveau 140+ > le reste
+//  - équipements : objets légendaires > niveau 200 > 180-199 > 100-179 > le reste
+//  - sorts : 6 PA et plus Épique, 4-5 PA Peu commune, 3 PA et moins Commune
+//  - classes : toutes Épiques
 import { monsterEntries, monsterImg } from './monsters.js';
+import { itemImg } from './items.js';
+import { spellImg } from './spells.js';
+import { ELEMENTS } from './elements.js';
 import { normalize } from '../core/text.js';
 
 export const RARITIES = [
@@ -30,9 +37,25 @@ const PRIMORDIAUX = new Set([23001, 23002, 23003, 23007, 23011, 23012]);
 
 export const UNCOMMON_LEVEL = 140;
 
-/** Toutes les cartes, dans l'ordre des planches (Dofus en dernier). */
-export function buildCards(data) {
-  const monsters = monsterEntries(data, normalize).filter((e) => !e.hidden).map((e) => {
+// Équipements légendaires (isLegendary sur DofusDB)
+const LEGENDARY_ITEMS = new Set([20353, 20354, 20355, 20356, 20357, 20358, 20359, 20360, 20361, 20362, 20363, 20364, 20365,
+  20366, 22368, 22412, 22429, 22444, 32114, 32115, 32116, 32117, 32118, 32119, 32121, 32163]);
+const itemRarity = (it) => (LEGENDARY_ITEMS.has(it.id) ? 5 : it.l >= 200 ? 4 : it.l >= 180 ? 3 : it.l >= 100 ? 2 : 1);
+const spellRarity = (s) => (s.pa >= 6 ? 4 : s.pa >= 4 ? 2 : 1);
+
+export const SERIES = [
+  { id: 'm', label: 'Monstres' }, { id: 'e', label: 'Équipements' }, { id: 's', label: 'Sorts' },
+  { id: 'c', label: 'Classes' }, { id: 'd', label: 'Dofus' },
+];
+const pad = (n, w) => String(n).padStart(w, '0');
+
+/**
+ * Toutes les cartes, série par série, dans l'ordre des planches.
+ * @param {object} monsters données Monstres ; items, spells : facultatives
+ */
+export function buildCards(monsters, items = null, spells = null) {
+  const data = monsters;
+  const mons = monsterEntries(data, normalize).filter((e) => !e.hidden).map((e) => {
     const m = e.ref;
     const r = m.k === 'boss' ? 4 : m.k === 'archi' ? 3 : m.l[1] >= UNCOMMON_LEVEL ? 2 : 1;
     const race = data.races[m.r]?.n || '';
@@ -43,13 +66,34 @@ export function buildCards(data) {
       habitat: data.areas[sub?.a] || sub?.n || 'Inconnu', level: m.l,
     };
   }).sort((a, b) => a.level[0] - b.level[0] || a.name.localeCompare(b.name, 'fr'));
-  monsters.forEach((c, i) => { c.num = String(i + 1).padStart(4, '0'); });
+  mons.forEach((c, i) => { c.num = pad(i + 1, 4); c.series = 'm'; });
   const dofus = DOFUS.map(([id, name, lvl, icon], i) => ({
     id: `d${id}`, name, rarity: 5, img: `https://api.dofusdb.fr/img/items/${icon}.png`,
     family: PRIMORDIAUX.has(icon) ? 'Dofus primordial' : 'Dofus', habitat: 'Krosmoz', level: [lvl, lvl],
-    num: `D-${String(i + 1).padStart(2, '0')}`,
+    num: `D-${pad(i + 1, 2)}`, series: 'd',
   }));
-  const cards = [...monsters, ...dofus];
+
+  const equip = !items ? [] : [...items.items].sort((a, b) => a.l - b.l || a.n.localeCompare(b.n, 'fr')).map((it, i) => ({
+    id: `e${it.id}`, name: it.n, rarity: itemRarity(it), img: itemImg(it), series: 'e', num: `E-${pad(i + 1, 4)}`,
+    family: items.types[it.t] || 'Équipement', level: [it.l, it.l],
+    habitat: it.s ? (items.sets[it.s] || 'Panoplie') : 'Hors panoplie', habLabel: 'Panoplie',
+  }));
+
+  const spellCards = !spells ? [] : [...spells.spells].sort((a, b) => a.b - b.b || a.n.localeCompare(b.n, 'fr')).map((sp, i) => ({
+    id: `s${sp.id}`, name: sp.n, rarity: spellRarity(sp), img: spellImg(sp), series: 's', num: `S-${pad(i + 1, 4)}`,
+    family: spells.breeds[sp.b] || 'Sort', habLabel: 'Élément',
+    habitat: (sp.el || []).length ? sp.el.map((e) => ELEMENTS[e]?.label || e).join(', ') : (sp.soin ? 'Soin' : 'Aucun'),
+    stat: `${sp.pa} PA, portée ${sp.po[0] === sp.po[1] ? sp.po[0] : `${sp.po[0]} à ${sp.po[1]}`}`,
+  }));
+
+  const classes = !spells ? [] : Object.entries(spells.breeds).map(([id, name], i) => {
+    const n = spells.spells.filter((sp) => String(sp.b) === id).length;
+    return {
+      id: `c${id}`, name, rarity: 4, img: `https://api.dofusdb.fr/img/breeds/logo_transparent_${id}.png`, series: 'c',
+      num: `C-${pad(i + 1, 2)}`, family: 'Classe', habLabel: 'Sorts', habitat: `${n} sort${n > 1 ? 's' : ''}`, stat: 'Classe du Monde des Douze',
+    };
+  });
+  const cards = [...mons, ...equip, ...spellCards, ...classes, ...dofus];
   const byId = new Map(cards.map((c) => [c.id, c]));
   const byRarity = RARITIES.map((r) => cards.filter((c) => c.rarity === r.id));
   return { cards, byId, byRarity };

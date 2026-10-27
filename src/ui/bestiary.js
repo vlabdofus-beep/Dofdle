@@ -3,7 +3,9 @@ import { h, clear, toast } from './dom.js';
 import { openModal, closeModal } from './modal.js';
 import { loadDataset } from '../core/cache.js';
 import { monstersDataset } from '../data/monsters.js';
-import { buildCards, RARITIES, rarity } from '../data/cards.js';
+import { itemsDataset } from '../data/items.js';
+import { spellsDataset } from '../data/spells.js';
+import { buildCards, RARITIES, SERIES, rarity } from '../data/cards.js';
 import { collection, openChests, craftCard } from '../core/chests.js';
 import { cardEl, cardBack } from './card.js';
 import { play } from './sound.js';
@@ -11,7 +13,10 @@ import { normalize } from '../core/text.js';
 
 let SET = null;
 async function cardSet() {
-  if (!SET) SET = buildCards(await loadDataset(monstersDataset));
+  if (!SET) {
+    const [m, i, sp] = await Promise.all([loadDataset(monstersDataset), loadDataset(itemsDataset), loadDataset(spellsDataset)]);
+    SET = buildCards(m, i, sp);
+  }
   return SET;
 }
 
@@ -54,7 +59,7 @@ export async function renderBestiary(root) {
   }
 
   // --- Album : filtres, vignettes, pages de 60
-  const state = { rarity: '', owned: '', q: '', shown: 60 };
+  const state = { series: '', rarity: '', owned: '', q: '', shown: 60 };
   const grid = h('div.bst-grid');
   const more = h('button.btn.bst-more', { type: 'button', onclick: () => { state.shown += 60; drawGrid(); } }, 'Afficher plus');
   const count = h('span.ac-count');
@@ -65,6 +70,7 @@ export async function renderBestiary(root) {
   album.append(
     h('div.bst-filters',
       search,
+      sel('Série', [['', 'Toutes les séries'], ...SERIES.map((x) => [x.id, x.label])], 'series'),
       sel('Rareté', [['', 'Toutes les raretés'], ...RARITIES.map((r) => [String(r.id), r.label])], 'rarity'),
       sel('Cartes', [['', 'Toutes les cartes'], ['oui', 'Possédées'], ['non', 'Manquantes']], 'owned'),
       count),
@@ -72,7 +78,7 @@ export async function renderBestiary(root) {
 
   function drawGrid() {
     const c = collection();
-    const list = set.cards.filter((x) => (!state.rarity || String(x.rarity) === state.rarity)
+    const list = set.cards.filter((x) => (!state.series || x.series === state.series) && (!state.rarity || String(x.rarity) === state.rarity)
       && (!state.owned || (state.owned === 'oui') === !!c.cards[x.id])
       && (!state.q || normalize(x.name).includes(state.q)));
     count.textContent = plural(list.length, 'carte', 'cartes');
