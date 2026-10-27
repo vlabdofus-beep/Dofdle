@@ -34,14 +34,23 @@ function followTilt(el) {
   tiltCards.add(el);
 }
 
+/** Décors des zones (feuille lourde) : chargés seulement quand une carte s'affiche. */
+let scenesLoaded = false;
+function loadScenes() {
+  if (scenesLoaded) return;
+  scenesLoaded = true;
+  document.head.append(h('link', { rel: 'stylesheet', href: 'css/scenes.css' }));
+}
+
 export function cardEl(card, { count = 1 } = {}) {
+  loadScenes();
   const r = rarity(card.rarity);
   const [lo, hi] = card.level || [0, 0];
   const left = Math.min(100, (lo / 200) * 100);
   const width = Math.max(2, Math.min(100, (hi / 200) * 100) - left);
   const long = card.name.length > 22 ? '.long' : card.name.length > 16 ? '.mid' : '';
   const el = h(`article.bcard.r${card.rarity}`, { 'aria-label': `${card.name}, carte ${r.label.toLowerCase()}`, 'data-card': card.id },
-    h(`div.bc-scene.z-${card.scene || 'amakna'}`, { 'aria-hidden': 'true' }, h('i.bc-far'), h('i.bc-near')),
+    h(`div.bc-scene.z-${card.scene || 'amakna'}`, { 'aria-hidden': 'true' }, h('i.bc-sky'), h('i.bc-far'), h('i.bc-near')),
     h('div.bc-top', h('span', `Planche n° ${card.num}`), h('span', card.family)),
     h(`div.bc-name${long}`, card.name),
     h('div.bc-rule', { 'aria-hidden': 'true' }),

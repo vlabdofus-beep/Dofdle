@@ -1609,13 +1609,17 @@ body:not([data-mode="accueil"]) .mode-tab { font-size: 12px; }
   --sky:#d8e4ea;--ground:#8aa46a;--far:none;--near:none}
 @supports (corner-shape: bevel) { .bc-scene { corner-shape: bevel; } }
 /* Lavis : le ciel en haut, le sol en bas, en multiplication sur le papier */
-.bc-scene::before{content:'';position:absolute;inset:0;mix-blend-mode:multiply;opacity:.6;
+.bc-scene::before{content:'';position:absolute;inset:0;mix-blend-mode:multiply;opacity:.75;
   background:linear-gradient(180deg,transparent 3%,var(--sky) 28%,color-mix(in srgb,var(--sky) 40%,var(--ground)) 60%,var(--ground) 100%)}
 /* Matières sombres : le lavis teinte sans assombrir */
 .bcard.r3 .bc-scene::before,.bcard.r4 .bc-scene::before,.bcard.r5 .bc-scene::before{mix-blend-mode:soft-light;opacity:.8}
-.bc-far,.bc-near{position:absolute;left:0;right:0;top:13%;height:58%;background:var(--ink);opacity:.3;
-  /* Le paysage s'efface vers le bas, avant la règle des niveaux */
-  -webkit-mask:var(--far) center bottom/100% 100% no-repeat,linear-gradient(#000 72%,transparent);-webkit-mask-composite:source-in;
-  mask:var(--far) center bottom/100% 100% no-repeat,linear-gradient(#000 72%,transparent);mask-composite:intersect}
-.bc-near{-webkit-mask-image:var(--near),linear-gradient(#000 72%,transparent);mask-image:var(--near),linear-gradient(#000 72%,transparent);opacity:.5}
+.bc-sky,.bc-far,.bc-near{position:absolute;left:0;right:0;top:17%;height:57%;
+  -webkit-mask:var(--far) center bottom/100% 100% no-repeat,linear-gradient(#000 74%,transparent);-webkit-mask-composite:source-in;
+  mask:var(--far) center bottom/100% 100% no-repeat,linear-gradient(#000 74%,transparent);mask-composite:intersect}
+/* Ciel : teinte propre à la zone ; lointain : couleur de la zone ; premier plan : encre de la carte */
+.bc-sky{background:var(--c-sky);opacity:.9;-webkit-mask-image:var(--m-sky),linear-gradient(#000,#000);mask-image:var(--m-sky),linear-gradient(#000,#000)}
+.bc-far{background:var(--c-far);opacity:.68}
+.bc-near{background:var(--ink);opacity:.72;-webkit-mask-image:var(--near),linear-gradient(#000 74%,transparent);mask-image:var(--near),linear-gradient(#000 74%,transparent)}
+.bcard.r3 .bc-far,.bcard.r4 .bc-far,.bcard.r5 .bc-far{background:color-mix(in srgb,var(--c-far) 45%,var(--ink));opacity:.6}
+.bcard.r1 .bc-sky,.bcard.r2 .bc-sky{mix-blend-mode:normal}
 .win-egg-chests { flex-basis: 100%; text-align: center; font-size: 13px; color: var(--gold, #e7c26a); }
