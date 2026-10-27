@@ -1736,3 +1736,10 @@ body:not([data-mode="accueil"]) .mode-tab { font-size: 12px; }
 .bc-art.s-s::after{display:none}
 /* 8. Règle du titre : l'œuf seul entre deux filets */
 .bc-rule::before{display:none}
+/* L'illustration tient toujours dans sa zone, quelle que soit la taille de la carte */
+.bc-art{min-height:3em}
+.bc-art img,.bc-art.s-e img,.bc-art.s-c img,.bcard.r5 .bc-art img{position:absolute;inset:0;margin:auto;width:auto;height:auto;object-fit:contain}
+.bc-art.s-m img,.bc-art.s-d img,.bc-art.s-c img{width:100%;height:100%;max-width:min(100%,150px);max-height:min(100%,150px)}
+.bc-art.s-e img{width:100%;height:100%;max-width:min(88%,140px);max-height:min(88%,140px)}
+.bcard.r5 .bc-art.s-m img,.bcard.r5 .bc-art.s-d img,.bcard.r5 .bc-art.s-e img{max-width:min(112%,160px);max-height:min(112%,160px);margin:auto;inset:-6% 0}
+.bc-art.s-s img{width:min(5.6em,72%);height:auto;aspect-ratio:1;max-height:88%}
