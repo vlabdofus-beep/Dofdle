@@ -90,6 +90,13 @@ function rollRarity() {
   return 1;
 }
 
+function pickPool(pools) {
+  const total = pools.reduce((a, p) => a + p.weight, 0);
+  let x = randomUnit() * total;
+  for (const p of pools) { if ((x -= p.weight) < 0) return p; }
+  return pools[0];
+}
+
 /**
  * Ouvre `count` coffres (1 ou 10). Le résultat est enregistré AVANT d'être montré :
  * recharger la page ne permet pas de retirer. Ouverture par 10 : au moins une Rare.
@@ -101,7 +108,9 @@ export function openChests(set, count) {
   const rar = [...Array(n)].map(rollRarity);
   if (n >= 10 && !rar.some((r) => r >= 3)) rar[rar.length - 1] = 3;
   const draws = rar.map((r) => {
-    const pool = set.byRarity[r - 1];
+    // Pré-tirage : équipements (50 %) ou le reste (50 %) ; repli sur toutes les cartes si vide
+    const fam = set.pools ? pickPool(set.pools) : null;
+    const pool = fam?.byRarity[r - 1]?.length ? fam.byRarity[r - 1] : set.byRarity[r - 1];
     const card = pool[Math.floor(randomUnit() * pool.length)];
     const owned = s.cards[card.id] || 0;
     s.cards[card.id] = owned + 1;

@@ -15,6 +15,25 @@ function followLight(el) {
   el.addEventListener('pointerleave', () => { el.style.removeProperty('--lx'); el.style.removeProperty('--ly'); });
 }
 
+/** Téléphone : le reflet suit l'inclinaison de l'appareil (sans demande d'autorisation quand c'est possible). */
+let tiltCards = null;
+function followTilt(el) {
+  if (!matchMedia('(hover: none)').matches || typeof DeviceOrientationEvent === 'undefined' || typeof DeviceOrientationEvent.requestPermission === 'function') return;
+  if (!tiltCards) {
+    tiltCards = new Set();
+    window.addEventListener('deviceorientation', (e) => {
+      if (e.gamma == null) return;
+      const lx = `${Math.max(0, Math.min(100, 50 + e.gamma * 1.6))}%`;
+      const ly = `${Math.max(0, Math.min(100, 50 + ((e.beta ?? 45) - 45) * 1.2))}%`;
+      for (const c of tiltCards) {
+        if (!c.isConnected) { tiltCards.delete(c); continue; }
+        c.style.setProperty('--lx', lx); c.style.setProperty('--ly', ly);
+      }
+    });
+  }
+  tiltCards.add(el);
+}
+
 export function cardEl(card, { count = 1 } = {}) {
   const r = rarity(card.rarity);
   const [lo, hi] = card.level || [0, 0];
@@ -36,11 +55,24 @@ export function cardEl(card, { count = 1 } = {}) {
       h('div.bc-hab', card.habitat, h('small', card.habLabel || 'Habitat')),
       h('div.bc-sealbox', h('div.bc-seal', { 'aria-hidden': 'true' }), h('div.bc-rar', r.label))),
     count > 1 ? h('span.bc-count', { title: `${count} exemplaires` }, `×${count}`) : null);
-  if (card.rarity >= 3) followLight(el);
+  if (card.rarity >= 3) { followLight(el); followTilt(el); }
   return el;
 }
 
-/** Dos de carte : couverture de cuir. `glow` : lueur de la rareté (ouverture des coffres). */
+/**
+ * Pli scellé : la planche arrive pliée dans du vélin, ficelée, fermée d'un sceau de cire
+ * à la couleur de sa rareté. On brise le sceau pour la déplier (ouverture des coffres).
+ */
+export function sealedPlate(rarityId) {
+  return h(`div.bcard.bc-sealed.s${rarityId}`, { 'aria-hidden': 'true' },
+    h('div.bs-flaps'),
+    h('div.bs-twine'),
+    h('div.bs-to', 'Pour le Bestiaire du Krosmoz'),
+    h('div.bs-seal', h('span.bs-half.l'), h('span.bs-half.r')),
+    h('div.bs-hint', 'Briser le sceau'));
+}
+
+/** Dos de carte (et emplacement vide de l'album). `glow` : lueur de la rareté. */
 export function cardBack({ glow = 0, missing = null } = {}) {
   return h(`div.bcard.bc-back${glow ? `.glow${glow}` : ''}${missing ? '.missing' : ''}`, { 'aria-hidden': missing ? undefined : 'true' },
     missing ? h('img.bc-ghost', { src: missing.img, alt: '', loading: 'lazy', decoding: 'async' }) : h('div.bc-egg'),

@@ -1533,3 +1533,72 @@ body:not([data-mode="accueil"]) .mode-tab { font-size: 12px; }
 .bc-art.s-s img { width: 5.4em; height: 5.4em; border-radius: .5em; box-shadow: 0 .2em .5em rgba(0,0,0,.35); }
 .bc-art.s-e img { width: 6.6em; height: 6.6em; }
 .bc-art.s-c img { width: 8.2em; height: 8.2em; filter: drop-shadow(0 0 .7em rgba(240,207,122,.35)); }
+
+/* =====================================================================
+   Pli scellé (ouverture des coffres) et effets de révélation
+   ===================================================================== */
+@property --lx { syntax: '<percentage>'; inherits: false; initial-value: 40%; }
+.bc-sealed{padding:0;align-items:center;justify-content:center;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 140' preserveAspectRatio='none'%3E%3Cpolygon points='0%2C0 100%2C0 50%2C64' fill='rgba%28255%2C250%2C235%2C.32%29'/%3E%3Cpolygon points='0%2C140 100%2C140 50%2C64' fill='rgba%2860%2C40%2C20%2C.10%29'/%3E%3Cpolygon points='0%2C0 0%2C140 50%2C64' fill='rgba%2860%2C40%2C20%2C.05%29'/%3E%3Cg fill='none' stroke='rgba%2870%2C50%2C28%2C.45%29' stroke-width='.6' vector-effect='non-scaling-stroke'%3E%3Cpath d='M0 0 50 64 100 0M0 140 50 64 100 140'/%3E%3C/g%3E%3Cg fill='none' stroke='rgba%28255%2C255%2C255%2C.45%29' stroke-width='.6' vector-effect='non-scaling-stroke'%3E%3Cpath d='M1 1.5 50 65.5 99 1.5'/%3E%3C/g%3E%3C/svg%3E") center/100% 100% no-repeat,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .33 0 0 0 0 .25 0 0 0 0 .14 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23n%29'/%3E%3C/svg%3E"),radial-gradient(ellipse at 50% 40%,#efe2c3,#dcc59a 80%,#c9ad7a)}
+.bc-sealed::before{inset:.44em;border:1px solid rgba(70,50,28,.45);box-shadow:none}
+/* Ficelle : deux brins qui passent sous le sceau */
+.bs-twine{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(rgba(122,88,48,.85),rgba(122,88,48,.85)) 50% 0/2px 100% no-repeat,
+    linear-gradient(rgba(122,88,48,.85),rgba(122,88,48,.85)) 0 46%/100% 2px no-repeat}
+.bs-to{position:absolute;top:1.4em;left:0;right:0;text-align:center;font:italic .74em Philosopher,serif;color:#6b5640}
+.bs-hint{position:absolute;bottom:1.25em;left:0;right:0;text-align:center;font:600 .66em Inter,sans-serif;color:#7c6650;letter-spacing:.02em}
+/* Le sceau : grande goutte de cire, en deux moitiés qui se séparent quand on le brise */
+.bs-seal{position:absolute;left:50%;top:46%;width:5.2em;height:5.2em;transform:translate(-50%,-50%);filter:drop-shadow(0 .25em .3em rgba(0,0,0,.35))}
+.bs-half{position:absolute;inset:0;border-radius:54% 46% 52% 48%/47% 55% 45% 53%;
+  background:var(--egg) center/1.9em 2.45em no-repeat,radial-gradient(circle at 35% 30%,var(--seal-hi),var(--seal) 55%,color-mix(in srgb,var(--seal) 65%,#000));
+  box-shadow:inset 0 -.2em .3em rgba(0,0,0,.3),inset 0 .1em .2em rgba(255,255,255,.3);transition:transform .45s cubic-bezier(.3,.6,.3,1),opacity .45s}
+.bs-half.l{clip-path:polygon(0 0,52% 0,46% 22%,55% 38%,44% 55%,53% 72%,47% 100%,0 100%)}
+.bs-half.r{clip-path:polygon(52% 0,100% 0,100% 100%,47% 100%,53% 72%,44% 55%,55% 38%,46% 22%)}
+.bs-seal::after{content:'';position:absolute;inset:.45em;border-radius:50%;border:1px dashed rgba(255,255,255,.3);pointer-events:none;transition:opacity .2s}
+/* Couleurs de cire */
+.bc-sealed.s1{--seal:#55473a;--seal-hi:#7d6a56;--egg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 52'%3E%3Cpath d='M20 3C10 3 4 18 4 30c0 11 7 19 16 19s16-8 16-19C36 18 30 3 20 3Z' fill='none' stroke='%23e9dcc0' stroke-width='5'/%3E%3Cpath d='M14 32c2-6 9-6 11-1s-5 7-7 3' fill='none' stroke='%23e9dcc0' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E")}
+.bc-sealed.s2{--seal:#3d6b47;--seal-hi:#5f9468;--egg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 52'%3E%3Cpath d='M20 3C10 3 4 18 4 30c0 11 7 19 16 19s16-8 16-19C36 18 30 3 20 3Z' fill='none' stroke='%23e9dcc0' stroke-width='5'/%3E%3Cpath d='M14 32c2-6 9-6 11-1s-5 7-7 3' fill='none' stroke='%23e9dcc0' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E")}
+.bc-sealed.s3{--seal:#b9c6d4;--seal-hi:#f4f7fa;--egg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 52'%3E%3Cpath d='M20 3C10 3 4 18 4 30c0 11 7 19 16 19s16-8 16-19C36 18 30 3 20 3Z' fill='none' stroke='%232c4f80' stroke-width='5'/%3E%3Cpath d='M14 32c2-6 9-6 11-1s-5 7-7 3' fill='none' stroke='%232c4f80' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E")}
+.bc-sealed.s4{--seal:#7a3d8e;--seal-hi:#b27ad0;--egg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 52'%3E%3Cpath d='M20 3C10 3 4 18 4 30c0 11 7 19 16 19s16-8 16-19C36 18 30 3 20 3Z' fill='none' stroke='%23f3d98f' stroke-width='5'/%3E%3Cpath d='M14 32c2-6 9-6 11-1s-5 7-7 3' fill='none' stroke='%23f3d98f' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E")}
+.bc-sealed.s5{--seal:#2a1a08;--seal-hi:#6a4a1c;--egg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 52'%3E%3Cpath d='M20 3C10 3 4 18 4 30c0 11 7 19 16 19s16-8 16-19C36 18 30 3 20 3Z' fill='none' stroke='%23f6dc98' stroke-width='5'/%3E%3Cpath d='M14 32c2-6 9-6 11-1s-5 7-7 3' fill='none' stroke='%23f6dc98' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E")}
+.bc-sealed.s5 .bs-half{box-shadow:inset 0 0 0 .18em #d9ad57,inset 0 -.2em .3em rgba(0,0,0,.4),0 0 1em rgba(255,200,90,.65)}
+/* Anticipation : les Rares et plus trahissent un peu leur lumière à travers le vélin */
+.bc-sealed.s3{box-shadow:0 0 0 1px rgba(0,0,0,.55),0 0 1.4em rgba(120,170,235,.45),0 1.1em 2em rgba(0,0,0,.55)}
+.bc-sealed.s4{box-shadow:0 0 0 1px rgba(0,0,0,.55),0 0 1.8em rgba(190,110,220,.55),0 1.1em 2em rgba(0,0,0,.55)}
+.bc-sealed.s5{box-shadow:0 0 0 1px rgba(0,0,0,.55),0 0 2.4em rgba(255,200,90,.75),0 1.1em 2em rgba(0,0,0,.55)}
+.co-slot:not(.breaking):hover .bc-sealed .bs-seal{transform:translate(-50%,-50%) scale(1.06)}
+.bs-seal{transition:transform .2s}
+/* Briser le sceau */
+.co-slot.breaking .bs-half.l{transform:translate(-.9em,.5em) rotate(-24deg);opacity:0}
+.co-slot.breaking .bs-half.r{transform:translate(.9em,.6em) rotate(20deg);opacity:0}
+.co-slot.breaking .bs-seal::after,.co-slot.breaking .bs-hint{opacity:0}
+.co-slot.breaking .bs-twine{opacity:0;transition:opacity .3s .1s}
+/* Légendaire : le pli tremble et s'illumine avant de céder */
+.co-slot.charging .co-back .bcard{animation:co-charge .65s ease-in both}
+@keyframes co-charge{0%{transform:none}20%{transform:rotate(-1.2deg)}40%{transform:rotate(1.4deg) scale(1.02)}60%{transform:rotate(-1.6deg) scale(1.04)}80%{transform:rotate(1.2deg) scale(1.06);box-shadow:0 0 0 1px #000,0 0 3.5em rgba(255,210,120,1),0 0 6em rgba(255,170,60,.7)}100%{transform:scale(1.07);box-shadow:0 0 0 1px #000,0 0 4.5em rgba(255,220,140,1),0 0 8em rgba(255,170,60,.8)}}
+
+/* Révélation : un reflet traverse la carte (Rare et plus) */
+.bcard.shine::after{animation:foil-sweep 1.1s .35s cubic-bezier(.3,.6,.3,1) both}
+@keyframes foil-sweep{from{--lx:-30%}to{--lx:130%}}
+/* Halo derrière la carte révélée */
+.co-slot{position:relative}
+.co-slot.fx3::before,.co-slot.fx4::before,.co-slot.fx5::before{content:'';position:absolute;left:50%;top:50%;width:200%;aspect-ratio:1;z-index:-1;pointer-events:none;border-radius:50%;transform:translate(-50%,-50%) scale(.4);opacity:0}
+.co-slot.fx3::before{background:radial-gradient(closest-side,rgba(150,195,245,.55),rgba(150,195,245,.15) 50%,transparent);animation:fx-burst 1.1s .3s ease-out both}
+.co-slot.fx4::before{background:repeating-conic-gradient(from 0deg,rgba(235,170,255,.6) 0deg 6deg,transparent 6deg 18deg),radial-gradient(closest-side,rgba(205,125,235,.65),transparent 70%);
+  -webkit-mask:radial-gradient(closest-side,#000 40%,transparent);mask:radial-gradient(closest-side,#000 40%,transparent);animation:fx-rays 1.6s .3s ease-out both}
+.co-slot.fx5::before{width:280%;background:repeating-conic-gradient(from 0deg,rgba(255,215,120,.5) 0deg 5deg,transparent 5deg 14deg),radial-gradient(closest-side,rgba(255,200,90,.7),transparent 70%);
+  -webkit-mask:radial-gradient(closest-side,#000 25%,transparent);mask:radial-gradient(closest-side,#000 25%,transparent);animation:fx-rays5 2.6s .2s ease-out both}
+.co-slot.fx5 .co-front .bcard{animation:fx-pop .7s .1s cubic-bezier(.3,1.5,.5,1) both}
+.co-slot.fx4 .co-front .bcard{animation:fx-pop-s .6s .15s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes fx-burst{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}30%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.15)}}
+@keyframes fx-rays{0%{opacity:0;transform:translate(-50%,-50%) scale(.5) rotate(0)}25%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.1) rotate(40deg)}}
+@keyframes fx-rays5{0%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(0)}20%{opacity:1}70%{opacity:.9}100%{opacity:.35;transform:translate(-50%,-50%) scale(1) rotate(70deg)}}
+@keyframes fx-pop{0%{transform:scale(.9)}55%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes fx-pop-s{0%{transform:scale(.95)}55%{transform:scale(1.06)}100%{transform:scale(1)}}
+/* Légendaire : un éclair doré baigne tout l'écran */
+.chest-open.flash::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:5;
+  background:radial-gradient(circle at 50% 45%,rgba(255,225,150,.55),rgba(255,180,60,.15) 45%,transparent 75%);animation:fx-flash 1.4s ease-out both}
+@keyframes fx-flash{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+/* Le texte du pli passe au-dessus de la ficelle */
+.bs-to,.bs-hint{width:max-content;margin:0 auto;padding:.1em .5em;background:#e6d6b2;border-radius:.2em}
+@media (prefers-reduced-motion: reduce){.co-slot::before,.chest-open.flash::after{display:none}.bcard.shine::after{animation:none}}

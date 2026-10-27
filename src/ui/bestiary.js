@@ -7,7 +7,7 @@ import { itemsDataset } from '../data/items.js';
 import { spellsDataset } from '../data/spells.js';
 import { buildCards, RARITIES, SERIES, rarity } from '../data/cards.js';
 import { collection, openChests, craftCard } from '../core/chests.js';
-import { cardEl, cardBack } from './card.js';
+import { cardEl, cardBack, sealedPlate } from './card.js';
 import { play } from './sound.js';
 import { normalize } from '../core/text.js';
 
@@ -114,7 +114,8 @@ export async function renderBestiary(root) {
         h('thead', h('tr', h('th', 'Rareté'), h('th', 'Chance'), h('th', 'Doublon'), h('th', 'Créer'))),
         h('tbody', RARITIES.map((r) => h('tr',
           h('td', r.label), h('td', `${String(r.weight).replace('.', ',')} %`), h('td', `+${r.shards}`), h('td', fmt(r.cost)))))),
-      h('p.small.muted', 'Chaque coffre contient une carte. Ouverture par 10 : au moins une carte Rare ou mieux. Un doublon se transforme en éclats ; avec assez d\'éclats, tu crées la carte manquante de ton choix.'),
+      h('p.small.muted', 'Chaque coffre contient une carte : une chance sur deux d\'un équipement, une chance sur deux d\'un monstre, d\'un sort, d\'une classe ou d\'un Dofus. La rareté est ensuite tirée selon ce tableau.'),
+      h('p.small.muted', 'Ouverture par 10 : au moins une carte Rare ou mieux. Un doublon se transforme en éclats ; avec assez d\'éclats, tu crées la carte manquante de ton choix.'),
       h('p.small.muted', 'Les coffres se gagnent en jouant : 1 par défi réussi, 3 pour la journée complète, 2 à chaque évolution d\'un œuf de série. Rien ne s\'achète.'));
   }
 
@@ -139,17 +140,29 @@ function showOpening(draws, set, { onAgain, onClose }) {
   const summary = h('div.co-summary', { 'aria-live': 'polite' });
   let left = draws.length;
 
+  // Briser le sceau, puis la planche se retourne ; les Rares et plus ont leur effet de révélation
   const flip = (slot, d) => {
-    if (slot.classList.contains('flipped')) return;
-    slot.classList.add('flipped');
-    slot.setAttribute('aria-label', `${d.card.name}, ${rarity(d.card.rarity).label.toLowerCase()}${d.dup ? ', doublon' : ', nouvelle'}`);
-    play(d.card.rarity >= 5 ? 'day' : d.card.rarity >= 3 ? 'harvest' : 'reveal');
-    if (--left === 0) done();
+    if (slot.classList.contains('breaking') || slot.classList.contains('flipped')) return;
+    const r = d.card.rarity;
+    slot.classList.add('breaking');
+    slot.setAttribute('aria-label', `${d.card.name}, ${rarity(r).label.toLowerCase()}${d.dup ? ', doublon' : ', nouvelle'}`);
+    const wait = reduceMotion() ? 0 : r >= 5 ? 650 : 320;
+    if (r >= 5 && !reduceMotion()) slot.classList.add('charging');
+    setTimeout(() => {
+      slot.classList.add('flipped');
+      if (r >= 3) {
+        slot.classList.add(`fx${r}`);
+        slot.querySelector('.co-front .bcard')?.classList.add('shine');
+        if (r >= 5) { overlay.classList.remove('flash'); void overlay.offsetWidth; overlay.classList.add('flash'); }
+      }
+      play(r >= 5 ? 'day' : r >= 3 ? 'harvest' : 'reveal');
+      if (--left === 0) done();
+    }, wait);
   };
   draws.forEach((d, i) => {
-    const slot = h('button.co-slot', { type: 'button', 'aria-label': `Carte ${i + 1} : retourner`, style: `--i:${i}` },
+    const slot = h('button.co-slot', { type: 'button', 'aria-label': `Pli ${i + 1} : briser le sceau`, style: `--i:${i}` },
       h('div.co-inner',
-        h('div.co-face.co-back', cardBack({ glow: d.card.rarity })),
+        h('div.co-face.co-back', sealedPlate(d.card.rarity)),
         h('div.co-face.co-front', cardEl(d.card), h(`span.co-tag${d.dup ? '' : '.new'}`, d.dup ? `Doublon, +${d.shards} éclat${d.shards > 1 ? 's' : ''}` : 'Nouvelle !'))));
     slot.addEventListener('click', () => flip(slot, d));
     grid.append(slot);
@@ -157,7 +170,7 @@ function showOpening(draws, set, { onAgain, onClose }) {
 
   const all = h('button.btn', { type: 'button', onclick: () => {
     [...grid.children].forEach((slot, i) => setTimeout(() => flip(slot, draws[i]), reduceMotion() ? 0 : i * 110));
-  } }, 'Tout retourner');
+  } }, 'Tout ouvrir');
   const close = () => { overlay.remove(); document.removeEventListener('keydown', onKey); onClose?.(); last?.focus?.(); };
   const onKey = (e) => { if (e.key === 'Escape') close(); };
   document.addEventListener('keydown', onKey);
@@ -177,7 +190,7 @@ function showOpening(draws, set, { onAgain, onClose }) {
   }
 
   overlay.append(
-    h('div.co-head', h('h2', draws.length > 1 ? `${draws.length} coffres ouverts` : 'Coffre ouvert'), h('p.muted', 'Touche une carte pour la retourner.')),
+    h('div.co-head', h('h2', draws.length > 1 ? `${draws.length} coffres ouverts` : 'Coffre ouvert'), h('p.muted', 'Touche un pli pour briser son sceau.')),
     grid,
     h('div.co-bar', all, summary),
     h('button.modal-close.co-close', { type: 'button', 'aria-label': 'Fermer', onclick: close }, '×'));

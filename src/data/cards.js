@@ -47,6 +47,11 @@ export const SERIES = [
   { id: 'm', label: 'Monstres' }, { id: 'e', label: 'Équipements' }, { id: 's', label: 'Sorts' },
   { id: 'c', label: 'Classes' }, { id: 'd', label: 'Dofus' },
 ];
+/** Pré-tirage d'un coffre : la famille de cartes, puis la rareté dans cette famille. */
+export const POOLS = [
+  { id: 'e', label: 'Équipements', equip: true, weight: 50 },
+  { id: 'o', label: 'Monstres, sorts, classes et Dofus', equip: false, weight: 50 },
+];
 const pad = (n, w) => String(n).padStart(w, '0');
 
 /**
@@ -96,5 +101,7 @@ export function buildCards(monsters, items = null, spells = null) {
   const cards = [...mons, ...equip, ...spellCards, ...classes, ...dofus];
   const byId = new Map(cards.map((c) => [c.id, c]));
   const byRarity = RARITIES.map((r) => cards.filter((c) => c.rarity === r.id));
-  return { cards, byId, byRarity };
+  // Pré-tirage : une chance sur deux de tomber dans les équipements, sinon dans le reste
+  const pools = POOLS.map((p) => ({ ...p, byRarity: RARITIES.map((r) => byRarity[r.id - 1].filter((c) => (c.series === 'e') === p.equip)) }));
+  return { cards, byId, byRarity, pools };
 }
