@@ -99,17 +99,38 @@ export async function renderBestiary(root, view = 'album') {
   const grid = h('div.bst-grid');
   const more = h('button.btn.bst-more', { type: 'button', onclick: () => { state.shown += 60; drawGrid(); } }, 'Afficher plus');
   const count = h('span.ac-count');
-  const sel = (label, options, key) => h('select.ac-select', { 'aria-label': label, onchange: (e) => { state[key] = e.target.value; state.shown = 60; drawGrid(); } },
-    options.map(([v, t]) => h('option', { value: v }, t)));
   const search = h('input.guess-input.bst-search', { type: 'search', placeholder: 'Chercher une carte', 'aria-label': 'Chercher une carte',
     oninput: (e) => { state.q = normalize(e.target.value); state.shown = 60; drawGrid(); } });
+  // Catégories en onglets (avec icône et progression), raretés en pastilles, possession en bascule
+  const SERIES_ICON = { m: 'assets/game/ui/mode-monstre.png', e: 'assets/game/ui/mode-objet.png', s: 'assets/game/ui/mode-sort.png',
+    c: 'https://api.dofusdb.fr/img/breeds/symbol_8.png', d: 'https://api.dofusdb.fr/img/items/23001.png' };
+  const tabs = h('div.bst-tabs', { role: 'tablist', 'aria-label': 'Catégories' });
+  const chips = h('div.bst-chips', { role: 'group', 'aria-label': 'Rareté' });
+  const toggle = h('div.bst-toggle', { role: 'group', 'aria-label': 'Cartes affichées' });
+  const pick = (key, v) => { state[key] = v; state.shown = 60; drawFilters(); drawGrid(); };
+  function drawFilters() {
+    const c = collection();
+    const own = (f) => set.cards.filter((x) => f(x) && c.cards[x.id]).length;
+    const total = (f) => set.cards.filter(f).length;
+    tabs.replaceChildren(...[{ id: '', label: 'Tout' }, ...SERIES].map((x) => {
+      const f = (card) => !x.id || card.series === x.id;
+      const on = state.series === x.id;
+      return h(`button.bst-tab${on ? '.on' : ''}`, { type: 'button', role: 'tab', 'aria-selected': String(on), onclick: () => pick('series', x.id) },
+        x.id ? h('img', { src: SERIES_ICON[x.id], alt: '' }) : h('img', { src: NARKOFFRET, alt: '' }),
+        h('span', h('strong', x.label), h('small', `${fmt(own(f))} / ${fmt(total(f))}`)));
+    }));
+    chips.replaceChildren(
+      h(`button.bst-chip${state.rarity ? '' : '.on'}`, { type: 'button', 'aria-pressed': String(!state.rarity), onclick: () => pick('rarity', '') }, 'Toutes'),
+      ...RARITIES.map((r) => h(`button.bst-chip.r${r.id}${state.rarity === String(r.id) ? '.on' : ''}`,
+        { type: 'button', 'aria-pressed': String(state.rarity === String(r.id)), onclick: () => pick('rarity', state.rarity === String(r.id) ? '' : String(r.id)) },
+        h('i', { 'aria-hidden': 'true' }), r.label)));
+    toggle.replaceChildren(...[['', 'Toutes'], ['oui', 'Possédées'], ['non', 'Manquantes']].map(([v, t]) =>
+      h(`button${state.owned === v ? '.on' : ''}`, { type: 'button', 'aria-pressed': String(state.owned === v), onclick: () => pick('owned', v) }, t)));
+  }
+  drawFilters();
   album.append(
-    h('div.bst-filters',
-      search,
-      sel('Série', [['', 'Toutes les séries'], ...SERIES.map((x) => [x.id, x.label])], 'series'),
-      sel('Rareté', [['', 'Toutes les raretés'], ...RARITIES.map((r) => [String(r.id), r.label])], 'rarity'),
-      sel('Cartes', [['', 'Toutes les cartes'], ['oui', 'Possédées'], ['non', 'Manquantes']], 'owned'),
-      count),
+    tabs,
+    h('div.bst-filters', search, chips, toggle, count),
     grid, more);
 
   function drawGrid() {
@@ -155,7 +176,7 @@ export async function renderBestiary(root, view = 'album') {
       h('p.small.muted', 'Les coffres se gagnent en jouant : 1 par défi réussi, 3 pour la journée complète, et tous les 5 jours de série, autant de coffres que de jours : 5, puis 10, puis 15… La série de chaque mode compte, et celle des journées complètes aussi. Rien ne s\'achète.'));
   }
 
-  function refresh() { drawHead(); drawGrid(); }
+  function refresh() { drawHead(); drawFilters(); drawGrid(); }
 
   refresh();
 }

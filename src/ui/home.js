@@ -156,6 +156,7 @@ function bestiaryBand(onHide) {
       h('p', 'Chaque défi réussi te rapporte des coffres. Ouvre-les pour collectionner les cartes des monstres, équipements, sorts, classes et Dofus.'),
       owned ? h('p.hb-count', total ? `${owned} cartes sur ${total}` : `${owned} carte${owned > 1 ? 's' : ''} dans ta collection`,
         total ? h('span.hb-bar', h('i', { style: `width:${Math.min(100, (owned / total) * 100).toFixed(1)}%` })) : null) : null),
-    h('a.btn.primary.hb-cta', { href: n ? '#coffres' : '#bestiaire' },
-      n ? `Ouvrir ${n > 1 ? `mes ${n} coffres` : 'mon coffre'}` : 'Voir ma collection'));
+    h('div.hb-actions',
+      n ? h('a.btn.primary.hb-cta', { href: '#coffres' }, `Ouvrir ${n > 1 ? `mes ${n} coffres` : 'mon coffre'}`) : null,
+      h(`a.btn.hb-cta${n ? '' : '.primary'}`, { href: '#bestiaire' }, owned ? `Ma collection (${owned})` : 'Voir la collection')));
 }

@@ -2007,3 +2007,43 @@ body[data-mode="accueil"] .home-bestiary { margin-top: 20px; }
 .map-area-input .counter{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .map-count{color:var(--muted)}
 html.home-fit, html.home-fit body { overflow: hidden; }
+
+/* Accueil : deux accès dans le bandeau (coffres, collection) */
+.hb-actions { display: flex; flex-direction: column; gap: 10px; }
+.hb-actions .hb-cta { text-align: center; }
+@media (max-width: 720px) { .hb-actions { width: 100%; } }
+
+/* =====================================================================
+   Album : catégories en onglets, raretés en pastilles, bascule possession
+   ===================================================================== */
+.bst-tabs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+.bst-tab { display: flex; align-items: center; gap: 10px; padding: 10px 12px; text-align: left; cursor: pointer;
+  background: var(--panel); border: 1px solid var(--line); color: var(--text); font: inherit; }
+@supports (corner-shape: bevel) { .bst-tab { border-radius: 8px; corner-shape: bevel; } }
+.bst-tab img { width: 34px; height: 34px; object-fit: contain; flex: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
+.bst-tab span { display: flex; flex-direction: column; min-width: 0; }
+.bst-tab strong { font: 700 16px Philosopher, serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bst-tab small { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bst-tab:hover { border-color: color-mix(in srgb, var(--gold) 50%, var(--line)); }
+.bst-tab.on { border-color: var(--gold); background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 16%, var(--panel)), var(--panel)); box-shadow: inset 0 -3px 0 var(--gold); }
+.bst-tab.on strong { color: #f0d28e; }
+.bst-tab:focus-visible, .bst-chip:focus-visible, .bst-toggle button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.bst-filters { gap: 10px; }
+.bst-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.bst-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 99px; cursor: pointer;
+  background: var(--panel); border: 1px solid var(--line); color: var(--text); font: 600 13px Inter, sans-serif; }
+.bst-chip i { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.5); }
+.bst-chip.r1 i { background: #a8875a; } .bst-chip.r2 i { background: #6fa05a; } .bst-chip.r3 i { background: #a8d6ff; }
+.bst-chip.r4 i { background: #c27ae0; } .bst-chip.r5 i { background: #ffd66e; box-shadow: 0 0 6px #ffd66e; }
+.bst-chip.on { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 18%, var(--panel)); color: #f0d28e; }
+.bst-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
+.bst-toggle button { padding: 6px 12px; border: 0; background: var(--panel); color: var(--muted); font: 600 13px Inter, sans-serif; cursor: pointer; }
+.bst-toggle button + button { border-left: 1px solid var(--line); }
+.bst-toggle button.on { background: color-mix(in srgb, var(--gold) 22%, var(--panel)); color: #f0d28e; }
+@media (max-width: 900px) { .bst-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 560px) {
+  .bst-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .bst-tab { padding: 8px 10px; gap: 8px; } .bst-tab img { width: 28px; height: 28px; } .bst-tab strong { font-size: 15px; }
+  .bst-search { max-width: none; flex-basis: 100%; }
+}
+@media (max-width: 480px) { #btn-album { display: none; } } /* sur téléphone, la collection est accessible depuis l accueil et la page Coffres */
