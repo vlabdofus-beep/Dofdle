@@ -162,7 +162,7 @@ export async function renderBestiary(root, view = 'album') {
 
 // Couleur du halo à l'ouverture : celle de la carte la plus rare du tirage
 const HALO = { 1: '#efe2c4', 2: '#8fe09a', 3: '#a8d6ff', 4: '#d896ff', 5: '#ffd66e' };
-const CHARGE = { 1: 450, 2: 550, 3: 800, 4: 1150, 5: 1700 };
+const CHARGE = { 1: 900, 2: 1050, 3: 1350, 4: 1700, 5: 2200 };
 
 /**
  * Narkoffret Infini : il tombe, on le touche, il tremble (d'autant plus longtemps que la meilleure
@@ -175,12 +175,18 @@ function chestIntro(overlay, draws, onReveal) {
   const chest = h('button.cs-chest', { type: 'button', 'aria-label': draws.length > 1 ? `Ouvrir les ${draws.length} coffres` : 'Ouvrir le coffre' },
     // Narkoffret Infini : le dessin du jeu découpé en coffre et couvercle ; le couvercle pivote
     // sur sa charnière arrière et laisse voir l'intérieur, puis son dessous
+    h('span.cs-rays', { 'aria-hidden': 'true' }),
+    h('span.cs-swirl.back', { 'aria-hidden': 'true' }),
     h('span.cs-inside', { 'aria-hidden': 'true' }),
     h('img.cs-body', { src: NARKOFFRET, alt: '' }),
     h('span.cs-lid', { 'aria-hidden': 'true' }, h('img.cs-lid-top', { src: NARKOFFRET, alt: '' }), h('span.cs-lid-under')),
-    h('span.cs-seam', { 'aria-hidden': 'true' }),
+    // La serrure s'illumine, puis un filet de lumière court le long de la jointure
+    h('span.cs-lock', { 'aria-hidden': 'true' }),
+    h('span.cs-seam', { 'aria-hidden': 'true' }, h('i')),
+    h('span.cs-beam2', { 'aria-hidden': 'true' }),
+    h('span.cs-swirl.front', { 'aria-hidden': 'true' }),
     draws.length > 1 ? h('span.cs-count', `×${draws.length}`) : null);
-  const stage = h(`div.cs-stage.r${best}`, { style: `--hc:${HALO[best]}` },
+  const stage = h(`div.cs-stage.r${best}`, { style: `--hc:${HALO[best]};--charge:${CHARGE[best]}ms` },
     h('div.cs-halo', { 'aria-hidden': 'true' }), h('div.cs-beam', { 'aria-hidden': 'true' }), h('div.cs-ring', { 'aria-hidden': 'true' }),
     h('div.cs-sparks', { 'aria-hidden': 'true' }, sparks),
     chest,
@@ -204,7 +210,7 @@ function chestIntro(overlay, draws, onReveal) {
       stage.classList.add('burst');
       play(best >= 5 ? 'day' : best >= 3 ? 'harvest' : 'reveal');
       if (best >= 5) { overlay.classList.remove('flash'); void overlay.offsetWidth; overlay.classList.add('flash'); }
-      later(reveal, best >= 4 ? 1000 : 750);
+      later(reveal, best >= 4 ? 1700 : 1400);
     }, CHARGE[best]);
   }
   function reveal() {

@@ -1900,3 +1900,72 @@ body:not([data-mode="accueil"]) .mode-tab { font-size: 12px; }
 @media (min-width: 821px) and (max-height: 900px) { body[data-mode="accueil"] #app { zoom: .8; } }
 @media (min-width: 821px) and (max-height: 830px) { body[data-mode="accueil"] #app { zoom: .74; } }
 @media (min-width: 821px) and (max-height: 700px) { body[data-mode="accueil"] #app { zoom: .66; } }
+
+/* =====================================================================
+   Narkoffret, ouverture façon « coffre légendaire » :
+   serrure qui brille, filet de lumière sur la jointure et rayons qui fuient,
+   couvercle qui bascule, faisceau vertical et anneau tourbillonnant au sol
+   ===================================================================== */
+.cs-stage .cs-halo,.cs-stage .cs-beam,.cs-stage .cs-ring{display:none}
+.cs-stage.r5 .cs-halo{display:block}
+.cs-chest::before{display:none}
+.cs-chest>*{pointer-events:none}
+/* Serrure */
+.cs-lock{position:absolute;left:61%;top:55%;width:14%;aspect-ratio:1;translate:-50% -50%;z-index:4;border-radius:50%;opacity:0;
+  background:radial-gradient(closest-side,#fffbe0,rgba(255,214,110,.85) 40%,rgba(255,190,60,0) 75%);mix-blend-mode:screen}
+.cs-stage.charge .cs-lock{animation:cs-lock .6s ease-out both}
+@keyframes cs-lock{0%{opacity:0;scale:.3}40%{opacity:1;scale:1.25}100%{opacity:.75;scale:1}}
+/* Filet de lumière le long de la jointure */
+.cs-seam{display:block !important;position:absolute;inset:0;z-index:4;opacity:0;transform:none;left:0;right:0;top:0;height:100%;border-radius:0;background:none;
+  filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 8px var(--hc)) drop-shadow(0 0 16px var(--hc))}
+.cs-seam i{position:absolute;inset:0;background:linear-gradient(90deg,#fff,color-mix(in srgb,var(--hc) 60%,#fff),#fff);
+  clip-path:polygon(13% 49.3%,40% 57.8%,82% 45.3%,82% 46.7%,40% 59.2%,13% 50.7%)}
+.cs-stage.charge .cs-seam{animation:cs-seam-in var(--charge,1.4s) ease-in both}
+@keyframes cs-seam-in{0%{opacity:0}25%{opacity:.5}100%{opacity:1;filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 14px var(--hc)) drop-shadow(0 0 30px var(--hc))}}
+/* Rayons qui fuient par la jointure, derrière le coffre */
+.cs-rays{position:absolute;left:48%;top:50%;width:260%;aspect-ratio:1;translate:-50% -50%;z-index:-1;opacity:0;
+  background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--hc) 75%,#fff) 0deg 3deg,transparent 3deg 14deg,color-mix(in srgb,var(--hc) 45%,transparent) 14deg 16deg,transparent 16deg 26deg);
+  -webkit-mask:radial-gradient(closest-side,#000 14%,rgba(0,0,0,.5) 35%,transparent 70%);mask:radial-gradient(closest-side,#000 14%,rgba(0,0,0,.5) 35%,transparent 70%)}
+.cs-stage.charge .cs-rays{animation:cs-rays-in var(--charge,1.4s) ease-in both}
+.cs-stage.burst .cs-rays{animation:cs-rays-out .8s ease-out both}
+@keyframes cs-rays-in{0%{opacity:0;scale:.5;rotate:0deg}35%{opacity:.35}100%{opacity:1;scale:1;rotate:14deg}}
+@keyframes cs-rays-out{from{opacity:1;scale:1;rotate:14deg}to{opacity:0;scale:1.3;rotate:24deg}}
+/* Le coffre reste posé pendant la charge (il frémit à peine) */
+.cs-stage.charge .cs-chest,.cs-stage.r4.charge .cs-chest,.cs-stage.r5.charge .cs-chest{animation:cs-tremble .09s linear infinite}
+@keyframes cs-tremble{0%,100%{transform:none}50%{transform:translate(1px,-1px)}}
+.cs-stage.charge .cs-lid{animation:none;transform:rotate3d(.958,-.285,0,3deg)}
+/* Ouverture : le couvercle bascule et se dresse derrière */
+.cs-stage.burst .cs-lid{transform:rotate3d(.958,-.285,0,150deg);transition:transform .6s cubic-bezier(.2,1.5,.4,1)}
+.cs-lid-under{background:#6e6e76}
+.cs-lid-under::after{background:linear-gradient(200deg,#f6f4ee 20%,color-mix(in srgb,var(--hc) 55%,#fff) 100%);
+  clip-path:polygon(16% 50.5%,40% 56.5%,78.5% 46%,55% 40%)}
+.cs-inside{background:radial-gradient(ellipse 40% 30% at 48% 49%,#fff,color-mix(in srgb,var(--hc) 70%,#fff) 40%,color-mix(in srgb,var(--hc) 35%,#c8c8d0) 80%)}
+/* Faisceau vertical qui monte de l'intérieur et reste */
+.cs-beam2{position:absolute;left:50%;bottom:50%;width:30%;height:0;translate:-50% 0;z-index:3;opacity:0;
+  background:linear-gradient(to top,#fff 0%,color-mix(in srgb,var(--hc) 80%,#fff) 30%,color-mix(in srgb,var(--hc) 50%,transparent) 70%,transparent);
+  -webkit-mask:linear-gradient(90deg,transparent,#000 25%,#000 75%,transparent);mask:linear-gradient(90deg,transparent,#000 25%,#000 75%,transparent);filter:blur(1px)}
+.cs-stage.burst .cs-beam2{animation:cs-beam-up .7s .1s cubic-bezier(.2,.8,.3,1) both,cs-beam-flicker 1.6s .8s ease-in-out infinite}
+@keyframes cs-beam-up{from{height:0;opacity:1}to{height:220%;opacity:1}}
+@keyframes cs-beam-flicker{0%,100%{height:220%;opacity:1}50%{height:205%;opacity:.8}}
+/* Anneau tourbillonnant au sol : moitié arrière derrière le coffre, moitié avant devant */
+.cs-swirl{position:absolute;left:50%;top:80%;width:140%;aspect-ratio:1;translate:-50% -50%;opacity:0;pointer-events:none}
+.cs-swirl::before{content:'';position:absolute;inset:0;border-radius:50%;transform:scaleY(.3);
+  background:conic-gradient(from 0deg,#8a5cff,#ffd66e,color-mix(in srgb,var(--hc) 80%,#fff),#ff7ad0,#6ad0ff,#8a5cff);
+  -webkit-mask:radial-gradient(closest-side,transparent 70%,#000 74%,#000 84%,transparent 88%);mask:radial-gradient(closest-side,transparent 70%,#000 74%,#000 84%,transparent 88%);
+  filter:drop-shadow(0 0 6px var(--hc));animation:cs-swirl-spin 2.4s linear infinite}
+.cs-swirl.front::before{animation-direction:normal}
+.cs-swirl.back{z-index:-1;clip-path:inset(0 0 50% 0)}
+.cs-swirl.front{z-index:5;clip-path:inset(50% 0 0 0)}
+.cs-stage.burst .cs-swirl{animation:cs-swirl-in .6s .15s ease-out both}
+@keyframes cs-swirl-in{from{opacity:0;scale:.4}to{opacity:1;scale:1}}
+@keyframes cs-swirl-spin{from{transform:scaleY(.3) rotate(0deg)}to{transform:scaleY(.3) rotate(360deg)}}
+.cs-stage.after .cs-swirl,.cs-stage.after .cs-beam2{animation:none;opacity:0;transition:opacity .4s}
+@media (prefers-reduced-motion: reduce){.cs-swirl::before{animation:none}}
+/* Le coffre est aplati (pas de tri en profondeur) : le couvercle ouvert reste dessiné devant le fond */
+.cs-chest{transform-style:flat}
+.cs-lid{perspective:none}
+/* Dessous du couvercle : cadre de métal sombre, panneau de bois clair éclairé par l'intérieur */
+.cs-lid-under{background:linear-gradient(200deg,#4a4a52,#7a7a84)}
+.cs-lid-under::after{background:linear-gradient(200deg,#6e6b64 0%,#a8a49a 50%,color-mix(in srgb,var(--hc) 40%,#d6d2c6) 100%);
+  clip-path:polygon(17% 50.6%,40% 56.2%,78% 46.2%,55% 40.6%)}
+.cs-inside{background:radial-gradient(ellipse 34% 26% at 48% 48%,#fff,color-mix(in srgb,var(--hc) 75%,#fff) 45%,color-mix(in srgb,var(--hc) 30%,#8a8a94) 100%)}
