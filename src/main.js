@@ -17,7 +17,7 @@ import { mobileBar } from './ui/victory.js';
 import { streakEgg } from './ui/streak.js';
 import { soundOn, setSound } from './ui/sound.js';
 import { renderBestiary } from './ui/bestiary.js';
-import { rewardWin, welcomeChests, collection } from './core/chests.js';
+import { rewardWin, catchUpChests, collection } from './core/chests.js';
 import { runGuessMode } from './modes/engine.js';
 import { monsterMode } from './modes/monster.js';
 import { spellMode } from './modes/spell.js';
@@ -234,9 +234,9 @@ const showChests = () => {
   document.getElementById('btn-chests').setAttribute('aria-label', n ? `Bestiaire et coffres : ${n} coffre${n > 1 ? 's' : ''} à ouvrir` : 'Bestiaire et coffres');
 };
 window.addEventListener('dofusle:chests', showChests);
-const welcome = welcomeChests(MODES.map((m) => m.id), todayKey());
+const welcome = catchUpChests(MODES.map((m) => m.id), todayKey());
 showChests();
-if (welcome) setTimeout(() => toast(`Nouveau : le Bestiaire du Krosmoz ! ${welcome} coffre${welcome > 1 ? 's' : ''} offert${welcome > 1 ? 's' : ''} pour tes victoires passées.`, 5200), 1200);
+if (welcome) setTimeout(() => toast(`Bestiaire du Krosmoz : ${welcome} coffre${welcome > 1 ? 's' : ''} pour tes victoires et tes séries passées.`, 5200), 1200);
 route();
 
 // Onglet resté ouvert après minuit : on passe automatiquement aux défis du nouveau jour

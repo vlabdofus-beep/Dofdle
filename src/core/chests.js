@@ -3,11 +3,13 @@
 // tous les 5 jours d'affilée, autant de coffres que de jours (5, puis 10, puis 15…),
 // pour la série de chaque mode comme pour celle des journées complètes.
 import { loadStats, currentStreak, loadHistory, fullDayStreaks } from './storage.js';
+import { addDays } from './daily.js';
 import { RARITIES, rarity } from '../data/cards.js';
 import { STEP } from '../ui/streak.js';
 
 const KEY = 'dofusle:v1:bestiaire';
-export const WELCOME_CAP = 20; // coffres offerts aux joueurs déjà là (victoires passées)
+export const WELCOME_CAP = 20; // ancien cadeau d'accueil plafonné (déduit du rattrapage)
+const CATCHUP_VERSION = 1;
 
 function load() {
   let s = null;
@@ -18,8 +20,9 @@ function load() {
     chests: Number.isFinite(s.chests) && s.chests >= 0 ? Math.floor(s.chests) : 0,
     shards: Number.isFinite(s.shards) && s.shards >= 0 ? Math.floor(s.shards) : 0,
     cards: s.cards && typeof s.cards === 'object' ? s.cards : {},
-    granted: Array.isArray(s.granted) ? s.granted.slice(-600) : [],
+    granted: Array.isArray(s.granted) ? s.granted.slice(-5000) : [],
     welcomed: s.welcomed === true,
+    catchup: Number.isFinite(s.catchup) ? s.catchup : 0,
     opened: Number.isFinite(s.opened) ? s.opened : 0,
   };
 }
@@ -62,20 +65,53 @@ export function rewardWin(mode, date, totalModes) {
   return gained;
 }
 
-/** Joueurs déjà là à l'arrivée du Bestiaire : un coffre par victoire passée, plafonné. */
-export function welcomeChests(modes = [], today = '') {
+/**
+ * Rattrapage : toutes les récompenses des victoires passées, sans plafond, une seule fois.
+ * Rejoue l'historique : 1 coffre par défi, 3 par journée complète, et à chaque palier de
+ * 5 jours de série (par mode et en journées complètes) autant de coffres que de jours.
+ * Les gains déjà touchés (clés du registre) ne sont pas redonnés ; les paliers payés
+ * 2 coffres avec l'ancienne règle sont complétés ; l'ancien cadeau d'accueil (20 au plus) est déduit.
+ */
+export function catchUpChests(modes = [], today = '') {
   const s = load();
-  if (s.welcomed) return 0;
+  if (s.catchup >= CATCHUP_VERSION) return 0;
   const hist = loadHistory();
-  const wins = Object.values(hist).reduce((a, day) => a + Object.keys(day || {}).length, 0);
-  // Les victoires d'aujourd'hui sont incluses : elles ne redonneront pas de coffre
-  for (const m of Object.keys(hist[today] || {})) if (!s.granted.includes(`win:${m}:${today}`)) s.granted.push(`win:${m}:${today}`);
-  if (modes.length && Object.keys(hist[today] || {}).length >= modes.length) s.granted.push(`day:${today}`);
-  const n = Math.min(WELCOME_CAP, wins);
+  const dates = Object.keys(hist).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d) && d <= today).sort();
+  const has = new Set(s.granted);
+  let total = 0;
+  let wins = 0;
+  const give = (key, n) => { if (has.has(key)) return; has.add(key); s.granted.push(key); total += n; };
+  const run = {};
+  let fullRun = 0;
+  for (const d of dates) {
+    const day = hist[d] || {};
+    const prev = hist[addDays(d, -1)] || {};
+    for (const m of Object.keys(day)) {
+      if (!has.has(`win:${m}:${d}`)) wins++;
+      give(`win:${m}:${d}`, 1);
+      run[m] = prev[m] != null ? (run[m] || 0) + 1 : 1;
+      if (run[m] % STEP === 0) milestone(`egg:${m}:${d}`, run[m]);
+    }
+    const full = modes.length && modes.every((m) => day[m] != null);
+    if (full) {
+      give(`day:${d}`, 3);
+      const prevFull = modes.every((m) => prev[m] != null);
+      fullRun = prevFull ? fullRun + 1 : 1;
+      if (fullRun % STEP === 0) milestone(`egg:jour:${d}`, fullRun);
+    } else fullRun = 0;
+  }
+  function milestone(key, n) {
+    // Palier déjà payé 2 coffres (ancienne règle) : on complète
+    if (has.has(key)) { if (n > 2) give(`${key}:+`, n - 2); return; }
+    give(key, n);
+  }
+  // Ancien cadeau d'accueil : il couvrait déjà une partie des victoires passées
+  if (s.welcomed) total = Math.max(0, total - Math.min(WELCOME_CAP, wins));
   s.welcomed = true;
-  s.chests += n;
+  s.catchup = CATCHUP_VERSION;
+  s.chests += total;
   save(s);
-  return n;
+  return total;
 }
 
 function randomUnit() {
