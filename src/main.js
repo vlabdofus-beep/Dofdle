@@ -242,7 +242,10 @@ window.addEventListener('dofusle:chests', showChests);
 const guard = secureChests(MODES.map((m) => m.id), todayKey());
 const welcome = catchUpChests(MODES.map((m) => m.id), todayKey());
 if (guard.reset) setTimeout(() => toast('Ta sauvegarde du Bestiaire a été modifiée à la main : coffres et cartes sont remis à zéro.', 6000), 900);
-else if (guard.gift && chestNotices()) setTimeout(() => toast(`Cadeau : ${guard.gift} coffres offerts à tous les joueurs !`, 5200), welcome ? 6600 : 1200);
+else if ((guard.gift || guard.credit) && chestNotices()) {
+  const parts = [guard.gift ? `${guard.gift} coffres offerts à tous` : '', guard.credit ? `${guard.credit} coffre${guard.credit > 1 ? 's' : ''} recalculé${guard.credit > 1 ? 's' : ''} d'après tes victoires et tes séries` : ''].filter(Boolean);
+  setTimeout(() => toast(`Bestiaire : ${parts.join(', ')} !`, 6000), welcome ? 6600 : 1200);
+}
 showChests();
 if (welcome && chestNotices()) setTimeout(() => toast(`Bestiaire du Krosmoz : ${welcome} coffre${welcome > 1 ? 's' : ''} pour tes victoires et tes séries passées.`, 5200), 1200);
 route();

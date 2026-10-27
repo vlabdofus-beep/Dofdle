@@ -74,15 +74,32 @@ export function rewardWin(mode, date, totalModes) {
 
 /** Jours d'affilée où le mode a été réussi, en remontant depuis `date`. */
 function historyRun(mode, date) {
-  const hist = loadHistory();
+  const hist = winsByDay([mode]);
   let n = 0, d = date;
   while (hist[d] && hist[d][mode] != null && n < 5000) { n++; d = addDays(d, -1); }
   return n;
 }
 
+/**
+ * Victoires par jour : l'historique, complété par les séries des statistiques (une série de
+ * n jours finissant à la dernière victoire prouve les n jours, même s'ils manquent à l'historique).
+ */
+function winsByDay(modes) {
+  const hist = JSON.parse(JSON.stringify(loadHistory()));
+  for (const m of modes) {
+    const st = loadStats(m);
+    if (!st.lastWin || !Number.isFinite(st.streak)) continue;
+    for (let i = 0, d = st.lastWin; i < Math.min(st.streak, 5000) && d >= LAUNCH_DATE; i++, d = addDays(d, -1)) {
+      hist[d] = { ...(hist[d] || {}) };
+      if (hist[d][m] == null) hist[d][m] = 1;
+    }
+  }
+  return hist;
+}
+
 /** Tout ce que l'historique permet d'avoir gagné (règles actuelles) : total et clés du registre. */
 function entitlement(modes, today) {
-  const hist = loadHistory();
+  const hist = winsByDay(modes);
   const dates = Object.keys(hist).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d) && d >= LAUNCH_DATE && d <= today).sort();
   const keys = [];
   let total = 0;
@@ -138,6 +155,18 @@ export function secureChests(modes = [], today = '') {
   }
   let gift = 0;
   if (!s.granted.includes(GIFT_KEY)) { s.granted.push(GIFT_KEY); s.chests += GIFT; gift = GIFT; }
+  // Rattrapage permanent : tout ce que les victoires et séries donnent droit d'avoir reçu
+  // (coffres à ouvrir + coffres déjà ouverts) est complété s'il en manque
+  let credit = 0;
+  if (!reset) {
+    const due = ent.total + GIFT;
+    const received = s.chests + s.opened;
+    if (received < due) { credit = due - received; s.chests += credit; }
+    const has = new Set(s.granted);
+    for (const k of ent.keys) if (!has.has(k)) s.granted.push(k);
+    s.welcomed = true;
+    s.catchup = CATCHUP_VERSION;
+  }
   // Plus de coffres reçus (ouverts + à ouvrir) ou de cartes que le maximum théorique : remise à zéro
   const cardsHeld = Object.values(s.cards).reduce((a, n) => a + (Number.isFinite(n) ? n : 0), 0);
   const max = maxChests(modes.length || 6, today);
@@ -145,8 +174,8 @@ export function secureChests(modes = [], today = '') {
     reset = true;
     s = { chests: 0, shards: 0, cards: {}, granted: [...ent.keys, GIFT_KEY], welcomed: true, catchup: CATCHUP_VERSION, opened: 0 };
   }
-  if (reset || gift || state === 'legacy') save(s);
-  return { reset, gift };
+  save(s);
+  return { reset, gift, credit };
 }
 
 /**
