@@ -4,6 +4,7 @@ import { h } from './dom.js';
 import { rarity } from '../data/cards.js';
 
 const levelText = ([a, b]) => (a === b ? `niveau ${a}` : `niveau ${a} à ${b}`);
+const SERIES_LABEL = { m: 'Monstre', e: 'Équipement', s: 'Sort', c: 'Classe', d: 'Dofus' };
 
 /** Reflet de la feuille d'or / d'argent : suit le pointeur sur les cartes Rare et plus. */
 function followLight(el) {
@@ -44,8 +45,9 @@ export function cardEl(card, { count = 1 } = {}) {
     // Écrin : monogramme, filigrane du logo, coins ornés, médaillon
     h('div.bc-orn', { 'aria-hidden': 'true' }, h('i.bc-mono'), h('i.bc-wm'),
       h('i.bc-c.tl'), h('i.bc-c.tr'), h('i.bc-c.bl'), h('i.bc-c.br'), h('i.bc-crest')),
-    h('div.bc-top', h('span', `Planche n° ${card.num}`), h('span', card.family)),
+    h('div.bc-top', h('span', `n° ${card.num}`), h('span', SERIES_LABEL[card.series || 'm'])),
     h(`div.bc-name${long}`, card.name),
+    h('div.bc-fam', { title: card.family }, card.family),
     h('div.bc-rule', { 'aria-hidden': 'true' }),
     // Illustration seule, posée sur la planche ; les sorts portent le symbole de leur classe en filigrane
     h(`div.bc-art.s-${card.series || 'm'}`,
@@ -53,12 +55,12 @@ export function cardEl(card, { count = 1 } = {}) {
       h('img', { src: card.img, alt: '', loading: 'lazy', decoding: 'async' })),
     // Règle graduée du niveau ; pour les sorts et les classes, une ligne de caractéristiques
     card.level
-      ? h('div.bc-scale', { 'aria-label': levelText(card.level) },
-        h('div.bc-ruler', h('i', { style: `left:${left.toFixed(1)}%;width:${width.toFixed(1)}%` })),
-        h('span', h('em', '1'), h('b', levelText(card.level)), h('em', '200')))
+      ? h('div.bc-scale', { 'aria-label': `${levelText(card.level)} sur 200` },
+        h('div.bc-ruler', h('i', { style: `left:${Math.min(left, 97).toFixed(1)}%;width:${Math.max(width, 3).toFixed(1)}%` })),
+        h('b', levelText(card.level)))
       : h('div.bc-stat', card.stat || ''),
     h('div.bc-foot',
-      h('div.bc-hab', card.habitat, h('small', card.habLabel || 'Habitat')),
+      h('div.bc-hab', { title: `${card.habLabel || 'Habitat'} : ${card.habitat}` }, card.habitat),
       h('div.bc-sealbox', h('div.bc-seal', { 'aria-hidden': 'true' }), h('div.bc-rar', r.label))),
     count > 1 ? h('span.bc-count', { title: `${count} exemplaires` }, `×${count}`) : null);
   if (card.rarity >= 3) { followLight(el); followTilt(el); }

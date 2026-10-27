@@ -1698,3 +1698,41 @@ body:not([data-mode="accueil"]) .mode-tab { font-size: 12px; }
   .hb-cta { width: 100%; text-align: center; }
 }
 @media (prefers-reduced-motion: reduce) { .hb-fan .bcard { transition: none; } }
+
+/* =====================================================================
+   Revue des cartes : netteté, haut de carte, pied allégé, niveaux, sorts
+   ===================================================================== */
+/* 1. Les images DofusDB font 128 px : on ne les agrandit pas au-delà de ~1,2 fois */
+.bc-art img,.bc-art.s-e img,.bc-art.s-c img{max-width:min(10.5em,150px);max-height:min(10.5em,150px)}
+.bc-art.s-e img{max-width:min(8.4em,140px);max-height:min(8.4em,140px)}
+.bcard.r5 .bc-art img{max-width:min(11.5em,160px);max-height:min(11.5em,160px)}
+/* Socle : une ellipse au métal de la rareté sous l'illustration */
+.bc-art::after{bottom:7%;width:62%;height:.9em;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(40,28,16,.32),transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--orn) 55%,transparent)}
+.bcard.r5 .bc-art::after{box-shadow:0 0 0 1px rgba(255,214,120,.6)}
+/* 2. Halo réservé aux raretés Rare et plus */
+.bcard.r1 .bc-art::before,.bcard.r2 .bc-art::before{display:none}
+/* 3. Haut : numéro et série ; famille sous le nom, sur sa propre ligne */
+.bc-top span:last-child{font-style:normal;font-family:Inter,sans-serif;font-weight:600;font-size:.92em;letter-spacing:.01em}
+.bc-fam{font:italic 400 .74em/1.2 Philosopher,serif;color:var(--ink-soft);text-align:center;margin:.1em .6em 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 4. Pied allégé : la valeur seule, sur une ligne */
+.bc-foot{align-items:flex-end}
+.bc-hab{font-size:.84em;line-height:1.15;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;flex:1}
+.bc-sealbox{flex-direction:column;align-items:center;gap:.15em}
+.bc-rar{margin:0;font-size:.66em;opacity:.9;white-space:nowrap}
+.bc-seal{margin:0}
+/* 5. Niveaux : règle épaisse, segment net, libellé centré */
+.bc-scale{margin:0 .6em .45em;text-align:center}
+.bc-ruler{height:.42em;border:0;border-radius:99px;background:color-mix(in srgb,var(--ink) 16%,transparent)}
+.bc-ruler i{top:0;bottom:0;height:auto;border-radius:99px;background:color-mix(in srgb,var(--seal-hi) 40%,var(--seal));box-shadow:0 0 0 1px color-mix(in srgb,var(--ink) 35%,transparent)}
+.bcard.r3 .bc-ruler i,.bcard.r4 .bc-ruler i,.bcard.r5 .bc-ruler i{background:var(--orn-hi)}
+.bc-scale>b{display:block;margin-top:.3em;font:700 .7em Inter,sans-serif;color:var(--ink)}
+/* 6. Filigrane et monogramme réglés par matière */
+.bcard.r3 .bc-wm,.bcard.r4 .bc-wm{opacity:.42} .bcard.r5 .bc-wm{opacity:.38}
+.bcard.r3 .bc-mono,.bcard.r4 .bc-mono{opacity:.16} .bcard.r5 .bc-mono{opacity:.13}
+/* 7. Sorts : l'icône dans un médaillon rond cerclé de métal */
+.bc-art.s-s img{width:5.6em;height:5.6em;max-width:none;max-height:none;border-radius:50%;object-fit:cover;
+  box-shadow:0 0 0 .14em #000,0 0 0 .3em var(--orn),0 0 0 .38em #000,0 .35em .6em rgba(0,0,0,.4)}
+.bc-art.s-s::after{display:none}
+/* 8. Règle du titre : l'œuf seul entre deux filets */
+.bc-rule::before{display:none}
