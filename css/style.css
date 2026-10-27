@@ -1602,3 +1602,19 @@ body:not([data-mode="accueil"]) .mode-tab { font-size: 12px; }
 /* Le texte du pli passe au-dessus de la ficelle */
 .bs-to,.bs-hint{width:max-content;margin:0 auto;padding:.1em .5em;background:#e6d6b2;border-radius:.2em}
 @media (prefers-reduced-motion: reduce){.co-slot::before,.chest-open.flash::after{display:none}.bcard.shine::after{animation:none}}
+
+/* Décor de zone : lavis ciel/sol fondu dans la matière de la rareté, puis deux plans gravés
+   (lointain, proche) dans l'encre de la carte. Les motifs et palettes sont dans css/scenes.css. */
+.bc-scene{position:absolute;inset:.44em;z-index:-1;border-radius:.5em;overflow:hidden;pointer-events:none;
+  --sky:#d8e4ea;--ground:#8aa46a;--far:none;--near:none}
+@supports (corner-shape: bevel) { .bc-scene { corner-shape: bevel; } }
+/* Lavis : le ciel en haut, le sol en bas, en multiplication sur le papier */
+.bc-scene::before{content:'';position:absolute;inset:0;mix-blend-mode:multiply;opacity:.6;
+  background:linear-gradient(180deg,transparent 3%,var(--sky) 28%,color-mix(in srgb,var(--sky) 40%,var(--ground)) 60%,var(--ground) 100%)}
+/* Matières sombres : le lavis teinte sans assombrir */
+.bcard.r3 .bc-scene::before,.bcard.r4 .bc-scene::before,.bcard.r5 .bc-scene::before{mix-blend-mode:soft-light;opacity:.8}
+.bc-far,.bc-near{position:absolute;left:0;right:0;top:13%;height:58%;background:var(--ink);opacity:.3;
+  /* Le paysage s'efface vers le bas, avant la règle des niveaux */
+  -webkit-mask:var(--far) center bottom/100% 100% no-repeat,linear-gradient(#000 72%,transparent);-webkit-mask-composite:source-in;
+  mask:var(--far) center bottom/100% 100% no-repeat,linear-gradient(#000 72%,transparent);mask-composite:intersect}
+.bc-near{-webkit-mask-image:var(--near),linear-gradient(#000 72%,transparent);mask-image:var(--near),linear-gradient(#000 72%,transparent);opacity:.5}

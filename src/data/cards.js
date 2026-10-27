@@ -52,6 +52,9 @@ export const POOLS = [
   { id: 'e', label: 'Équipements', equip: true, weight: 50 },
   { id: 'o', label: 'Monstres, sorts, classes et Dofus', equip: false, weight: 50 },
 ];
+/** Décor de la carte : la zone d'origine (classe CSS z-<zone>, voir css/scenes.css). */
+const zoneSlug = (name) => normalize(name || '').trim().replace(/ /g, '-');
+const SPELL_SCENE = { feu: 'el-feu', eau: 'el-eau', terre: 'el-terre', air: 'el-air', neutre: 'el-neutre' };
 const pad = (n, w) => String(n).padStart(w, '0');
 
 /**
@@ -65,7 +68,9 @@ export function buildCards(monsters, items = null, spells = null) {
     const r = m.k === 'boss' ? 4 : m.k === 'archi' ? 3 : m.l[1] >= UNCOMMON_LEVEL ? 2 : 1;
     const race = data.races[m.r]?.n || '';
     const sub = data.subareas[m.z];
+    const area = data.areas[sub?.a];
     return {
+      scene: zoneSlug(area || sub?.n),
       id: `m${m.id}`, name: m.n, rarity: r, img: monsterImg(m),
       family: m.k === 'boss' ? (race ? `Boss des ${race}` : 'Boss') : race,
       habitat: data.areas[sub?.a] || sub?.n || 'Inconnu', level: m.l,
@@ -75,17 +80,17 @@ export function buildCards(monsters, items = null, spells = null) {
   const dofus = DOFUS.map(([id, name, lvl, icon], i) => ({
     id: `d${id}`, name, rarity: 5, img: `https://api.dofusdb.fr/img/items/${icon}.png`,
     family: PRIMORDIAUX.has(icon) ? 'Dofus primordial' : 'Dofus', habitat: 'Krosmoz', level: [lvl, lvl],
-    num: `D-${pad(i + 1, 2)}`, series: 'd',
+    num: `D-${pad(i + 1, 2)}`, series: 'd', scene: 'krosmoz',
   }));
 
   const equip = !items ? [] : [...items.items].sort((a, b) => a.l - b.l || a.n.localeCompare(b.n, 'fr')).map((it, i) => ({
-    id: `e${it.id}`, name: it.n, rarity: itemRarity(it), img: itemImg(it), series: 'e', num: `E-${pad(i + 1, 4)}`,
+    id: `e${it.id}`, name: it.n, rarity: itemRarity(it), img: itemImg(it), series: 'e', num: `E-${pad(i + 1, 4)}`, scene: 'atelier',
     family: items.types[it.t] || 'Équipement', level: [it.l, it.l],
     habitat: it.s ? (items.sets[it.s] || 'Panoplie') : 'Hors panoplie', habLabel: 'Panoplie',
   }));
 
   const spellCards = !spells ? [] : [...spells.spells].sort((a, b) => a.b - b.b || a.n.localeCompare(b.n, 'fr')).map((sp, i) => ({
-    id: `s${sp.id}`, name: sp.n, rarity: spellRarity(sp), img: spellImg(sp), series: 's', num: `S-${pad(i + 1, 4)}`,
+    id: `s${sp.id}`, name: sp.n, rarity: spellRarity(sp), img: spellImg(sp), series: 's', num: `S-${pad(i + 1, 4)}`, scene: SPELL_SCENE[(sp.el || [])[0]] || 'el-neutre',
     family: spells.breeds[sp.b] || 'Sort', habLabel: 'Élément',
     habitat: (sp.el || []).length ? sp.el.map((e) => ELEMENTS[e]?.label || e).join(', ') : (sp.soin ? 'Soin' : 'Aucun'),
     stat: `${sp.pa} PA, portée ${sp.po[0] === sp.po[1] ? sp.po[0] : `${sp.po[0]} à ${sp.po[1]}`}`,
@@ -94,7 +99,7 @@ export function buildCards(monsters, items = null, spells = null) {
   const classes = !spells ? [] : Object.entries(spells.breeds).map(([id, name], i) => {
     const n = spells.spells.filter((sp) => String(sp.b) === id).length;
     return {
-      id: `c${id}`, name, rarity: 4, img: `https://api.dofusdb.fr/img/breeds/logo_transparent_${id}.png`, series: 'c',
+      id: `c${id}`, name, rarity: 4, img: `https://api.dofusdb.fr/img/breeds/logo_transparent_${id}.png`, series: 'c', scene: 'temple',
       num: `C-${pad(i + 1, 2)}`, family: 'Classe', habLabel: 'Sorts', habitat: `${n} sort${n > 1 ? 's' : ''}`, stat: 'Classe du Monde des Douze',
     };
   });
