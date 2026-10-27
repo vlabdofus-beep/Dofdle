@@ -1743,3 +1743,84 @@ body:not([data-mode="accueil"]) .mode-tab { font-size: 12px; }
 .bc-art.s-e img{width:100%;height:100%;max-width:min(88%,140px);max-height:min(88%,140px)}
 .bcard.r5 .bc-art.s-m img,.bcard.r5 .bc-art.s-d img,.bcard.r5 .bc-art.s-e img{max-width:min(112%,160px);max-height:min(112%,160px);margin:auto;inset:-6% 0}
 .bc-art.s-s img{width:min(5.6em,72%);height:auto;aspect-ratio:1;max-height:88%}
+
+/* =====================================================================
+   Coffre de songe : intro de l'ouverture des coffres
+   ===================================================================== */
+.chest-open.intro .co-head,.chest-open.intro .co-grid,.chest-open.intro .co-bar{visibility:hidden}
+.chest-open .co-head,.chest-open .co-grid,.chest-open .co-bar{position:relative;z-index:2}
+.chest-open .co-close{z-index:3}
+.cs-stage{position:fixed;inset:0;z-index:1;display:grid;place-items:center;pointer-events:none;
+  background:radial-gradient(ellipse 70% 55% at 50% 52%,rgba(70,48,130,.55),transparent 70%)}
+.cs-stage::before{content:'';position:absolute;inset:0;opacity:.7;
+  background-image:radial-gradient(1px 1px at 12% 18%,#fff 50%,transparent),radial-gradient(1px 1px at 78% 12%,#fff 50%,transparent),radial-gradient(1.4px 1.4px at 64% 30%,#ffe9b0 50%,transparent),radial-gradient(1px 1px at 30% 72%,#fff 50%,transparent),radial-gradient(1.4px 1.4px at 86% 66%,#d8c8ff 50%,transparent),radial-gradient(1px 1px at 22% 44%,#d8c8ff 50%,transparent),radial-gradient(1px 1px at 52% 86%,#fff 50%,transparent),radial-gradient(1.2px 1.2px at 92% 40%,#fff 50%,transparent)}
+.cs-chest{position:relative;width:min(340px,72vw);aspect-ratio:200/150;padding:0;border:0;background:none;cursor:pointer;pointer-events:auto;
+  perspective:700px;animation:cs-drop .6s cubic-bezier(.3,1.4,.5,1) both}
+.cs-chest:focus-visible{outline:2px solid var(--gold);outline-offset:8px;border-radius:8px}
+.cs-body{position:absolute;left:0;right:0;bottom:0;width:100%;filter:drop-shadow(0 18px 18px rgba(0,0,0,.55))}
+.cs-lid{position:absolute;left:-1%;width:102%;top:6%;transform-origin:50% 100%;transition:transform .5s cubic-bezier(.2,1.6,.4,1)}
+.cs-seam{position:absolute;left:4%;right:4%;top:45%;height:9%;z-index:1;border-radius:50%;background:var(--hc);filter:blur(6px);opacity:0;transition:opacity .3s}
+.cs-inside{position:absolute;left:5%;right:5%;top:34%;height:26%;z-index:1;border-radius:50%;background:radial-gradient(closest-side,#fff,var(--hc) 45%,transparent);opacity:0}
+.cs-count{position:absolute;right:-6%;top:-4%;padding:.2em .55em;border-radius:99px;background:#1c2731;border:1px solid var(--gold);color:var(--gold-2,#f0d28e);font:700 15px Inter,sans-serif}
+.cs-hint{position:absolute;top:calc(50% + min(170px,36vw) * .62 + 18px);margin:0;color:var(--muted);font-size:14px;animation:cs-fade 1s .6s both}
+.cs-skip{position:absolute;bottom:22px;right:24px;pointer-events:auto;color:var(--muted)}
+.cs-halo,.cs-beam,.cs-ring{position:absolute;left:50%;top:50%;pointer-events:none;opacity:0}
+.cs-halo{width:min(760px,170vw);aspect-ratio:1;translate:-50% -50%;border-radius:50%;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--hc) 70%,transparent),color-mix(in srgb,var(--hc) 18%,transparent) 45%,transparent)}
+.cs-beam{width:min(560px,130vw);aspect-ratio:1;translate:-50% -62%;border-radius:50%;
+  background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--hc) 55%,transparent) 0deg 5deg,transparent 5deg 15deg);
+  -webkit-mask:radial-gradient(closest-side,#000 18%,transparent);mask:radial-gradient(closest-side,#000 18%,transparent)}
+.cs-ring{width:120px;aspect-ratio:1;translate:-50% -60%;border-radius:50%;border:3px solid var(--hc);box-shadow:0 0 30px var(--hc)}
+.cs-sparks{position:absolute;left:50%;top:44%;width:0;height:0;font-size:16px}
+.cs-sparks i{position:absolute;width:.4em;height:.4em;border-radius:50%;background:var(--hc);box-shadow:0 0 .6em var(--hc);opacity:0}
+/* Attente : le coffre respire */
+.cs-stage:not(.charge):not(.burst) .cs-chest{animation:cs-drop .6s cubic-bezier(.3,1.4,.5,1) both,cs-breathe 2.4s .6s ease-in-out infinite}
+.cs-stage.nudge .cs-hint{color:var(--text)}
+/* Charge : il tremble, la lumière fuit par la jointure, de plus en plus fort */
+.cs-stage.charge .cs-chest{animation:cs-shake .12s linear infinite}
+.cs-stage.r4.charge .cs-chest,.cs-stage.r5.charge .cs-chest{animation:cs-shake .09s linear infinite,cs-swell 1.7s ease-in both}
+.cs-stage.charge .cs-seam{opacity:1;animation:cs-seam .4s ease-in-out infinite alternate}
+.cs-stage.charge .cs-lid{transform:translateY(-3%)}
+.cs-stage.r5.charge .cs-halo{opacity:.35;transition:opacity 1.6s}
+/* Ouverture : le couvercle saute, halo, rayons, anneau, étincelles */
+.cs-stage.burst .cs-lid{transform:translateY(-105%) rotateX(58deg) rotateZ(-4deg);filter:drop-shadow(0 -6px 14px color-mix(in srgb,var(--hc) 70%,transparent))}
+.cs-stage.burst .cs-inside{opacity:1;transition:opacity .2s}
+.cs-stage.burst .cs-seam{opacity:0}
+.cs-stage.burst .cs-halo{animation:cs-halo 1.4s ease-out both}
+.cs-stage.burst .cs-beam{animation:cs-beam 2.4s ease-out both}
+.cs-stage.burst .cs-ring{animation:cs-ring .9s ease-out both}
+.cs-stage.burst .cs-sparks i{animation:cs-spark 1s var(--t) cubic-bezier(.2,.8,.3,1) both}
+.cs-stage.burst .cs-hint,.cs-stage.burst .cs-skip{opacity:0;pointer-events:none}
+.cs-stage.r1.burst .cs-beam,.cs-stage.r2.burst .cs-beam{display:none}
+/* Après : le coffre s'efface, le halo reste en fond derrière les plis */
+.cs-stage.after{pointer-events:none}
+.cs-stage.after .cs-chest{animation:cs-out .5s ease-in both}
+.cs-stage.after .cs-halo{animation:none;opacity:.35;transition:opacity .6s}
+.cs-stage.after .cs-beam{animation:cs-beam-rest 30s linear infinite}
+.cs-stage.r1.after .cs-halo,.cs-stage.r2.after .cs-halo{opacity:.18}
+.cs-stage.after .cs-hint,.cs-stage.after .cs-skip{display:none}
+/* Les plis sortent du coffre */
+.co-slot.fly{animation:cs-fly .7s cubic-bezier(.2,.9,.25,1.05) both;animation-delay:calc(var(--i) * 60ms + 80ms)}
+@keyframes cs-fly{from{transform:translate(var(--fx),var(--fy)) scale(.15) rotate(-14deg);opacity:0}25%{opacity:1}to{transform:none;opacity:1}}
+@keyframes cs-drop{from{transform:translateY(-60vh) rotate(-6deg)}to{transform:none}}
+@keyframes cs-breathe{50%{transform:translateY(-6px)}}
+@keyframes cs-shake{0%{transform:translate(0,0) rotate(0)}25%{transform:translate(-3px,1px) rotate(-1.2deg)}50%{transform:translate(2px,-1px) rotate(.8deg)}75%{transform:translate(-1px,2px) rotate(-.6deg)}100%{transform:translate(3px,0) rotate(1deg)}}
+@keyframes cs-swell{to{scale:1.12}}
+@keyframes cs-seam{from{opacity:.55}to{opacity:1;transform:scaleX(1.08)}}
+@keyframes cs-halo{0%{opacity:0;scale:.3}25%{opacity:1}100%{opacity:.55;scale:1}}
+@keyframes cs-beam{0%{opacity:0;rotate:0deg;scale:.4}30%{opacity:1}100%{opacity:.6;rotate:40deg;scale:1}}
+@keyframes cs-beam-rest{from{rotate:40deg;opacity:.25}to{rotate:400deg;opacity:.25}}
+@keyframes cs-ring{from{opacity:1;scale:.3}to{opacity:0;scale:5}}
+@keyframes cs-spark{0%{opacity:1;transform:rotate(var(--a)) translateX(0) scale(1.2)}100%{opacity:0;transform:rotate(var(--a)) translateX(var(--d)) scale(.3)}}
+@keyframes cs-out{to{opacity:0;transform:translateY(30px) scale(.85)}}
+@keyframes cs-fade{from{opacity:0}}
+@media (prefers-reduced-motion: reduce){.cs-stage{display:none}}
+
+/* Colonne de lumière qui jaillit de l'intérieur du coffre */
+.cs-chest::before{content:'';position:absolute;left:12%;right:12%;bottom:52%;height:0;z-index:0;opacity:0;
+  background:linear-gradient(to top,color-mix(in srgb,var(--hc) 90%,#fff),color-mix(in srgb,var(--hc) 40%,transparent) 60%,transparent);
+  clip-path:polygon(18% 100%,82% 100%,100% 0,0 0);filter:blur(2px)}
+.cs-stage.burst .cs-chest::before{animation:cs-pillar 1.2s ease-out both}
+@keyframes cs-pillar{0%{height:0;opacity:1}40%{height:260%;opacity:1}100%{height:300%;opacity:.0}}
+.cs-stage.charge .cs-halo{opacity:.18;transition:opacity .4s}
+.cs-body{z-index:0}.cs-lid{z-index:2}

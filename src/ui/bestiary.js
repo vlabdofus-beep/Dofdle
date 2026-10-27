@@ -137,6 +137,65 @@ export async function renderBestiary(root) {
   refresh();
 }
 
+// Couleur du halo à l'ouverture : celle de la carte la plus rare du tirage
+const HALO = { 1: '#efe2c4', 2: '#8fe09a', 3: '#a8d6ff', 4: '#d896ff', 5: '#ffd66e' };
+const CHARGE = { 1: 450, 2: 550, 3: 800, 4: 1150, 5: 1700 };
+
+/**
+ * Coffre de songe : il tombe, on le touche, il tremble (d'autant plus longtemps que la meilleure
+ * carte est rare), le couvercle saute et un halo de la couleur de cette carte jaillit. Les plis
+ * scellés s'envolent alors du coffre jusqu'à leur place.
+ */
+function chestIntro(overlay, draws, onReveal) {
+  const best = Math.max(...draws.map((d) => d.card.rarity));
+  const sparks = [...Array(28)].map((_, i) => h('i', { style: `--a:${(i * 360) / 28 + (i % 3) * 7}deg;--d:${7 + (i % 5) * 2.2}em;--t:${(i % 4) * 60}ms` }));
+  const chest = h('button.cs-chest', { type: 'button', 'aria-label': draws.length > 1 ? `Ouvrir les ${draws.length} coffres` : 'Ouvrir le coffre' },
+    h('span.cs-inside', { 'aria-hidden': 'true' }),
+    h('img.cs-body', { src: 'assets/coffre-corps.svg', alt: '' }),
+    h('img.cs-lid', { src: 'assets/coffre-couvercle.svg', alt: '' }),
+    h('span.cs-seam', { 'aria-hidden': 'true' }),
+    draws.length > 1 ? h('span.cs-count', `×${draws.length}`) : null);
+  const stage = h(`div.cs-stage.r${best}`, { style: `--hc:${HALO[best]}` },
+    h('div.cs-halo', { 'aria-hidden': 'true' }), h('div.cs-beam', { 'aria-hidden': 'true' }), h('div.cs-ring', { 'aria-hidden': 'true' }),
+    h('div.cs-sparks', { 'aria-hidden': 'true' }, sparks),
+    chest,
+    h('p.cs-hint', draws.length > 1 ? 'Touche le coffre pour ouvrir tes coffres' : 'Touche le coffre pour l\'ouvrir'),
+    h('button.link.cs-skip', { type: 'button', onclick: () => reveal() }, 'Passer'));
+  overlay.classList.add('intro');
+  overlay.append(stage);
+  setTimeout(() => chest.focus(), 50);
+
+  let state = 0; // 0 fermé, 1 en charge, 2 ouvert, 3 révélé
+  const timers = [];
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+  function open() {
+    if (state) return;
+    state = 1;
+    stage.classList.add('charge');
+    play('guess');
+    later(() => {
+      state = 2;
+      stage.classList.remove('charge');
+      stage.classList.add('burst');
+      play(best >= 5 ? 'day' : best >= 3 ? 'harvest' : 'reveal');
+      if (best >= 5) { overlay.classList.remove('flash'); void overlay.offsetWidth; overlay.classList.add('flash'); }
+      later(reveal, best >= 4 ? 1000 : 750);
+    }, CHARGE[best]);
+  }
+  function reveal() {
+    if (state === 3) return;
+    state = 3;
+    timers.forEach(clearTimeout);
+    stage.classList.add('burst', 'after');
+    const box = chest.getBoundingClientRect();
+    const cx = box.left + box.width / 2, cy = box.top + box.height * .35;
+    overlay.classList.remove('intro');
+    onReveal(cx, cy);
+  }
+  chest.addEventListener('click', open);
+  later(() => { if (!state) stage.classList.add('nudge'); }, 2600);
+}
+
 /** Ouverture : les cartes arrivent de dos, avec la lueur de leur rareté, et se retournent au clic. */
 function showOpening(draws, set, { onAgain, onClose }) {
   document.querySelector('.chest-open')?.remove();
@@ -202,5 +261,15 @@ function showOpening(draws, set, { onAgain, onClose }) {
     h('button.modal-close.co-close', { type: 'button', 'aria-label': 'Fermer', onclick: close }, '×'));
   document.body.append(overlay);
   requestAnimationFrame(() => overlay.classList.add('open'));
-  grid.querySelector('.co-slot')?.focus();
+  if (reduceMotion()) { grid.querySelector('.co-slot')?.focus(); return; }
+  // Les plis s'envolent du coffre jusqu'à leur place
+  chestIntro(overlay, draws, (cx, cy) => {
+    [...grid.children].forEach((slot) => {
+      const r = slot.getBoundingClientRect();
+      slot.style.setProperty('--fx', `${(cx - (r.left + r.width / 2)).toFixed(0)}px`);
+      slot.style.setProperty('--fy', `${(cy - (r.top + r.height / 2)).toFixed(0)}px`);
+      slot.classList.add('fly');
+    });
+    grid.querySelector('.co-slot')?.focus();
+  });
 }
