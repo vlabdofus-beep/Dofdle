@@ -7,7 +7,6 @@
 import { monsterEntries, monsterImg } from './monsters.js';
 import { itemImg } from './items.js';
 import { spellImg } from './spells.js';
-import { ELEMENTS } from './elements.js';
 import { normalize } from '../core/text.js';
 
 /** Le coffre des cartes : le Narkoffret Infini (icône du jeu, via DofusDB). */
@@ -92,8 +91,7 @@ export function buildCards(monsters, items = null, spells = null) {
 
   const spellCards = !spells ? [] : [...spells.spells].sort((a, b) => a.b - b.b || a.n.localeCompare(b.n, 'fr')).map((sp, i) => ({
     id: `s${sp.id}`, name: sp.n, rarity: spellRarity(sp), img: spellImg(sp), series: 's', num: `S-${pad(i + 1, 4)}`, symbol: breedSymbol(sp.b),
-    family: spells.breeds[sp.b] || 'Sort', habLabel: 'Élément',
-    habitat: (sp.el || []).length ? sp.el.map((e) => ELEMENTS[e]?.label || e).join(', ') : (sp.soin ? 'Soin' : 'Aucun'),
+    family: spells.breeds[sp.b] || 'Sort', habitat: '',
     stat: `${sp.pa} PA, portée ${sp.po[0] === sp.po[1] ? sp.po[0] : `${sp.po[0]} à ${sp.po[1]}`}`,
   }));
 

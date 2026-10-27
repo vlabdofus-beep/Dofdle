@@ -61,7 +61,7 @@ export function cardEl(card, { count = 1 } = {}) {
         h('b', { 'aria-hidden': 'true' }, levelShort(card.level)))
       : h('div.bc-stat', card.stat || ''),
     h('div.bc-foot',
-      h('div.bc-hab', { title: `${card.habLabel || 'Habitat'} : ${card.habitat}` }, card.habitat),
+      h('div.bc-hab', card.habitat ? { title: `${card.habLabel || 'Habitat'} : ${card.habitat}` } : {}, card.habitat),
       h('div.bc-sealbox', h('div.bc-seal', { 'aria-hidden': 'true' }), h('div.bc-rar.sr-only', r.label))),
     count > 1 ? h('span.bc-count', { title: `${count} exemplaires` }, `×${count}`) : null);
   if (card.rarity >= 3) { followLight(el); followTilt(el); }
