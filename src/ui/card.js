@@ -2,6 +2,7 @@
 // Toutes les mesures sont en em : la même carte sert en grand et en vignette d'album.
 import { h } from './dom.js';
 import { rarity } from '../data/cards.js';
+import { SCENES_VERSION } from './scenes-version.js';
 
 const levelText = ([a, b]) => (a === b ? `niveau ${a}` : `niveau ${a} à ${b}`);
 
@@ -39,7 +40,7 @@ let scenesLoaded = false;
 function loadScenes() {
   if (scenesLoaded) return;
   scenesLoaded = true;
-  document.head.append(h('link', { rel: 'stylesheet', href: 'css/scenes.css' }));
+  document.head.append(h('link', { rel: 'stylesheet', href: `css/scenes.css?v=${SCENES_VERSION}` }));
 }
 
 export function cardEl(card, { count = 1 } = {}) {

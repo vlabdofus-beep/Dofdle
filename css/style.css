@@ -1617,3 +1617,15 @@ body:not([data-mode="accueil"]) .mode-tab { font-size: 12px; }
 .bc-art.s-c img{filter:drop-shadow(0 .2em .3em rgba(0,0,0,.45))}
 .win-egg-chests { flex-basis: 100%; text-align: center; font-size: 13px; color: var(--gold, #e7c26a); }
 .bc-art:has(.bc-scene)::before{display:none}
+
+/* Liserés de rareté : un vrai bord de carte, sombre puis métallique, qui détache la planche du fond
+   et annonce la rareté dès la vignette (bois brun, bronze vert, argent, or sur améthyste). */
+.bcard.r1{box-shadow:0 0 0 1px #000,0 0 0 .2em #4a3826,0 0 0 .3em #a8875a,0 0 0 .36em #2a1e12,0 1.1em 2em rgba(0,0,0,.55)}
+.bcard.r2{box-shadow:0 0 0 1px #000,0 0 0 .2em #263d24,0 0 0 .3em #8fb06a,0 0 0 .36em #16240f,0 0 1.1em rgba(110,170,90,.25),0 1.1em 2em rgba(0,0,0,.55)}
+.bcard.r3{box-shadow:0 0 0 1px #000,0 0 0 .2em #3e4e66,0 0 0 .32em #e6eef8,0 0 0 .38em #22303f,0 0 1.4em rgba(150,190,240,.35),0 1.1em 2em rgba(0,0,0,.55)}
+.bcard.r4{box-shadow:0 0 0 1px #000,0 0 0 .2em #3a1844,0 0 0 .32em #e2b85a,0 0 0 .38em #2a1030,0 0 1.6em rgba(200,120,230,.4),0 1.1em 2em rgba(0,0,0,.55)}
+.bcard.r1::before{border:1.5px solid rgba(74,56,38,.8);box-shadow:inset 0 0 0 .2em transparent,inset 0 0 0 calc(.2em + 1px) rgba(74,56,38,.45)}
+.bcard.r2::before{border-width:1.5px}
+/* Cartes de l'album : bord un peu plus fin pour que les vignettes respirent */
+.bst-cell .bcard.r1,.bst-cell .bcard.r2{box-shadow:0 0 0 1px #000,0 0 0 .18em var(--rim,#4a3826),0 0 0 .26em var(--rim-hi,#a8875a),0 .6em 1.2em rgba(0,0,0,.5)}
+.bst-cell .bcard.r2{--rim:#263d24;--rim-hi:#8fb06a}

@@ -448,5 +448,10 @@ def uri(s): return 'url("data:image/svg+xml,' + quote(s, safe="=:/ '(),") + '")'
 out = ["/* Vignettes de décor des cartes du Bestiaire. Généré par scripts/scenes.py : ne pas modifier à la main. */"]
 for z, s in Z.items():
     out.append(f".bc-scene.z-{z}{{background-image:{uri(s)}}}")
-open(os.path.join(os.path.dirname(__file__), '..', 'css', 'scenes.css'), 'w').write("\n".join(out) + "\n")
+css = '@charset "utf-8";\n' + "\n".join(out) + "\n"
+root = os.path.join(os.path.dirname(__file__), '..')
+open(os.path.join(root, 'css', 'scenes.css'), 'w').write(css)
+import hashlib
+ver = hashlib.sha1(css.encode()).hexdigest()[:8]
+open(os.path.join(root, 'src', 'ui', 'scenes-version.js'), 'w').write(f"// Généré par scripts/scenes.py : version du fichier css/scenes.css (évite un vieux fichier en cache)\nexport const SCENES_VERSION = '{ver}';\n")
 print(len(Z), 'décors,', sum(len(l) for l in out) // 1024, 'Ko')
