@@ -10,6 +10,9 @@ import { spellImg } from './spells.js';
 import { ELEMENTS } from './elements.js';
 import { normalize } from '../core/text.js';
 
+/** Le coffre des cartes : le Narkoffret Infini (icône du jeu, via DofusDB). */
+export const NARKOFFRET = 'https://api.dofusdb.fr/img/items/172013.png';
+
 export const RARITIES = [
   { id: 1, key: 'commune', label: 'Commune', weight: 70, shards: 1, cost: 10 },
   { id: 2, key: 'peu-commune', label: 'Peu commune', weight: 20, shards: 3, cost: 30 },

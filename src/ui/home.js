@@ -5,7 +5,7 @@ import { h, clear, formatDuration } from './dom.js';
 import { todayKey, dayNumber, msUntilNextDaily } from '../core/daily.js';
 import { loadGame, loadStats, currentStreak, fullDayStreaks, getPref, setPref } from '../core/storage.js';
 import { collection } from '../core/chests.js';
-import { sealedPlate } from './card.js';
+import { NARKOFFRET } from '../data/cards.js';
 import { modeInfo, dofusImg } from '../core/modes.js';
 import { streakEgg } from './streak.js';
 
@@ -122,12 +122,12 @@ function bestiaryBand(onHide) {
   return h('section.home-bestiary', { 'aria-label': 'Bestiaire du Krosmoz' },
     h('button.hb-hide', { type: 'button', title: 'Masquer le Bestiaire de l\'accueil et le compteur de coffres',
       onclick: () => { setChestNotices(false); onHide(); } }, 'Masquer'),
-    h('div.hb-fan', { 'aria-hidden': 'true' }, sealedPlate(3), sealedPlate(5), sealedPlate(4)),
+    h('div.hb-fan', { 'aria-hidden': 'true' }, h('img.hb-chest', { src: NARKOFFRET, alt: '' }), n ? h('span.hb-n', `×${n}`) : null),
     h('div.hb-text',
       h('h2', 'Bestiaire du Krosmoz'),
       h('p', 'Chaque défi réussi te rapporte des coffres. Ouvre-les pour collectionner les cartes des monstres, équipements, sorts, classes et Dofus.'),
       owned ? h('p.hb-count', total ? `${owned} cartes sur ${total}` : `${owned} carte${owned > 1 ? 's' : ''} dans ta collection`,
         total ? h('span.hb-bar', h('i', { style: `width:${Math.min(100, (owned / total) * 100).toFixed(1)}%` })) : null) : null),
-    h('a.btn.primary.hb-cta', { href: '#bestiaire' },
+    h('a.btn.primary.hb-cta', { href: n ? '#coffres' : '#bestiaire' },
       n ? `Ouvrir ${n > 1 ? `mes ${n} coffres` : 'mon coffre'}` : 'Voir ma collection'));
 }

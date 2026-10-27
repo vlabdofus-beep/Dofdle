@@ -116,12 +116,16 @@ function render() {
   renderNav(mode);
   renderDate();
   const page = location.hash.replace('#', '').split('/')[0];
-  document.body.dataset.mode = mode ? mode.id : page === 'bestiaire' ? 'bestiaire' : 'accueil';
+  document.body.dataset.mode = mode ? mode.id : page === 'bestiaire' || page === 'coffres' ? 'bestiaire' : 'accueil';
   app.classList.remove('no-guess');
   window.scrollTo(0, 0);
+  if (!mode && page === 'coffres') {
+    document.title = 'Dofusle, coffres à ouvrir';
+    return renderBestiary(app, 'coffres');
+  }
   if (!mode && page === 'bestiaire') {
     document.title = 'Dofusle, Bestiaire du Krosmoz';
-    return renderBestiary(app);
+    return renderBestiary(app, 'album');
   }
   if (!mode) {
     document.title = 'Dofusle, le défi quotidien de l\'univers Dofus';

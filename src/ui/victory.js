@@ -130,7 +130,7 @@ export function winCard({ cfg, date, tries, reveal, onShare }) {
     h('div.win-actions',
       h('button.btn', { type: 'button', onclick: onShare }, 'Partager'),
       h('button.btn', { type: 'button', onclick: () => showStats(cfg) }, 'Statistiques'),
-      h('a.btn.win-chests', { href: '#bestiaire' }, 'Ouvrir mes coffres')),
+      h('a.btn.win-chests', { href: '#coffres' }, 'Ouvrir mes coffres')),
     h('p.next-daily', 'Nouveaux défis dans ', countdownEl()));
 }
 

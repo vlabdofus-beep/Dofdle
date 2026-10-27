@@ -1,11 +1,11 @@
-// Page « Bestiaire » : les coffres à ouvrir (par 1 ou par 10) et l'album des cartes.
+// Deux pages : « Coffres » (le tirage, par 1 ou par 10) et « Bestiaire » (l'album des cartes).
 import { h, clear, toast } from './dom.js';
 import { openModal, closeModal } from './modal.js';
 import { loadDataset } from '../core/cache.js';
 import { monstersDataset } from '../data/monsters.js';
 import { itemsDataset } from '../data/items.js';
 import { spellsDataset } from '../data/spells.js';
-import { buildCards, RARITIES, SERIES, rarity } from '../data/cards.js';
+import { buildCards, RARITIES, SERIES, rarity, NARKOFFRET } from '../data/cards.js';
 import { collection, openChests, craftCard } from '../core/chests.js';
 import { cardEl, cardBack, sealedPlate } from './card.js';
 import { play } from './sound.js';
@@ -26,42 +26,72 @@ const fmt = (n) => n.toLocaleString('fr-FR');
 const plural = (n, one, many) => `${fmt(n)} ${n > 1 ? many : one}`;
 const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export async function renderBestiary(root) {
-  clear(root).append(h('div.loader', h('div.loader-label', 'Ouverture du Bestiaire…')));
+export async function renderBestiary(root, view = 'album') {
+  clear(root).append(h('div.loader', h('div.loader-label', view === 'coffres' ? 'Préparation des coffres…' : 'Ouverture du Bestiaire…')));
   let set;
   try { set = await cardSet(); } catch {
     clear(root).append(h('div.panel.error', h('h3', 'Bestiaire indisponible'), h('p.muted', 'Les données des monstres n\'ont pas pu être chargées. Réessaie dans un instant.')));
     return;
   }
   clear(root);
+  setPref('bestiaryTotal', set.cards.length);
+  const owned = () => set.cards.filter((x) => collection().cards[x.id]).length;
+  let drawChests = () => {};
+
+  function open(n) {
+    const draws = openChests(set, n);
+    if (!draws) return;
+    if (view === 'coffres') drawChests(); else refresh();
+    showOpening(draws, set, { onAgain: (k) => open(k), onClose: () => (view === 'coffres' ? drawChests() : refresh()) });
+  }
+
+  // --- Page « Coffres » : le Narkoffret Infini, en grand, et le tirage
+  if (view === 'coffres') {
+    const page = h('section.chest-page', { 'aria-label': 'Coffres à ouvrir' });
+    root.append(page);
+    drawChests = () => {
+      const c = collection();
+      const n = c.chests;
+      page.replaceChildren(
+        h('div.cp-stage', { 'aria-hidden': 'true' },
+          h('div.cp-aura'), h('img.cp-chest', { src: NARKOFFRET, alt: '' }), h('div.cp-shadow')),
+        h('h2.cp-title', n ? (n > 1 ? `${fmt(n)} coffres à ouvrir` : 'Un coffre à ouvrir') : 'Plus de coffre pour l\'instant'),
+        h('p.cp-sub', n
+          ? 'Chaque coffre contient une carte du Bestiaire du Krosmoz. Par 10, au moins une Rare est garantie.'
+          : 'Réussis les défis du jour pour gagner de nouveaux coffres : 1 par défi, 3 pour la journée complète, et des paliers tous les 5 jours de série.'),
+        n
+          ? h('div.cp-actions',
+            h('button.btn.primary.cp-open', { type: 'button', onclick: () => open(1) }, 'Ouvrir 1 coffre'),
+            h('button.btn.cp-open', { type: 'button', disabled: n < 10 || undefined, onclick: () => open(10) }, 'Ouvrir 10 coffres'))
+          : h('div.cp-actions', h('a.btn.primary.cp-open', { href: '#' }, 'Jouer les défis du jour')),
+        h('p.cp-links',
+          h('a', { href: '#bestiaire' }, `Voir ma collection (${fmt(owned())} sur ${fmt(set.cards.length)})`),
+          h('button.link', { type: 'button', onclick: showRates }, 'Chances et éclats')),
+        h('label.bst-notice',
+          h('input', { type: 'checkbox', checked: chestNotices() || undefined, onchange: (e) => setChestNotices(e.target.checked) }),
+          'Afficher le compteur de coffres et le Bestiaire sur l\'accueil'));
+    };
+    drawChests();
+    return;
+  }
+
   const head = h('div.bst-head');
   const album = h('section.bst-album', { 'aria-label': 'Album des cartes' });
   root.append(head, album);
 
-  // --- En-tête : coffres et progression
+  // --- En-tête de l'album : progression, éclats, lien vers les coffres
   function drawHead() {
     const c = collection();
-    setPref('bestiaryTotal', set.cards.length);
-    const owned = set.cards.filter((x) => c.cards[x.id]).length;
-    const stack = h('div.bst-stack', { 'aria-hidden': 'true' }, [0, 1, 2].map(() => cardBack()));
+    const own = owned();
     head.replaceChildren(
       h('div.bst-title',
         h('h2', 'Bestiaire du Krosmoz'),
-        h('p.muted', `${fmt(owned)} cartes sur ${fmt(set.cards.length)}`, h('span.bst-sep', { 'aria-hidden': 'true' }), plural(c.shards, 'éclat', 'éclats')),
-        h('div.bst-progress', { role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(set.cards.length), 'aria-valuenow': String(owned), 'aria-label': 'Progression de l\'album' },
-          h('i', { style: `width:${((owned / set.cards.length) * 100).toFixed(2)}%` }))),
-      h('div.bst-chests',
-        stack,
-        h('div.bst-chest-info',
-          h('p.bst-chest-count', h('strong', fmt(c.chests)), c.chests > 1 ? ' coffres à ouvrir' : ' coffre à ouvrir'),
-          h('div.bst-actions',
-            h('button.btn.primary', { type: 'button', disabled: c.chests < 1 || undefined, onclick: () => open(1) }, 'Ouvrir 1 coffre'),
-            h('button.btn', { type: 'button', disabled: c.chests < 10 || undefined, onclick: () => open(10) }, 'Ouvrir 10 coffres')),
-          h('p.small.muted', c.chests ? 'Par 10 : au moins une carte Rare garantie. ' : 'Gagne des coffres en réussissant les défis du jour. ',
-            h('button.link', { type: 'button', onclick: showRates }, 'Chances et éclats')),
-          h('label.bst-notice',
-            h('input', { type: 'checkbox', checked: chestNotices() || undefined, onchange: (e) => setChestNotices(e.target.checked) }),
-            'Afficher le compteur de coffres et le Bestiaire sur l\'accueil'))));
+        h('p.muted', `${fmt(own)} cartes sur ${fmt(set.cards.length)}`, h('span.bst-sep', { 'aria-hidden': 'true' }), plural(c.shards, 'éclat', 'éclats')),
+        h('div.bst-progress', { role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(set.cards.length), 'aria-valuenow': String(own), 'aria-label': 'Progression de l\'album' },
+          h('i', { style: `width:${((own / set.cards.length) * 100).toFixed(2)}%` }))),
+      h('a.bst-chests-link', { href: '#coffres' },
+        h('img', { src: NARKOFFRET, alt: '' }),
+        h('span', h('strong', c.chests ? (c.chests > 1 ? `${fmt(c.chests)} coffres` : '1 coffre') : 'Coffres'), h('small', c.chests ? 'à ouvrir' : 'aucun à ouvrir'))));
   }
 
   // --- Album : filtres, vignettes, pages de 60
@@ -127,13 +157,6 @@ export async function renderBestiary(root) {
 
   function refresh() { drawHead(); drawGrid(); }
 
-  function open(n) {
-    const draws = openChests(set, n);
-    if (!draws) return;
-    refresh();
-    showOpening(draws, set, { onAgain: (k) => open(k), onClose: refresh });
-  }
-
   refresh();
 }
 
@@ -142,7 +165,7 @@ const HALO = { 1: '#efe2c4', 2: '#8fe09a', 3: '#a8d6ff', 4: '#d896ff', 5: '#ffd6
 const CHARGE = { 1: 450, 2: 550, 3: 800, 4: 1150, 5: 1700 };
 
 /**
- * Coffre de songe : il tombe, on le touche, il tremble (d'autant plus longtemps que la meilleure
+ * Narkoffret Infini : il tombe, on le touche, il tremble (d'autant plus longtemps que la meilleure
  * carte est rare), le couvercle saute et un halo de la couleur de cette carte jaillit. Les plis
  * scellés s'envolent alors du coffre jusqu'à leur place.
  */
@@ -151,8 +174,9 @@ function chestIntro(overlay, draws, onReveal) {
   const sparks = [...Array(28)].map((_, i) => h('i', { style: `--a:${(i * 360) / 28 + (i % 3) * 7}deg;--d:${7 + (i % 5) * 2.2}em;--t:${(i % 4) * 60}ms` }));
   const chest = h('button.cs-chest', { type: 'button', 'aria-label': draws.length > 1 ? `Ouvrir les ${draws.length} coffres` : 'Ouvrir le coffre' },
     h('span.cs-inside', { 'aria-hidden': 'true' }),
-    h('img.cs-body', { src: 'assets/coffre-corps.svg', alt: '' }),
-    h('img.cs-lid', { src: 'assets/coffre-couvercle.svg', alt: '' }),
+    // Narkoffret Infini : le même dessin en deux morceaux, le coffre et son couvercle
+    h('img.cs-body', { src: NARKOFFRET, alt: '' }),
+    h('img.cs-lid', { src: NARKOFFRET, alt: '' }),
     h('span.cs-seam', { 'aria-hidden': 'true' }),
     draws.length > 1 ? h('span.cs-count', `×${draws.length}`) : null);
   const stage = h(`div.cs-stage.r${best}`, { style: `--hc:${HALO[best]}` },
@@ -250,7 +274,7 @@ function showOpening(draws, set, { onAgain, onClose }) {
       h('div.co-actions',
         c.chests >= 1 ? h('button.btn', { type: 'button', onclick: () => { overlay.remove(); onAgain(1); } }, 'Ouvrir 1 coffre') : null,
         c.chests >= 10 ? h('button.btn', { type: 'button', onclick: () => { overlay.remove(); onAgain(10); } }, 'Ouvrir 10 coffres') : null,
-        h('button.btn.primary', { type: 'button', onclick: close }, 'Voir le Bestiaire')));
+        h('button.btn.primary', { type: 'button', onclick: () => { close(); if (location.hash !== '#bestiaire') location.hash = 'bestiaire'; } }, 'Voir ma collection')));
     summary.querySelector('.btn.primary')?.focus();
   }
 
