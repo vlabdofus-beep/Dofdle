@@ -1969,3 +1969,30 @@ body:not([data-mode="accueil"]) .mode-tab { font-size: 12px; }
 .cs-lid-under::after{background:linear-gradient(200deg,#6e6b64 0%,#a8a49a 50%,color-mix(in srgb,var(--hc) 40%,#d6d2c6) 100%);
   clip-path:polygon(17% 50.6%,40% 56.2%,78% 46.2%,55% 40.6%)}
 .cs-inside{background:radial-gradient(ellipse 34% 26% at 48% 48%,#fff,color-mix(in srgb,var(--hc) 75%,#fff) 45%,color-mix(in srgb,var(--hc) 30%,#8a8a94) 100%)}
+
+/* =====================================================================
+   Planche resserrée autour du spécimen
+   ===================================================================== */
+/* Titre : filet fin, collé à la famille */
+.bc-name{margin:.32em .2em 0}
+.bc-fam{margin:.05em .6em 0}
+.bc-rule{height:.4em;margin:.28em 2em 0}
+.bc-rule::after{width:.38em;height:.5em}
+/* Règle et niveau sur une seule ligne */
+.bc-scale{display:flex;align-items:center;gap:.5em;margin:.15em .55em .3em}
+.bc-ruler{flex:1;height:.36em}
+.bc-scale>b{display:inline;margin:0;font:700 .66em Inter,sans-serif;white-space:nowrap}
+.bc-stat{margin:.15em .4em .3em;padding-top:.25em}
+/* Pied : la zone sur une ligne, sceau plus petit (la rareté reste lue par les lecteurs d'écran) */
+.bc-foot{align-items:center;margin-bottom:.05em}
+.bc-hab{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;-webkit-line-clamp:unset}
+.bc-seal{width:2.05em;height:2.05em;margin:0 -.1em 0 0}
+.bc-seal::before{width:.75em;height:1em}
+/* Le grand œuf reste discret sur les matières sombres */
+.bcard.r3 .bc-wm,.bcard.r4 .bc-wm,.bcard.r5 .bc-wm{opacity:.24}
+/* Communes et Peu communes : ombre portée plus franche pour détacher les sujets clairs */
+.bcard.r1 .bc-art.s-m img,.bcard.r2 .bc-art.s-m img,.bcard.r1 .bc-art.s-e img,.bcard.r2 .bc-art.s-e img{filter:drop-shadow(0 .15em .25em rgba(30,20,10,.45)) drop-shadow(0 0 .08em rgba(30,20,10,.35))}
+/* Légendaire : le nom tient sur une ligne */
+.bcard.r5 .bc-name{font-size:1.2em;letter-spacing:.02em}
+.bcard.r5 .bc-name.mid{font-size:1.02em} .bcard.r5 .bc-name.long{font-size:.9em}
+.bcard.r5 .bc-art img,.bcard.r5 .bc-art.s-m img,.bcard.r5 .bc-art.s-d img,.bcard.r5 .bc-art.s-e img{inset:-4% 0}

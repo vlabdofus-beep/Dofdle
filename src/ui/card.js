@@ -4,6 +4,7 @@ import { h } from './dom.js';
 import { rarity } from '../data/cards.js';
 
 const levelText = ([a, b]) => (a === b ? `niveau ${a}` : `niveau ${a} à ${b}`);
+const levelShort = ([a, b]) => (a === b ? `niv. ${a}` : `niv. ${a} à ${b}`);
 const SERIES_LABEL = { m: 'Monstre', e: 'Équipement', s: 'Sort', c: 'Classe', d: 'Dofus' };
 
 /** Reflet de la feuille d'or / d'argent : suit le pointeur sur les cartes Rare et plus. */
@@ -57,11 +58,11 @@ export function cardEl(card, { count = 1 } = {}) {
     card.level
       ? h('div.bc-scale', { 'aria-label': `${levelText(card.level)} sur 200` },
         h('div.bc-ruler', h('i', { style: `left:${Math.min(left, 97).toFixed(1)}%;width:${Math.max(width, 3).toFixed(1)}%` })),
-        h('b', levelText(card.level)))
+        h('b', { 'aria-hidden': 'true' }, levelShort(card.level)))
       : h('div.bc-stat', card.stat || ''),
     h('div.bc-foot',
       h('div.bc-hab', { title: `${card.habLabel || 'Habitat'} : ${card.habitat}` }, card.habitat),
-      h('div.bc-sealbox', h('div.bc-seal', { 'aria-hidden': 'true' }), h('div.bc-rar', r.label))),
+      h('div.bc-sealbox', h('div.bc-seal', { 'aria-hidden': 'true' }), h('div.bc-rar.sr-only', r.label))),
     count > 1 ? h('span.bc-count', { title: `${count} exemplaires` }, `×${count}`) : null);
   if (card.rarity >= 3) { followLight(el); followTilt(el); }
   return el;
