@@ -2,7 +2,6 @@
 // Toutes les mesures sont en em : la même carte sert en grand et en vignette d'album.
 import { h } from './dom.js';
 import { rarity } from '../data/cards.js';
-import { SCENES_VERSION } from './scenes-version.js';
 
 const levelText = ([a, b]) => (a === b ? `niveau ${a}` : `niveau ${a} à ${b}`);
 
@@ -35,16 +34,7 @@ function followTilt(el) {
   tiltCards.add(el);
 }
 
-/** Décors des zones (feuille lourde) : chargés seulement quand une carte s'affiche. */
-let scenesLoaded = false;
-function loadScenes() {
-  if (scenesLoaded) return;
-  scenesLoaded = true;
-  document.head.append(h('link', { rel: 'stylesheet', href: `css/scenes.css?v=${SCENES_VERSION}` }));
-}
-
 export function cardEl(card, { count = 1 } = {}) {
-  loadScenes();
   const r = rarity(card.rarity);
   const [lo, hi] = card.level || [0, 0];
   const left = Math.min(100, (lo / 200) * 100);
@@ -57,10 +47,9 @@ export function cardEl(card, { count = 1 } = {}) {
     h('div.bc-top', h('span', `Planche n° ${card.num}`), h('span', card.family)),
     h(`div.bc-name${long}`, card.name),
     h('div.bc-rule', { 'aria-hidden': 'true' }),
-    // Vignette : le décor de la zone d'origine (ou le symbole de la classe), le spécimen devant
+    // Illustration seule, posée sur la planche ; les sorts portent le symbole de leur classe en filigrane
     h(`div.bc-art.s-${card.series || 'm'}`,
-      h(`div.bc-scene.z-${card.scene || 'amakna'}`, { 'aria-hidden': 'true', style: card.symbol ? `--sym:url("${card.symbol}")` : undefined },
-        card.symbol ? h('i.bc-sym') : null),
+      card.symbol ? h('i.bc-sym', { 'aria-hidden': 'true', style: `--sym:url("${card.symbol}")` }) : null,
       h('img', { src: card.img, alt: '', loading: 'lazy', decoding: 'async' })),
     // Règle graduée du niveau ; pour les sorts et les classes, une ligne de caractéristiques
     card.level
