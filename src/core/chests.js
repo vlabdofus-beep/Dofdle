@@ -3,7 +3,7 @@
 // tous les 5 jours d'affilée, autant de coffres que de jours (5, puis 10, puis 15…),
 // pour la série de chaque mode comme pour celle des journées complètes.
 import { loadStats, currentStreak, loadHistory, fullDayStreaks } from './storage.js';
-import { addDays } from './daily.js';
+import { addDays, dayNumber, LAUNCH_DATE } from './daily.js';
 import { RARITIES, rarity } from '../data/cards.js';
 import { STEP } from '../ui/streak.js';
 import { readSigned, writeSigned } from './seal.js';
@@ -83,7 +83,7 @@ function historyRun(mode, date) {
 /** Tout ce que l'historique permet d'avoir gagné (règles actuelles) : total et clés du registre. */
 function entitlement(modes, today) {
   const hist = loadHistory();
-  const dates = Object.keys(hist).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d) && d <= today).sort();
+  const dates = Object.keys(hist).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d) && d >= LAUNCH_DATE && d <= today).sort();
   const keys = [];
   let total = 0;
   const run = {};
@@ -106,9 +106,22 @@ function entitlement(modes, today) {
 }
 
 /**
+ * Maximum théorique de coffres reçus depuis le lancement : un joueur parfait qui a réussi
+ * les six défis chaque jour (1 par défi, 3 par journée complète, et chaque palier de 5 jours
+ * pour les six séries de mode et celle des journées complètes), plus les cadeaux.
+ */
+export function maxChests(modesCount, today) {
+  const days = Math.max(0, dayNumber(today));
+  let max = days * (modesCount + 3);
+  for (let k = STEP; k <= days; k += STEP) max += k * (modesCount + 1);
+  return max + GIFT + WELCOME_CAP;
+}
+
+/**
  * Au démarrage : garde-fou sur la sauvegarde du Bestiaire, puis compensation de 30 coffres.
  * - modifiée à la main : coffres, éclats et cartes remis à zéro ;
  * - ancienne sauvegarde non signée : les coffres sont plafonnés à ce que l'historique permet ;
+ * - plus de coffres reçus que le maximum théorique depuis le lancement : remise à zéro ;
  * renvoie { reset, gift }.
  */
 export function secureChests(modes = [], today = '') {
@@ -125,6 +138,13 @@ export function secureChests(modes = [], today = '') {
   }
   let gift = 0;
   if (!s.granted.includes(GIFT_KEY)) { s.granted.push(GIFT_KEY); s.chests += GIFT; gift = GIFT; }
+  // Plus de coffres reçus (ouverts + à ouvrir) ou de cartes que le maximum théorique : remise à zéro
+  const cardsHeld = Object.values(s.cards).reduce((a, n) => a + (Number.isFinite(n) ? n : 0), 0);
+  const max = maxChests(modes.length || 6, today);
+  if (!reset && (s.chests + s.opened > max || s.opened > max || cardsHeld > s.opened + Math.floor((s.opened * 100) / 10))) {
+    reset = true;
+    s = { chests: 0, shards: 0, cards: {}, granted: [...ent.keys, GIFT_KEY], welcomed: true, catchup: CATCHUP_VERSION, opened: 0 };
+  }
   if (reset || gift || state === 'legacy') save(s);
   return { reset, gift };
 }
