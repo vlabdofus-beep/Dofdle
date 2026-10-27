@@ -3,7 +3,9 @@
 // éclairées au survol / focus. Mobile : cercle compact + panneau du Dofus choisi.
 import { h, clear, formatDuration } from './dom.js';
 import { todayKey, dayNumber, msUntilNextDaily } from '../core/daily.js';
-import { loadGame, loadStats, currentStreak, fullDayStreaks } from '../core/storage.js';
+import { loadGame, loadStats, currentStreak, fullDayStreaks, getPref, setPref } from '../core/storage.js';
+import { collection } from '../core/chests.js';
+import { sealedPlate } from './card.js';
 import { modeInfo, dofusImg } from '../core/modes.js';
 import { streakEgg } from './streak.js';
 
@@ -98,5 +100,34 @@ export function renderHome(root, modes, { onShareDay } = {}) {
     hub);
 
   root.append(h('section.home-ring', ring, panel));
+  const band = bestiaryBand(() => band.remove());
+  if (band) root.append(band);
   showPanel();
+}
+
+/** Coffres : notifications (pastille, annonces, bandeau d'accueil) activées par défaut. */
+export const chestNotices = () => getPref('chestNotices', true) !== false;
+export function setChestNotices(on) {
+  setPref('chestNotices', !!on);
+  window.dispatchEvent(new CustomEvent('dofusle:chests', { detail: { chests: collection().chests } }));
+}
+
+/** Bandeau du Bestiaire sous la vitrine : la collection, ses coffres, et de quoi le masquer. */
+function bestiaryBand(onHide) {
+  if (!chestNotices()) return null;
+  const c = collection();
+  const owned = Object.keys(c.cards).length;
+  const total = getPref('bestiaryTotal', 0);
+  const n = c.chests;
+  return h('section.home-bestiary', { 'aria-label': 'Bestiaire du Krosmoz' },
+    h('button.hb-hide', { type: 'button', title: 'Masquer le Bestiaire de l\'accueil et le compteur de coffres',
+      onclick: () => { setChestNotices(false); onHide(); } }, 'Masquer'),
+    h('div.hb-fan', { 'aria-hidden': 'true' }, sealedPlate(3), sealedPlate(5), sealedPlate(4)),
+    h('div.hb-text',
+      h('h2', 'Bestiaire du Krosmoz'),
+      h('p', 'Chaque défi réussi te rapporte des coffres. Ouvre-les pour collectionner les cartes des monstres, équipements, sorts, classes et Dofus.'),
+      owned ? h('p.hb-count', total ? `${owned} cartes sur ${total}` : `${owned} carte${owned > 1 ? 's' : ''} dans ta collection`,
+        total ? h('span.hb-bar', h('i', { style: `width:${Math.min(100, (owned / total) * 100).toFixed(1)}%` })) : null) : null),
+    h('a.btn.primary.hb-cta', { href: '#bestiaire' },
+      n ? `Ouvrir ${n > 1 ? `mes ${n} coffres` : 'mon coffre'}` : 'Voir ma collection'));
 }

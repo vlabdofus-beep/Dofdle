@@ -9,6 +9,8 @@ import { buildCards, RARITIES, SERIES, rarity } from '../data/cards.js';
 import { collection, openChests, craftCard } from '../core/chests.js';
 import { cardEl, cardBack, sealedPlate } from './card.js';
 import { play } from './sound.js';
+import { setPref } from '../core/storage.js';
+import { chestNotices, setChestNotices } from './home.js';
 import { normalize } from '../core/text.js';
 
 let SET = null;
@@ -39,6 +41,7 @@ export async function renderBestiary(root) {
   // --- En-tête : coffres et progression
   function drawHead() {
     const c = collection();
+    setPref('bestiaryTotal', set.cards.length);
     const owned = set.cards.filter((x) => c.cards[x.id]).length;
     const stack = h('div.bst-stack', { 'aria-hidden': 'true' }, [0, 1, 2].map(() => cardBack()));
     head.replaceChildren(
@@ -55,7 +58,10 @@ export async function renderBestiary(root) {
             h('button.btn.primary', { type: 'button', disabled: c.chests < 1 || undefined, onclick: () => open(1) }, 'Ouvrir 1 coffre'),
             h('button.btn', { type: 'button', disabled: c.chests < 10 || undefined, onclick: () => open(10) }, 'Ouvrir 10 coffres')),
           h('p.small.muted', c.chests ? 'Par 10 : au moins une carte Rare garantie. ' : 'Gagne des coffres en réussissant les défis du jour. ',
-            h('button.link', { type: 'button', onclick: showRates }, 'Chances et éclats')))));
+            h('button.link', { type: 'button', onclick: showRates }, 'Chances et éclats')),
+          h('label.bst-notice',
+            h('input', { type: 'checkbox', checked: chestNotices() || undefined, onchange: (e) => setChestNotices(e.target.checked) }),
+            'Afficher le compteur de coffres et le Bestiaire sur l\'accueil'))));
   }
 
   // --- Album : filtres, vignettes, pages de 60

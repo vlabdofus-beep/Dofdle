@@ -7,7 +7,7 @@ import { harvestedToday, modeInfo, dofusImg } from './core/modes.js';
 import { todayKey, dayNumber, msUntilNextDaily } from './core/daily.js';
 import { loadGame, loadStats, currentStreak } from './core/storage.js';
 import { shareResult } from './ui/share.js';
-import { renderHome } from './ui/home.js';
+import { renderHome, chestNotices } from './ui/home.js';
 import { showCollection } from './ui/collection.js';
 import { maybeShowIntro, showIntro } from './ui/intro.js';
 import { krosmozDate } from './core/krosmoz.js';
@@ -145,7 +145,7 @@ window.addEventListener('dofusle:progress', (ev) => {
   // Coffres : 1 par défi, 3 pour la journée complète, N tous les 5 jours de série (une seule fois chacun)
   if (won) {
     const gained = rewardWin(won, todayKey(), MODES.length);
-    if (gained.length) {
+    if (gained.length && chestNotices()) {
       const n = gained.reduce((a, g) => a + g.n, 0);
       setTimeout(() => toast(`+${n} coffre${n > 1 ? 's' : ''} : ${gained.map((g) => g.why).join(', ')}`, 3600), 1800);
     }
@@ -229,14 +229,14 @@ backfillHistory(MODES.map((m) => m.id));
 const chestBadge = document.getElementById('chest-badge');
 const showChests = () => {
   const n = collection().chests;
-  chestBadge.hidden = !n;
+  chestBadge.hidden = !n || !chestNotices();
   chestBadge.textContent = n > 99 ? '99+' : String(n);
   document.getElementById('btn-chests').setAttribute('aria-label', n ? `Bestiaire et coffres : ${n} coffre${n > 1 ? 's' : ''} à ouvrir` : 'Bestiaire et coffres');
 };
 window.addEventListener('dofusle:chests', showChests);
 const welcome = catchUpChests(MODES.map((m) => m.id), todayKey());
 showChests();
-if (welcome) setTimeout(() => toast(`Bestiaire du Krosmoz : ${welcome} coffre${welcome > 1 ? 's' : ''} pour tes victoires et tes séries passées.`, 5200), 1200);
+if (welcome && chestNotices()) setTimeout(() => toast(`Bestiaire du Krosmoz : ${welcome} coffre${welcome > 1 ? 's' : ''} pour tes victoires et tes séries passées.`, 5200), 1200);
 route();
 
 // Onglet resté ouvert après minuit : on passe automatiquement aux défis du nouveau jour
