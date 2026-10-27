@@ -7,7 +7,7 @@ import { harvestedToday, modeInfo, dofusImg } from './core/modes.js';
 import { todayKey, dayNumber, msUntilNextDaily } from './core/daily.js';
 import { loadGame, loadStats, currentStreak } from './core/storage.js';
 import { shareResult } from './ui/share.js';
-import { renderHome, chestNotices } from './ui/home.js';
+import { renderHome, chestNotices, fitHome } from './ui/home.js';
 import { showCollection } from './ui/collection.js';
 import { maybeShowIntro, showIntro } from './ui/intro.js';
 import { krosmozDate } from './core/krosmoz.js';
@@ -118,6 +118,7 @@ function render() {
   const page = location.hash.replace('#', '').split('/')[0];
   document.body.dataset.mode = mode ? mode.id : page === 'bestiaire' || page === 'coffres' ? 'bestiaire' : 'accueil';
   app.classList.remove('no-guess');
+  fitHome(); // remet l'échelle à 1 hors de l'accueil
   window.scrollTo(0, 0);
   if (!mode && page === 'coffres') {
     document.title = 'Dofusle, coffres à ouvrir';

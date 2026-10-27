@@ -100,9 +100,37 @@ export function renderHome(root, modes, { onShareDay } = {}) {
     hub);
 
   root.append(h('section.home-ring', ring, panel));
-  const band = bestiaryBand(() => band.remove());
+  const band = bestiaryBand(() => { band.remove(); fitHome(); });
   if (band) root.append(band);
   showPanel();
+  fitHome();
+}
+
+/**
+ * Ordinateur : l'accueil tient toujours dans la hauteur de l'écran. On mesure la page à
+ * l'échelle 1, puis on réduit la zone centrale juste assez pour supprimer le défilement.
+ */
+const desktopQuery = typeof matchMedia === 'function' ? matchMedia('(min-width: 821px)') : { matches: true };
+let fitBound = false;
+export function fitHome() {
+  const app = document.getElementById('app');
+  if (!app) return;
+  const isHome = document.body.dataset.mode === 'accueil';
+  if (!isHome || !desktopQuery.matches) { app.style.zoom = ''; document.documentElement.classList.remove('home-fit'); return; }
+  app.style.zoom = '';
+  const total = document.documentElement.scrollHeight;
+  const appH = app.getBoundingClientRect().height;
+  const rest = total - appH;
+  const z = Math.max(0.55, Math.min(1, (innerHeight - rest - 2) / appH));
+  app.style.zoom = z < 0.995 ? z.toFixed(3) : '';
+  // Défilement bloqué seulement si tout tient vraiment
+  document.documentElement.classList.toggle('home-fit', document.documentElement.scrollHeight <= innerHeight + 1);
+  if (!fitBound) {
+    fitBound = true;
+    let t = 0;
+    window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(fitHome, 80); });
+    document.fonts?.ready.then(() => fitHome());
+  }
 }
 
 /** Coffres : notifications (pastille, annonces, bandeau d'accueil) activées par défaut. */

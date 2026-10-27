@@ -1892,14 +1892,8 @@ body:not([data-mode="accueil"]) .mode-tab { font-size: 12px; }
 .cs-seam{display:none}
 .cs-chest::before{left:22%;right:22%;bottom:52%}
 
-/* Accueil sur ordinateur : la vitrine et le bandeau tiennent dans l'écran sans défiler */
-@media (min-width: 821px) and (max-height: 1060px) {
-  body[data-mode="accueil"] #app { zoom: .88; }
-  body[data-mode="accueil"] .home-bestiary { margin-top: 20px; }
-}
-@media (min-width: 821px) and (max-height: 900px) { body[data-mode="accueil"] #app { zoom: .8; } }
-@media (min-width: 821px) and (max-height: 830px) { body[data-mode="accueil"] #app { zoom: .74; } }
-@media (min-width: 821px) and (max-height: 700px) { body[data-mode="accueil"] #app { zoom: .66; } }
+/* Accueil sur ordinateur : mis à l'échelle de l'écran par fitHome() (ui/home.js), sans défilement */
+body[data-mode="accueil"] .home-bestiary { margin-top: 20px; }
 
 /* =====================================================================
    Narkoffret, ouverture façon « coffre légendaire » :
@@ -2012,3 +2006,4 @@ body:not([data-mode="accueil"]) .mode-tab { font-size: 12px; }
 .map-last.ok .dist{background:var(--ok,#3f8a4a);color:#fff}.map-last.partial .dist{background:var(--partial,#b8862f);color:#fff}.map-last.ko .dist{background:var(--ko,#8a3a32);color:#fff}
 .map-area-input .counter{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .map-count{color:var(--muted)}
+html.home-fit, html.home-fit body { overflow: hidden; }
