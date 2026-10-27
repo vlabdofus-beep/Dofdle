@@ -16,6 +16,8 @@ import { streakText } from './modes/engine.js';
 import { mobileBar } from './ui/victory.js';
 import { streakEgg } from './ui/streak.js';
 import { soundOn, setSound } from './ui/sound.js';
+import { renderBestiary } from './ui/bestiary.js';
+import { rewardWin, welcomeChests, collection } from './core/chests.js';
 import { runGuessMode } from './modes/engine.js';
 import { monsterMode } from './modes/monster.js';
 import { spellMode } from './modes/spell.js';
@@ -113,9 +115,14 @@ function render() {
   const mode = currentMode();
   renderNav(mode);
   renderDate();
-  document.body.dataset.mode = mode ? mode.id : 'accueil';
+  const page = location.hash.replace('#', '').split('/')[0];
+  document.body.dataset.mode = mode ? mode.id : page === 'bestiaire' ? 'bestiaire' : 'accueil';
   app.classList.remove('no-guess');
   window.scrollTo(0, 0);
+  if (!mode && page === 'bestiaire') {
+    document.title = 'Dofusle, Bestiaire du Krosmoz';
+    return renderBestiary(app);
+  }
   if (!mode) {
     document.title = 'Dofusle, le défi quotidien de l\'univers Dofus';
     renderHome(app, MODES, { onShareDay: shareDay });
@@ -135,6 +142,14 @@ const awaiting = new Set();
 window.addEventListener('dofusle:progress', (ev) => {
   const mode = currentMode();
   const won = ev.detail?.mode;
+  // Coffres : 1 par défi, 3 pour la journée complète, 2 par évolution d'œuf (une seule fois chacun)
+  if (won) {
+    const gained = rewardWin(won, todayKey(), MODES.length);
+    if (gained.length) {
+      const n = gained.reduce((a, g) => a + g.n, 0);
+      setTimeout(() => toast(`+${n} coffre${n > 1 ? 's' : ''} : ${gained.map((g) => g.why).join(', ')}`, 3600), 1800);
+    }
+  }
   const fresh = won && !nav.querySelector(`.mode-tab.won .dofus-slot[data-mode="${won}"]`);
   // Mobile : le Dofus s'envole vers la barre du bas ; ordinateur : il se pose tout de suite
   if (fresh && mobileBar()) awaiting.add(won);
@@ -174,6 +189,7 @@ document.getElementById('btn-help').addEventListener('click', () => {
       h('li', h('strong', 'Cri : '), 'écoute le cri d\'un monstre (tiré des fichiers du jeu) et retrouve à qui il appartient.'),
       h('li', h('strong', 'Juste prix : '), 'une question chiffrée improbable (maps d\'une région, recettes d\'un métier, PV d\'un boss…). Trouve le nombre exact grâce aux indications plus / moins.')),
     h('p.muted', 'Les indices ne s\'affichent jamais tout seuls : une fois débloqués, clique dessus pour les révéler.'),
+    h('p.muted', 'Bestiaire : chaque défi réussi rapporte un coffre (3 pour la journée complète, 2 à chaque évolution d\'œuf). Ouvre-les dans le Bestiaire, par 1 ou par 10, pour collectionner les cartes des monstres et des Dofus.'),
     h('p.muted', 'Bloqué ? Au-dessus du champ, filtre la liste par région et niveau (Monstre, Cri) ou par classe et élément (Sort), et classe-la par niveau.'),
     h('div.legend.static',
       h('span', h('i.sw.ok', '✓'), 'Correct'),
@@ -208,6 +224,19 @@ document.getElementById('btn-cache').addEventListener('click', async () => {
 });
 
 backfillHistory(MODES.map((m) => m.id));
+
+// Coffres : pastille sur l'icône du Bestiaire ; cadeau de bienvenue pour les joueurs déjà là
+const chestBadge = document.getElementById('chest-badge');
+const showChests = () => {
+  const n = collection().chests;
+  chestBadge.hidden = !n;
+  chestBadge.textContent = n > 99 ? '99+' : String(n);
+  document.getElementById('btn-chests').setAttribute('aria-label', n ? `Bestiaire et coffres : ${n} coffre${n > 1 ? 's' : ''} à ouvrir` : 'Bestiaire et coffres');
+};
+window.addEventListener('dofusle:chests', showChests);
+const welcome = welcomeChests(MODES.map((m) => m.id), todayKey());
+showChests();
+if (welcome) setTimeout(() => toast(`Nouveau : le Bestiaire du Krosmoz ! ${welcome} coffre${welcome > 1 ? 's' : ''} offert${welcome > 1 ? 's' : ''} pour tes victoires passées.`, 5200), 1200);
 route();
 
 // Onglet resté ouvert après minuit : on passe automatiquement aux défis du nouveau jour
