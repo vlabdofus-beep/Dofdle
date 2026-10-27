@@ -1,5 +1,5 @@
 // Cartes du Bestiaire du Krosmoz : une carte par monstre jouable et par Dofus.
-// La rareté découle des données : Dofus > boss > archimonstres > monstres de niveau 120+ > le reste.
+// La rareté découle des données : Dofus > boss > archimonstres > monstres de niveau 140+ > le reste.
 import { monsterEntries, monsterImg } from './monsters.js';
 import { normalize } from '../core/text.js';
 
@@ -28,7 +28,7 @@ const DOFUS = [
 ];
 const PRIMORDIAUX = new Set([23001, 23002, 23003, 23007, 23011, 23012]);
 
-export const UNCOMMON_LEVEL = 120;
+export const UNCOMMON_LEVEL = 140;
 
 /** Toutes les cartes, dans l'ordre des planches (Dofus en dernier). */
 export function buildCards(data) {
