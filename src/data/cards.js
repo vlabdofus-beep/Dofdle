@@ -1,7 +1,7 @@
 // Cartes du Bestiaire du Krosmoz : monstres, équipements, sorts, classes et Dofus.
 // Raretés, d'après les données du jeu :
 //  - monstres : Dofus > boss > archimonstres > niveau 140+ > le reste
-//  - équipements : objets légendaires > niveau 200 > 180-199 > 100-179 > le reste
+//  - équipements : objets légendaires > panoplies 200 choisies (Épique) > 180-200 (Rare) > 100-179 > le reste
 //  - sorts : 6 PA et plus Épique, 4-5 PA Peu commune, 3 PA et moins Commune
 //  - classes : toutes Épiques
 import { monsterEntries, monsterImg } from './monsters.js';
@@ -42,7 +42,14 @@ export const UNCOMMON_LEVEL = 140;
 // Équipements légendaires (isLegendary sur DofusDB)
 const LEGENDARY_ITEMS = new Set([20353, 20354, 20355, 20356, 20357, 20358, 20359, 20360, 20361, 20362, 20363, 20364, 20365,
   20366, 22368, 22412, 22429, 22444, 32114, 32115, 32116, 32117, 32118, 32119, 32121, 32163]);
-const itemRarity = (it) => (LEGENDARY_ITEMS.has(it.id) ? 5 : it.l >= 200 ? 4 : it.l >= 180 ? 3 : it.l >= 100 ? 2 : 1);
+// Niveau 200 : Rare, sauf ces panoplies qui restent Épiques
+const EPIC_SETS = new Set(['Strigide', 'Culbutoeuf', 'Bonimenteur', 'Guerre', 'Gouffre', 'Sanctuaire des Jardins éternels', 'Psikopompe',
+  'Glourdorak', 'Gargandyas', 'Chevalier de Glace', 'Mekamouth', 'Torkélonia', 'Volkorne', 'Tal Kasha', 'Voldelor', 'Cycloïde',
+  'Séculaire', 'Comte Harebourg'].map((x) => normalize(x).trim()));
+const setKey = (name) => normalize(name || '').trim().replace(/^panoplie (de la |du |des |de l |de |d )?/, '');
+const itemRarity = (it, sets) => (LEGENDARY_ITEMS.has(it.id) ? 5
+  : it.l >= 200 ? (it.s && EPIC_SETS.has(setKey(sets[it.s])) ? 4 : 3)
+    : it.l >= 180 ? 3 : it.l >= 100 ? 2 : 1);
 const spellRarity = (s) => (s.pa >= 6 ? 4 : s.pa >= 4 ? 2 : 1);
 
 export const SERIES = [
@@ -84,7 +91,7 @@ export function buildCards(monsters, items = null, spells = null) {
   }));
 
   const equip = !items ? [] : [...items.items].sort((a, b) => a.l - b.l || a.n.localeCompare(b.n, 'fr')).map((it, i) => ({
-    id: `e${it.id}`, name: it.n, rarity: itemRarity(it), img: itemImg(it), series: 'e', num: `E-${pad(i + 1, 4)}`,
+    id: `e${it.id}`, name: it.n, rarity: itemRarity(it, items.sets), img: itemImg(it), series: 'e', num: `E-${pad(i + 1, 4)}`,
     family: items.types[it.t] || 'Équipement', level: [it.l, it.l],
     habitat: it.s ? (items.sets[it.s] || 'Panoplie') : 'Hors panoplie', habLabel: 'Panoplie',
   }));
