@@ -1,4 +1,4 @@
-// Deux pages : « Coffres » (le tirage, par 1 ou par 10) et « Bestiaire » (l'album des cartes).
+// Deux pages : « Coffres » (le tirage : par 1, par 10 ou tout) et « Bestiaire » (l'album des cartes).
 import { h, clear, toast } from './dom.js';
 import { openModal, closeModal } from './modal.js';
 import { loadDataset } from '../core/cache.js';
@@ -6,7 +6,7 @@ import { monstersDataset } from '../data/monsters.js';
 import { itemsDataset } from '../data/items.js';
 import { spellsDataset } from '../data/spells.js';
 import { buildCards, RARITIES, SERIES, rarity, NARKOFFRET } from '../data/cards.js';
-import { collection, openChests, craftCard } from '../core/chests.js';
+import { collection, openChests, craftCard, PITY } from '../core/chests.js';
 import { cardEl, cardBack, sealedPlate } from './card.js';
 import { play } from './sound.js';
 import { setPref } from '../core/storage.js';
@@ -45,6 +45,14 @@ export async function renderBestiary(root, view = 'album') {
     showOpening(draws, set, { onAgain: (k) => open(k), onClose: () => (view === 'coffres' ? drawChests() : refresh()) });
   }
 
+  // Compteurs de garanties, affichés sous les boutons
+  function pityLine() {
+    const p = collection().pity;
+    const left = (k) => PITY[k] - p[k];
+    const item = (k, label) => h(`span.cp-pity.${k}`, h('b', label), ` dans ${plural(left(k), 'tirage', 'tirages')} au plus`);
+    return h('p.cp-pities', { 'aria-label': 'Garanties' }, item('r', 'Rare'), item('e', 'Épique'), item('l', 'Légendaire'));
+  }
+
   // --- Page « Coffres » : le Narkoffret Infini, en grand, et le tirage
   if (view === 'coffres') {
     const page = h('section.chest-page', { 'aria-label': 'Coffres à ouvrir' });
@@ -57,13 +65,15 @@ export async function renderBestiary(root, view = 'album') {
           h('div.cp-aura'), h('img.cp-chest', { src: NARKOFFRET, alt: '' }), h('div.cp-shadow')),
         h('h2.cp-title', n ? (n > 1 ? `${fmt(n)} coffres à ouvrir` : 'Un coffre à ouvrir') : 'Plus de coffre pour l\'instant'),
         h('p.cp-sub', n
-          ? 'Chaque coffre contient une carte du Bestiaire du Krosmoz. Par 10, au moins une Rare est garantie.'
+          ? 'Chaque coffre contient une carte du Bestiaire du Krosmoz.'
           : 'Réussis les défis du jour pour gagner de nouveaux coffres : 1 par défi, 3 pour la journée complète, et des paliers tous les 5 jours de série.'),
         n
           ? h('div.cp-actions',
             h('button.btn.primary.cp-open', { type: 'button', onclick: () => open(1) }, 'Ouvrir 1 coffre'),
-            h('button.btn.cp-open', { type: 'button', disabled: n < 10 || undefined, onclick: () => open(10) }, 'Ouvrir 10 coffres'))
+            h('button.btn.cp-open', { type: 'button', disabled: n < 10 || undefined, onclick: () => open(10) }, 'Ouvrir 10 coffres'),
+            n > 10 ? h('button.btn.cp-open', { type: 'button', onclick: () => open(n) }, `Tout ouvrir (${fmt(n)})`) : null)
           : h('div.cp-actions', h('a.btn.primary.cp-open', { href: '#' }, 'Jouer les défis du jour')),
+        pityLine(),
         h('p.cp-links',
           h('a', { href: '#bestiaire' }, `Voir ma collection (${fmt(owned())} sur ${fmt(set.cards.length)})`),
           h('button.link', { type: 'button', onclick: showRates }, 'Chances et éclats')),
@@ -172,7 +182,7 @@ export async function renderBestiary(root, view = 'album') {
         h('tbody', RARITIES.map((r) => h('tr',
           h('td', r.label), h('td', `${String(r.weight).replace('.', ',')} %`), h('td', `+${r.shards}`), h('td', fmt(r.cost)))))),
       h('p.small.muted', 'Chaque coffre contient une carte : une chance sur deux d\'un équipement, une chance sur deux d\'un monstre, d\'un sort, d\'une classe ou d\'un Dofus. La rareté est ensuite tirée selon ce tableau.'),
-      h('p.small.muted', 'Ouverture par 10 : au moins une carte Rare ou mieux. Un doublon se transforme en éclats ; avec assez d\'éclats, tu crées la carte manquante de ton choix.'),
+      h('p.small.muted', `Garanties, comptées sur tous tes tirages : une carte Rare ou mieux au moins tous les ${PITY.r} tirages, une Épique ou mieux tous les ${PITY.e}, une Légendaire tous les ${fmt(PITY.l)}. Un doublon se transforme en éclats ; avec assez d'éclats, tu crées la carte manquante de ton choix.`),
       h('p.small.muted', 'Les coffres se gagnent en jouant : 1 par défi réussi, 3 pour la journée complète, et tous les 5 jours de série, autant de coffres que de jours : 5, puis 10, puis 15… La série de chaque mode compte, et celle des journées complètes aussi. Rien ne s\'achète.'));
   }
 
@@ -286,7 +296,8 @@ function showOpening(draws, set, { onAgain, onClose }) {
   });
 
   const all = h('button.btn', { type: 'button', onclick: () => {
-    [...grid.children].forEach((slot, i) => setTimeout(() => flip(slot, draws[i]), reduceMotion() ? 0 : i * 110));
+    const step = Math.min(110, 2400 / draws.length);
+    [...grid.children].forEach((slot, i) => setTimeout(() => flip(slot, draws[i]), reduceMotion() ? 0 : i * step));
   } }, 'Tout ouvrir');
   const close = () => { overlay.remove(); document.removeEventListener('keydown', onKey); onClose?.(); last?.focus?.(); };
   const onKey = (e) => { if (e.key === 'Escape') close(); };
@@ -302,6 +313,7 @@ function showOpening(draws, set, { onAgain, onClose }) {
       h('div.co-actions',
         c.chests >= 1 ? h('button.btn', { type: 'button', onclick: () => { overlay.remove(); onAgain(1); } }, 'Ouvrir 1 coffre') : null,
         c.chests >= 10 ? h('button.btn', { type: 'button', onclick: () => { overlay.remove(); onAgain(10); } }, 'Ouvrir 10 coffres') : null,
+        c.chests > 10 ? h('button.btn', { type: 'button', onclick: () => { overlay.remove(); onAgain(c.chests); } }, `Tout ouvrir (${fmt(c.chests)})`) : null,
         h('button.btn.primary', { type: 'button', onclick: () => { close(); if (location.hash !== '#bestiaire') location.hash = 'bestiaire'; } }, 'Voir ma collection')));
     summary.querySelector('.btn.primary')?.focus();
   }

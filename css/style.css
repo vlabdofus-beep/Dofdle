@@ -2047,3 +2047,7 @@ html.home-fit, html.home-fit body { overflow: hidden; }
   .bst-search { max-width: none; flex-basis: 100%; }
 }
 @media (max-width: 480px) { #btn-album { display: none; } } /* sur téléphone, la collection est accessible depuis l accueil et la page Coffres */
+/* Garanties (pity) sous les boutons d'ouverture */
+.cp-pities { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; margin: 0 0 14px; font-size: 13.5px; color: var(--muted); }
+.cp-pity b { font-weight: 700; margin-right: 2px; }
+.cp-pity.r b { color: #a8d6ff; } .cp-pity.e b { color: #d896ff; } .cp-pity.l b { color: #ffd66e; }

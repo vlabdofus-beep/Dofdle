@@ -15,6 +15,10 @@ const CATCHUP_VERSION = 1;
 const GIFT_KEY = 'gift:30:2026-10-27'; // compensation offerte à tous à l'arrivée du garde-fou
 const GIFT = 30;
 
+const pityN = (v) => (Number.isFinite(v) && v >= 0 ? Math.floor(v) : 0);
+/** Garanties sur le total des tirages : une Rare tous les 10, une Épique tous les 50, une Légendaire tous les 1000. */
+export const PITY = { r: 10, e: 50, l: 1000 };
+
 function load() {
   let s = null;
   const { raw, state } = readSigned(KEY);
@@ -30,6 +34,8 @@ function load() {
     welcomed: s.welcomed === true,
     catchup: Number.isFinite(s.catchup) ? s.catchup : 0,
     opened: Number.isFinite(s.opened) ? s.opened : 0,
+    // Pity : tirages depuis la dernière carte Rare (ou mieux), Épique (ou mieux), Légendaire
+    pity: { r: pityN(s.pity?.r), e: pityN(s.pity?.e), l: pityN(s.pity?.l) },
   };
 }
 function save(s) {
@@ -247,15 +253,25 @@ function pickPool(pools) {
 }
 
 /**
- * Ouvre `count` coffres (1 ou 10). Le résultat est enregistré AVANT d'être montré :
+ * Ouvre `count` coffres (1, 10 ou tous). Le résultat est enregistré AVANT d'être montré :
  * recharger la page ne permet pas de retirer. Ouverture par 10 : au moins une Rare.
  */
 export function openChests(set, count) {
   const s = load();
   const n = Math.min(count, s.chests);
   if (!n) return null;
-  const rar = [...Array(n)].map(rollRarity);
-  if (n >= 10 && !rar.some((r) => r >= 3)) rar[rar.length - 1] = 3;
+  const p = s.pity;
+  const rar = [...Array(n)].map(() => {
+    let r = rollRarity();
+    // Garanties comptées sur tous les tirages, pas par ouverture
+    if (p.l + 1 >= PITY.l) r = 5;
+    else if (p.e + 1 >= PITY.e) r = Math.max(r, 4);
+    else if (p.r + 1 >= PITY.r) r = Math.max(r, 3);
+    p.l = r >= 5 ? 0 : p.l + 1;
+    p.e = r >= 4 ? 0 : p.e + 1;
+    p.r = r >= 3 ? 0 : p.r + 1;
+    return r;
+  });
   const draws = rar.map((r) => {
     // Pré-tirage : équipements (50 %) ou le reste (50 %) ; repli sur toutes les cartes si vide
     const fam = set.pools ? pickPool(set.pools) : null;
