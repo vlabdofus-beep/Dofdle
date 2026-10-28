@@ -71,7 +71,7 @@ export async function renderBestiary(root, view = 'album') {
           ? h('div.cp-actions',
             h('button.btn.primary.cp-open', { type: 'button', onclick: () => open(1) }, 'Ouvrir 1 coffre'),
             h('button.btn.cp-open', { type: 'button', disabled: n < 10 || undefined, onclick: () => open(10) }, 'Ouvrir 10 coffres'),
-            n > 10 ? h('button.btn.cp-open', { type: 'button', onclick: () => open(n) }, `Tout ouvrir (${fmt(n)})`) : null)
+            n > 1 ? h('button.btn.cp-open', { type: 'button', onclick: () => open(n) }, `Tout ouvrir (${fmt(n)})`) : null)
           : h('div.cp-actions', h('a.btn.primary.cp-open', { href: '#' }, 'Jouer les défis du jour')),
         pityLine(),
         h('p.cp-links',
@@ -313,7 +313,7 @@ function showOpening(draws, set, { onAgain, onClose }) {
       h('div.co-actions',
         c.chests >= 1 ? h('button.btn', { type: 'button', onclick: () => { overlay.remove(); onAgain(1); } }, 'Ouvrir 1 coffre') : null,
         c.chests >= 10 ? h('button.btn', { type: 'button', onclick: () => { overlay.remove(); onAgain(10); } }, 'Ouvrir 10 coffres') : null,
-        c.chests > 10 ? h('button.btn', { type: 'button', onclick: () => { overlay.remove(); onAgain(c.chests); } }, `Tout ouvrir (${fmt(c.chests)})`) : null,
+        c.chests > 1 ? h('button.btn', { type: 'button', onclick: () => { overlay.remove(); onAgain(c.chests); } }, `Tout ouvrir (${fmt(c.chests)})`) : null,
         h('button.btn.primary', { type: 'button', onclick: () => { close(); if (location.hash !== '#bestiaire') location.hash = 'bestiaire'; } }, 'Voir ma collection')));
     summary.querySelector('.btn.primary')?.focus();
   }
