@@ -23,8 +23,8 @@ const RES_KEYS = { neutre: 'reductionNeutral', terre: 'reductionEarth', feu: 're
 
 export const monstersDataset = {
   key: 'monsters',
-  version: 8,
-  minVersion: 7, // v8 ajoute seulement le marqueur x (monstres retirés)
+  version: 9,
+  minVersion: 8, // v9 : les archimonstres prennent la famille de leur monstre de base (v8 lisible le temps de régénérer)
   async build(api, onProgress = () => {}) {
     const step = stepper(onProgress, [['Monstres', 6], ['Familles', 1], ['Zones', 2]]);
 
@@ -40,6 +40,9 @@ export const monstersDataset = {
       api.getAll('monster-races', { '$select': ['id', 'name', 'superRaceId'] }),
       api.getAll('monster-super-races', { '$select': ['id', 'name'] }),
     ]);
+    // Archimonstres : famille réelle = celle du monstre dont ils sont l'archimonstre
+    const bases = await api.getAll('monsters', { 'correspondingMiniBossId[$gt]': 0, '$select': ['id', 'race', 'correspondingMiniBossId'] });
+    const archiRace = new Map(bases.map((b) => [b.correspondingMiniBossId, b.race]));
     step.Familles(1, 1);
 
     const [subareas, areas] = await Promise.all([
@@ -77,7 +80,7 @@ export const monstersDataset = {
         n: name,
         g: m.gfxId,
         b: bones,
-        r: m.race,
+        r: (race?.sr === ARCHI_SUPER_RACE && archiRace.get(m.id)) || m.race,
         l: [Math.min(...levels), Math.max(...levels)],
         hp: [Math.min(...hp), Math.max(...hp)],
         k: m.isBoss ? 'boss' : race?.sr === ARCHI_SUPER_RACE ? 'archi' : m.isMiniBoss ? 'miniboss' : 'normal',
