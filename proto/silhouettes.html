@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Silhouettes, prototype</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  body { background: var(--bg); color: var(--text); font-family: var(--font); margin: 0; }
+  .sil-wrap { max-width: 620px; margin: 0 auto; padding: 18px 16px 48px; }
+  .sil-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .sil-head h1 { font-family: var(--font-title); color: var(--gold-2); font-size: 1.7rem; margin: 0; }
+  .sil-proto { font-size: .8rem; color: var(--muted); }
+  .sil-lead { color: var(--muted); margin: 6px 0 14px; }
+  .sil-frame { position: relative; aspect-ratio: 1; border-radius: 18px; overflow: hidden;
+    background: radial-gradient(circle at 50% 45%, #2b3d48 0%, #18232b 62%, #10181e 100%);
+    box-shadow: inset 0 0 0 1px var(--line-soft), inset 0 0 0 6px #141d24, inset 0 0 0 7px rgba(217,173,87,.35), 0 10px 30px rgba(0,0,0,.35); }
+  .sil-frame::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(circle at 50% 50%, transparent 55%, rgba(0,0,0,.35)); }
+  .sil { position: absolute; width: 62%; height: 62%; left: 19%; top: 19%;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .9s cubic-bezier(.2,.8,.2,1), opacity .6s, width .9s, height .9s, left .9s, top .9s; }
+  .sil img { max-width: 100%; max-height: 100%; object-fit: contain; user-select: none; -webkit-user-drag: none; }
+  .tinted .sil img { mix-blend-mode: screen; }
+  .sil.found { opacity: 0; transform: scale(.4) !important; }
+  .sil-tools { display: flex; justify-content: space-between; align-items: center; margin: 10px 2px 0; font-size: .85rem; color: var(--muted); gap: 10px; flex-wrap: wrap; }
+  .sil-tools button { background: none; border: 1px solid var(--line); color: var(--text); border-radius: 999px; padding: 5px 12px; font: inherit; cursor: pointer; }
+  .sil-tools button:hover { border-color: var(--gold); }
+  .sil-slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0; }
+  .slot { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 6px 7px; text-align: center; min-height: 104px;
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between; position: relative; }
+  .slot::before { content: ''; position: absolute; top: 7px; left: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
+  .slot .ph { flex: 1; display: flex; align-items: center; font-family: var(--font-title); font-size: 1.8rem; color: var(--line); }
+  .slot img { width: 64px; height: 64px; object-fit: contain; }
+  .slot .nm { font-size: .78rem; line-height: 1.2; color: var(--muted); min-height: 2.4em; display: flex; align-items: center; }
+  .slot.found { border-color: var(--c); background: color-mix(in srgb, var(--c) 14%, var(--panel)); animation: pop .5s; }
+  .slot.found .nm { color: var(--text); font-weight: 600; }
+  .slot.revealed { border-style: dashed; }
+  @keyframes pop { 40% { transform: scale(1.08); } }
+  .sil-input { position: relative; }
+  .sil-input input { width: 100%; box-sizing: border-box; padding: 13px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-deep); color: var(--text); font: inherit; font-size: 1rem; }
+  .sil-input input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+  .sil-sugg { position: absolute; left: 0; right: 0; top: calc(100% + 4px); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; z-index: 5; max-height: 300px; overflow-y: auto; }
+  .sil-sugg button { display: flex; width: 100%; align-items: center; gap: 10px; padding: 6px 10px; background: none; border: 0; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+  .sil-sugg button:hover, .sil-sugg button.on { background: var(--panel-2); }
+  .sil-sugg img { width: 34px; height: 34px; object-fit: contain; }
+  .sil-sugg small { color: var(--muted); display: block; font-size: .75rem; }
+  .sil-hint { margin: 12px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--panel); border-left: 3px solid var(--gold); font-size: .9rem; }
+  .sil-hint:empty { display: none; }
+  .sil-tries { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .sil-tries span { font-size: .8rem; padding: 4px 9px; border-radius: 999px; background: var(--ko); color: #fff; }
+  .sil-tries span.ok { background: var(--ok); }
+  .sil-win { text-align: center; margin: 16px 0 0; padding: 14px; border-radius: 14px; background: var(--panel); border: 1px solid var(--gold); }
+  .sil-win h2 { font-family: var(--font-title); color: var(--gold-2); margin: 0 0 4px; }
+  .sil-win button { margin-top: 10px; background: var(--gold); color: #1a1408; border: 0; border-radius: 10px; padding: 9px 16px; font: inherit; font-weight: 700; cursor: pointer; }
+  @media (prefers-reduced-motion: reduce) { .sil, .slot.found { transition: none; animation: none; } }
+</style>
+</head>
+<body>
+<main class="sil-wrap">
+  <div class="sil-head"><h1>Silhouettes</h1><span class="sil-proto">Prototype</span></div>
+  <p class="sil-lead">Quatre monstres se cachent dans ce mélange. Retrouve-les tous.</p>
+  <div class="sil-frame tinted" id="frame"></div>
+  <div class="sil-tools">
+    <span id="status">Chargement…</span>
+    <span><button id="toggle" type="button">Ombres noires</button> <button id="reroll" type="button">Autre mélange</button></span>
+  </div>
+  <div class="sil-slots" id="slots"></div>
+  <div class="sil-input">
+    <input id="q" type="text" autocomplete="off" placeholder="Nom d'un monstre ou d'un boss" aria-label="Proposer un monstre">
+    <div class="sil-sugg" id="sugg" hidden></div>
+  </div>
+  <div class="sil-hint" id="hint"></div>
+  <div class="sil-tries" id="tries"></div>
+  <div id="win"></div>
+</main>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs id="filters"></defs>
+</svg>
+<script type="module" src="silhouettes.js"></script>
+</body>
+</html>
