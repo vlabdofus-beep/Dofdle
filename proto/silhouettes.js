@@ -19,6 +19,25 @@ function makeFilters() {
   }).join('') + `<filter id="shadow" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 .02 0 0 0 0 .03 0 0 0 0 .04 0 0 0 .93 0"/></filter>`;
 }
 
+// recadre l'image sur sa forme (les PNG de DofusDB ont une large marge transparente)
+async function cropped(m) {
+  try {
+    const bmp = await createImageBitmap(await (await fetch(img(m))).blob());
+    const c = new OffscreenCanvas(bmp.width, bmp.height), g = c.getContext('2d');
+    g.drawImage(bmp, 0, 0);
+    const a = g.getImageData(0, 0, c.width, c.height).data;
+    let x0 = c.width, y0 = c.height, x1 = -1, y1 = -1;
+    for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) {
+      if (a[(y * c.width + x) * 4 + 3] > 24) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    }
+    if (x1 < 0) return { src: img(m), area: 0 };
+    const w = x1 - x0 + 1, hh = y1 - y0 + 1;
+    const out = document.createElement('canvas'); out.width = w; out.height = hh;
+    out.getContext('2d').drawImage(bmp, x0, y0, w, hh, 0, 0, w, hh);
+    return { src: out.toDataURL(), area: w * hh };
+  } catch { return { src: img(m), area: -1 }; }
+}
+
 function pick4() {
   const used = new Set(), out = [];
   while (out.length < 4) {
@@ -29,15 +48,22 @@ function pick4() {
   return out;
 }
 
-function start() {
-  const targets = pick4();
+async function start() {
+  $('status').textContent = 'Mélange en cours…';
+  let targets, crops;
+  // on écarte les formes trop petites (moins de 22 px de côté une fois recadrées)
+  for (let k = 0; k < 6; k++) {
+    targets = pick4();
+    crops = await Promise.all(targets.map(cropped));
+    if (crops.every((c) => c.area < 0 || c.area > 22 * 22)) break;
+  }
   state = { targets, found: [false, false, false, false], misses: 0, tries: [], done: false };
   const frame = $('frame'); frame.innerHTML = '';
   targets.forEach((m, i) => {
     const el = document.createElement('div');
     el.className = 'sil';
     el.style.transform = `translate(${MIXED[i][0]}%, ${MIXED[i][1]}%) rotate(${(Math.random() * 10 - 5).toFixed(1)}deg)`;
-    const im = new Image(); im.src = img(m); im.alt = ''; im.draggable = false;
+    const im = new Image(); im.src = crops[i].src; im.alt = ''; im.draggable = false;
     el.append(im); frame.append(el);
   });
   applyLook();
