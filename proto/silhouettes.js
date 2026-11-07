@@ -1,8 +1,8 @@
 // Prototype du mode Silhouettes : 4 monstres mélangés, à retrouver tous.
 const COLORS = ['#d9613a', '#34aaa6', '#93c02c', '#c58be0']; // pourpre, turquoise, émeraude, mauve
 const EXCLUDED_SR = new Set([13, 20, 27, 28]); // alignement, archis, quête, invocations
-const MIXED = [[-13, -9], [12, -11], [-10, 11], [13, 10]];  // décalages en % (mélange)
-const SPREAD = [[-22, -20], [22, -20], [-22, 20], [22, 20]]; // indice : silhouettes écartées
+const MIXED = [[-22, -14], [20, -18], [-16, 20], [22, 14]];  // décalages en % (mélange)
+const SPREAD = [[-36, -32], [36, -32], [-36, 32], [36, 32]]; // indice : silhouettes écartées
 const HINT_AT = { spread: 3, family: 6, zone: 9 };
 const $ = (id) => document.getElementById(id);
 const img = (m) => `https://api.dofusdb.fr/img/monsters/${m.g}.png`;
@@ -15,8 +15,8 @@ function makeFilters() {
   const hex = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16) / 255);
   $('filters').innerHTML = COLORS.map((c, i) => {
     const [r, g, b] = hex(c);
-    return `<filter id="tint${i}" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 ${r} 0 0 0 0 ${g} 0 0 0 0 ${b} 0 0 0 .82 0"/></filter>`;
-  }).join('') + `<filter id="shadow" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 .02 0 0 0 0 .03 0 0 0 0 .04 0 0 0 .93 0"/></filter>`;
+    return `<filter id="tint${i}" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 ${r} 0 0 0 0 ${g} 0 0 0 0 ${b} 0 0 0 6 -2.4"/></filter>`;
+  }).join('') + `<filter id="shadow" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 .02 0 0 0 0 .03 0 0 0 0 .04 0 0 0 6 -2.4"/></filter>`;
 }
 
 // recadre l'image sur sa forme (les PNG de DofusDB ont une large marge transparente)
