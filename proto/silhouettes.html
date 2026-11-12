@@ -18,24 +18,21 @@
     box-shadow: inset 0 0 0 1px var(--line-soft), inset 0 0 0 6px #141d24, inset 0 0 0 7px rgba(217,173,87,.35), 0 10px 30px rgba(0,0,0,.35); }
   .sil-frame::after { content: ''; position: absolute; inset: 0; pointer-events: none;
     background: radial-gradient(circle at 50% 50%, transparent 55%, rgba(0,0,0,.35)); }
-  .sil { position: absolute; width: 50%; height: 50%; left: 25%; top: 25%; opacity: .86;
-    filter: drop-shadow(0 0 1px #0d151b) drop-shadow(0 0 1px #0d151b);
+  .sil { position: absolute; width: 56%; height: 56%; left: 22%; top: 22%;
     display: flex; align-items: center; justify-content: center;
-    transition: transform .9s cubic-bezier(.2,.8,.2,1), opacity .6s, width .9s, height .9s, left .9s, top .9s; }
+    transition: transform 1.1s cubic-bezier(.2,.8,.2,1), opacity .7s; }
   .sil img { width: 100%; height: 100%; object-fit: contain; user-select: none; -webkit-user-drag: none; }
-  .dark .sil { opacity: 1; filter: drop-shadow(0 0 .6px rgba(240,210,142,.55)) drop-shadow(0 0 .6px rgba(240,210,142,.55)); }
-  .sil.found { opacity: 0; transform: scale(.4) !important; }
+  .sil.found { opacity: 0; }
   .sil-tools { display: flex; justify-content: space-between; align-items: center; margin: 10px 2px 0; font-size: .85rem; color: var(--muted); gap: 10px; flex-wrap: wrap; }
   .sil-tools button { background: none; border: 1px solid var(--line); color: var(--text); border-radius: 999px; padding: 5px 12px; font: inherit; cursor: pointer; }
   .sil-tools button:hover { border-color: var(--gold); }
-  .sil-slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0; }
+  .sil-slots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 16px 0; }
   .slot { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 6px 7px; text-align: center; min-height: 104px;
     display: flex; flex-direction: column; align-items: center; justify-content: space-between; position: relative; }
-  .slot::before { content: ''; position: absolute; top: 7px; left: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
-  .slot .ph { flex: 1; display: flex; align-items: center; font-family: var(--font-title); font-size: 1.8rem; color: var(--line); }
+    .slot .ph { flex: 1; display: flex; align-items: center; font-family: var(--font-title); font-size: 1.8rem; color: var(--line); }
   .slot img { width: 64px; height: 64px; object-fit: contain; }
   .slot .nm { font-size: .78rem; line-height: 1.2; color: var(--muted); min-height: 2.4em; display: flex; align-items: center; }
-  .slot.found { border-color: var(--c); background: color-mix(in srgb, var(--c) 14%, var(--panel)); animation: pop .5s; }
+  .slot.found { border-color: var(--ivoire); background: color-mix(in srgb, var(--ivoire) 10%, var(--panel)); animation: pop .5s; }
   .slot.found .nm { color: var(--text); font-weight: 600; }
   .slot.revealed { border-style: dashed; }
   @keyframes pop { 40% { transform: scale(1.08); } }
@@ -61,11 +58,11 @@
 <body>
 <main class="sil-wrap">
   <div class="sil-head"><h1>Silhouettes</h1><span class="sil-proto">Prototype</span></div>
-  <p class="sil-lead">Quatre monstres se cachent dans ce mélange. Retrouve-les tous.</p>
-  <div class="sil-frame tinted" id="frame"></div>
+  <p class="sil-lead">Deux monstres se cachent dans cette silhouette. Retrouve-les tous les deux.</p>
+  <div class="sil-frame" id="frame"></div>
   <div class="sil-tools">
     <span id="status">Chargement…</span>
-    <span><button id="toggle" type="button">Ombres noires</button> <button id="reroll" type="button">Autre mélange</button></span>
+    <button id="reroll" type="button">Autre silhouette</button>
   </div>
   <div class="sil-slots" id="slots"></div>
   <div class="sil-input">
