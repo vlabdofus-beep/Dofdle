@@ -17,7 +17,7 @@ let D, pool, entries, state;
 // filtre SVG : couleur unie, bords nets (les ombres portées et halos des images sont ignorés)
 function makeFilter() {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(TINT.slice(i, i + 2), 16) / 255);
-  $('filters').innerHTML = `<filter id="tint" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 ${r} 0 0 0 0 ${g} 0 0 0 0 ${b} 0 0 0 6 -2.4"/></filter>`;
+  $('filters').innerHTML = `<filter id="tint" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 ${r} 0 0 0 0 ${g} 0 0 0 0 ${b} 0 0 0 12 -7.8"/></filter>`;
 }
 
 // recadre l'image sur sa forme (les PNG de DofusDB ont une large marge transparente)
@@ -28,7 +28,7 @@ async function cropped(m) {
   const a = g.getImageData(0, 0, c.width, c.height).data;
   let x0 = c.width, y0 = c.height, x1 = -1, y1 = -1;
   for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) {
-    if (a[(y * c.width + x) * 4 + 3] > 100) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    if (a[(y * c.width + x) * 4 + 3] > 160) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
   }
   if (x1 < 0) throw new Error('image vide');
   const w = x1 - x0 + 1, hh = y1 - y0 + 1;
@@ -45,7 +45,7 @@ function mask(crop, dx, dy) {
   const bx = (W - S) / 2 + dx, by = (W - S) / 2 + dy;
   g.drawImage(crop.canvas, bx + (S - w) / 2, by + (S - hh) / 2, w, hh);
   const a = g.getImageData(0, 0, W, W).data, m = new Uint8Array(W * W);
-  for (let i = 0; i < m.length; i++) m[i] = a[i * 4 + 3] > 100 ? 1 : 0;
+  for (let i = 0; i < m.length; i++) m[i] = a[i * 4 + 3] > 160 ? 1 : 0;
   return m;
 }
 
