@@ -24,5 +24,3 @@
   Cache-Control: no-cache
 /index.html
   Cache-Control: no-cache
-/proto/*
-  Cache-Control: no-cache

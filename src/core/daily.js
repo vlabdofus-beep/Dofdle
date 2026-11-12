@@ -86,7 +86,7 @@ export function pickWeighted(groups, salt, key = todayKey(), getId = (x) => x.id
 }
 
 /**
- * Monstre du jour (modes Monstre et Cri) : 20 % de chances de tomber sur un boss,
+ * Monstre du jour (mode Monstre) : 20 % de chances de tomber sur un boss,
  * 80 % sur un monstre ou un archimonstre. S'applique à partir du 25/10/2026 ;
  * les jours précédents gardent leur tirage d'origine (parties en cours, réponses d'hier).
  */

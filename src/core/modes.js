@@ -13,8 +13,9 @@ export const MODE_ORDER = [
     tagline: 'Situe la map mystère sur la carte du Monde des Douze.' },
   { id: 'objet', label: 'Objet', dofus: 'Ocre', icon: 23012, badge: 'assets/game/ui/mode-objet.png',
     tagline: 'Retrouve l\'équipement à partir de ses effets ou de son icône.' },
-  { id: 'cri', label: 'Cri', dofus: 'Ivoire', icon: 23011, badge: 'assets/game/ui/mode-cri.png',
-    tagline: 'Écoute le cri et retrouve le monstre qui le pousse.' },
+  // Le mode Silhouettes a remplacé le Cri le 12/11/2026 : il garde son identifiant (séries, historique)
+  { id: 'cri', label: 'Silhouettes', dofus: 'Ivoire', icon: 23011, badge: 'assets/game/ui/mode-silhouettes.png',
+    tagline: 'Deux monstres fondus en une seule silhouette : retrouve-les tous les deux.' },
   { id: 'juste-prix', label: 'Juste prix', dofus: 'Ébène', icon: 23007, badge: 'assets/game/ui/mode-chiffre.png',
     tagline: 'Trouve le nombre exact d\'une question improbable sur le jeu.' },
 ];

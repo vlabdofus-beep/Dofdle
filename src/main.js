@@ -23,7 +23,7 @@ import { monsterMode } from './modes/monster.js';
 import { spellMode } from './modes/spell.js';
 import { itemMode } from './modes/item.js';
 import { mapMode, runMapMode } from './modes/map.js';
-import { criMode } from './modes/cri.js';
+import { silhouettesMode, runSilhouettesMode } from './modes/silhouettes.js';
 import { chiffreMode, runChiffreMode } from './modes/chiffre.js';
 
 // Pour ajouter un mode (ex. Bellaphones) : créer sa config + son dataset et l'ajouter ici.
@@ -32,7 +32,7 @@ const MODES = [
   { ...spellMode, run: (root, o) => runGuessMode(root, spellMode, o) },
   { ...mapMode, run: (root, o) => runMapMode(root, o) },
   { ...itemMode, run: (root, o) => runGuessMode(root, itemMode, o) },
-  { ...criMode, run: (root, o) => runGuessMode(root, criMode, o) },
+  { ...silhouettesMode, run: (root, o) => runSilhouettesMode(root, o) },
   { ...chiffreMode, run: (root, o) => runChiffreMode(root, o) },
 ];
 
@@ -44,7 +44,7 @@ const nav = document.getElementById('modes');
 
 /** Mode affiché, ou null pour l'écran d'accueil (pas de hash ou hash inconnu). */
 function currentMode() {
-  const ALIASES = { chiffre: 'juste-prix' }; // anciens liens
+  const ALIASES = { chiffre: 'juste-prix', silhouettes: 'cri' }; // anciens liens
   const raw = location.hash.replace('#', '').split('/')[0];
   const id = ALIASES[raw] || raw;
   return MODES.find((m) => m.id === id) || null;
@@ -191,11 +191,11 @@ document.getElementById('btn-help').addEventListener('click', () => {
       h('li', h('strong', 'Sort : '), 'une icône de sort de classe, floutée ou zoomée. Elle se dévoile à chaque essai ; des indices (PA, portée, élément, classe) se débloquent et se révèlent d\'un clic.'),
       h('li', h('strong', 'Carte : '), 'un bout de map. Clique sur la mini-carte, tape des coordonnées [X, Y] ou une zone : on t\'indique la distance en nombre de maps.'),
       h('li', h('strong', 'Objet : '), 'retrouve un équipement à partir de ses effets ou de son icône floutée.'),
-      h('li', h('strong', 'Cri : '), 'écoute le cri d\'un monstre (tiré des fichiers du jeu) et retrouve à qui il appartient.'),
+      h('li', h('strong', 'Silhouettes : '), 'deux monstres sont fondus en une seule silhouette. Retrouve-les tous les deux : chaque monstre trouvé disparaît de la forme, et après quelques erreurs elle commence à se séparer.'),
       h('li', h('strong', 'Juste prix : '), 'une question chiffrée improbable (maps d\'une région, recettes d\'un métier, PV d\'un boss…). Trouve le nombre exact grâce aux indications plus / moins.')),
     h('p.muted', 'Les indices ne s\'affichent jamais tout seuls : une fois débloqués, clique dessus pour les révéler.'),
     h('p.muted', 'Bestiaire : chaque défi réussi rapporte un coffre (3 pour la journée complète ; tous les 5 jours de série, autant de coffres que de jours : 5, 10, 15…). Ouvre-les dans la page Coffres, par 1, par 10 ou tous d\'un coup (une Rare garantie tous les 10 tirages, une Épique tous les 50, une Légendaire tous les 1000), pour collectionner les cartes.'),
-    h('p.muted', 'Bloqué ? Au-dessus du champ, filtre la liste par région et niveau (Monstre, Cri) ou par classe et élément (Sort), et classe-la par niveau.'),
+    h('p.muted', 'Bloqué ? Au-dessus du champ, filtre la liste par région et niveau (Monstre, Silhouettes) ou par classe et élément (Sort), et classe-la par niveau.'),
     h('div.legend.static',
       h('span', h('i.sw.ok', '✓'), 'Correct'),
       h('span', h('i.sw.partial', '≈'), 'Partiel / proche'),

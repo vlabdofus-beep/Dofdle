@@ -199,7 +199,7 @@ export function monsterEntries(data, normalize) {
   return entries;
 }
 
-// ---------- Filtres de la barre de recherche (Monstre, Cri) ----------
+// ---------- Filtres de la barre de recherche (Monstre, Silhouettes) ----------
 
 export const LEVEL_BANDS = [[1, 20], [21, 50], [51, 100], [101, 150], [151, 200], [201, 300]];
 

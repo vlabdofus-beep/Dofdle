@@ -1,4 +1,4 @@
-// Moteur commun des modes "à la Loldle" (Monstre, Sort, Objet, Cri) :
+// Moteur commun des modes "à la Loldle" (Monstre, Sort, Objet) :
 // chargement des données, tirage du jour, saisie, grille de
 // feedback, victoire, partage et statistiques. Chaque mode fournit sa config.
 import { h, clear, img, formatDuration, toast, isTouch, announce } from '../ui/dom.js';

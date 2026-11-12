@@ -2051,3 +2051,36 @@ html.home-fit, html.home-fit body { overflow: hidden; }
 .cp-pities { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; margin: 0 0 14px; font-size: 13.5px; color: var(--muted); }
 .cp-pity b { font-weight: 700; margin-right: 2px; }
 .cp-pity.r b { color: #a8d6ff; } .cp-pity.e b { color: #d896ff; } .cp-pity.l b { color: #ffd66e; }
+
+/* ---------- Mode Silhouettes : deux monstres fondus en une seule forme ---------- */
+.sil-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+.panel.sil-clue { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center; margin: 4px 0 8px; }
+.clue-visual.sil-frame { width: 300px; height: 300px; display: block; background: radial-gradient(circle at 50% 45%, #2e414c 0%, #1a252d 62%, #111a20 100%); }
+.sil-shape { position: absolute; width: 56%; height: 56%; left: 22%; top: 22%; transition: transform 1.1s cubic-bezier(.2, .8, .2, 1), opacity .7s; }
+.sil-frame .sil-shape img { width: 100%; height: 100%; object-fit: contain; filter: url(#sil-tint); user-select: none; -webkit-user-drag: none; }
+.sil-shape.found { opacity: 0; }
+/* Victoire : les deux monstres apparaissent en couleur, à leur place dans la silhouette */
+.sil-frame.done .sil-shape img { filter: none; }
+.sil-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.sil-slots { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sil-slot { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 104px; padding: 8px 6px;
+  border-radius: 12px; background: var(--panel-deep); border: 1px dashed var(--line); text-align: center; }
+.sil-slot-q { font: 700 30px var(--font-title); color: var(--line); line-height: 1; }
+.sil-slot-name { font-size: 13px; line-height: 1.2; }
+.sil-slot-img { width: 60px; height: 60px; object-fit: contain; }
+.sil-slot.found { border: 1px solid var(--ivoire); background: color-mix(in srgb, var(--ivoire) 10%, var(--panel-deep)); animation: sil-pop .5s ease-out; }
+.sil-slot.found .sil-slot-name { font-weight: 600; color: var(--text); }
+@keyframes sil-pop { 40% { transform: scale(1.06); } }
+.sil-tries { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.sil-try { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 4px; border-radius: 999px; font-size: 13px; color: #fff; }
+.sil-try.ok { background: var(--ok); }
+.sil-try.ko { background: var(--ko); }
+.sil-try-img { width: 24px; height: 24px; object-fit: contain; }
+.sil-reveal { display: grid; gap: 10px; }
+.sil-legacy h3 { margin: 0 0 6px; font: 700 20px var(--font-title); }
+@media (max-width: 640px) {
+  .panel.sil-clue { grid-template-columns: 1fr; justify-items: center; }
+  .clue-visual.sil-frame { width: min(100%, 320px); height: auto; aspect-ratio: 1; }
+  .sil-side { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .sil-shape, .sil-slot.found { transition: none; animation: none; } }

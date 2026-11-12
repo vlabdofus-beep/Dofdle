@@ -15,7 +15,7 @@ Une fois un défi réussi, un lien mène directement au mode suivant non termin�
 | **Carte** | Extrait de map zoomé + mini-carte cliquable du Monde des Douze | Distance en nombre de maps (Manhattan) ; propositions par clic, `X,Y` ou nom de zone ; indices : région, sous-zone, abscisse |
 | **Objet** | Effets de l'équipement ou icône floutée | Type, niveau, panoplie ; indices : effets (4, jours « icône »), panoplie (6) |
 | **Juste prix** | Question chiffrée improbable générée depuis DofusDB (maps d'une région, recettes d'un métier, PV d'un boss, donjons d'un niveau donné…) — 22 modèles répartis sur 8 thèmes, réponses toujours ≥ 40 | Plus / moins, orange à 10 % près ; indices : fourchette (4), forme du nombre (8). Un thème différent chaque jour, tous les thèmes passent avant qu'un thème revienne |
-| **Cri** | Écouter le cri d'un monstre, extrait des fichiers audio de Dofus 3 | Famille ; les monstres partageant le même cri sont acceptés ; indices : niveau (5 essais), famille (10 essais) |
+| **Silhouettes** | Deux monstres ou boss fondus en une seule silhouette, à retrouver tous les deux (remplace le Cri, garde son identifiant `cri` et ses séries) | Monstre trouvé retiré de la forme ; écartement léger dès la 3e erreur ; indices : une famille (6 essais), une zone (9 essais) |
 
 La question du mode Juste prix est calculée à la volée (1 à 4 requêtes `$limit=0` vers DofusDB) puis mise en cache pour la journée : aucun snapshot n'est nécessaire.
 
@@ -65,7 +65,6 @@ node scripts/build-data.mjs monsters items   # seulement certains
 | `data/spells.json` | ~860 sorts des 19 classes (via `/spell-variants`) | ~300 Ko |
 | `data/items.json` | ~3 000 équipements, panoplies, gabarits d'effets | ~500 Ko |
 | `data/maps.json` | ~430 sous-zones du Monde des Douze et ~6 200 maps (une par coordonnée, prioritaire si possible) | ~150 Ko |
-| `data/cris.json` | 777 cris ↔ squelettes de monstres (fichier fourni, voir plus bas) | ~25 Ko |
 
 La couleur des monstres est calculée depuis leur image DofusDB (`src/data/colors.js`) : par le script de snapshot
 (décodeur PNG maison, `scripts/png.mjs`), sinon dans le navigateur pour la cible et chaque proposition, avec cache local.
@@ -131,18 +130,6 @@ python tools/unity-extract/extract.py ./sortie "<Dofus>/Dofus_Data/StreamingAsse
 ```
 
 L'extracteur gère UnityFS + LZ4 et les textures BC7 / DXT / RGBA. Images de monstres, sorts, objets et maps : DofusDB.
-
-## Cris des monstres
-
-`assets/cris/` contient 777 cris (MP3 mono 64 kb/s, lisible partout y compris sur iPhone) extraits des banques FMOD du client
-(`Content/Audio/Banks/Desktop/<squelette>.bank`). Une banque par squelette (`look` DofusDB `{squelette|…}`) ;
-pour chacune, on garde de préférence un échantillon `Voix_*_Attaque`, sinon `Mort`, `Hit`, puis `AnimAttaque`.
-Les noms de fichiers sont hachés pour ne pas révéler le monstre. Pour régénérer :
-
-```bash
-git clone https://github.com/HearthSim/python-fsb5   # décodage FSB5 / Vorbis (libogg + libvorbis requis)
-python tools/cris-extract/build_cris.py assets/cris   # adapter les chemins en tête des scripts
-```
 
 ## Licence et mentions
 

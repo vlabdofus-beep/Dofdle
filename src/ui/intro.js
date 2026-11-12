@@ -9,7 +9,7 @@ const exampleCell = (status, mark, value, arrow) => h(`span.cell.intro-cell.${st
 
 export function showIntro() {
   openModal('Bienvenue sur Dofusle',
-    h('p', 'Chaque jour, six défis dans l\'univers de Dofus : un monstre, un sort, une map, un objet, un cri et un « juste prix ». Chaque défi réussi te fait récolter un Dofus.'),
+    h('p', 'Chaque jour, six défis dans l\'univers de Dofus : un monstre, un sort, une map, un objet, des silhouettes et un « juste prix ». Chaque défi réussi te fait récolter un Dofus.'),
     h('h3', 'Lire les réponses'),
     h('p.muted', 'Exemple : tu proposes un Bouftou alors que la réponse est un Tofu de niveau plus élevé.'),
     h('div.intro-row',
